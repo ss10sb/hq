@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+if [ -z $INIT ]; then
+    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+    source "${SCRIPT_DIR}/_setup"
+fi
+
+DOCKER_COMMAND="node $@"
+DOCKER_CONTAINER="node:${NODE_VERSION-12}"
+
+d_run

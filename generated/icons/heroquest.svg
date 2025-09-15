@@ -1,0 +1,70 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background - dungeon stone -->
+    <rect width="64" height="64" fill="#2c2c2c" stroke="#4a4a4a" stroke-width="1"/>
+
+    <!-- Stone texture pattern -->
+    <defs>
+        <pattern id="stoneTexture" patternUnits="userSpaceOnUse" width="8" height="8">
+            <rect width="8" height="8" fill="#2c2c2c"/>
+            <circle cx="2" cy="2" r="0.5" fill="#3a3a3a"/>
+            <circle cx="6" cy="6" r="0.5" fill="#3a3a3a"/>
+        </pattern>
+    </defs>
+    <rect width="64" height="64" fill="url(#stoneTexture)" opacity="0.3"/>
+
+    <!-- Dungeon walls/grid -->
+    <g stroke="#1a1a1a" stroke-width="2" fill="none">
+        <line x1="0" y1="16" x2="64" y2="16"/>
+        <line x1="0" y1="32" x2="64" y2="32"/>
+        <line x1="0" y1="48" x2="64" y2="48"/>
+        <line x1="16" y1="0" x2="16" y2="64"/>
+        <line x1="32" y1="0" x2="32" y2="64"/>
+        <line x1="48" y1="0" x2="48" y2="64"/>
+    </g>
+
+    <!-- Central shield with sword -->
+    <circle cx="32" cy="32" r="12" fill="#8B4513" stroke="#654321" stroke-width="2"/>
+    <path d="M32 20 L34 22 L34 42 L32 44 L30 42 L30 22 Z" fill="#C0C0C0" stroke="#A0A0A0" stroke-width="1"/>
+    <ellipse cx="32" cy="20" rx="2" ry="3" fill="#FFD700" stroke="#DAA520" stroke-width="1"/>
+
+    <!-- Hero figure (simplified) -->
+    <g transform="translate(8, 8)">
+        <circle cx="4" cy="3" r="2" fill="#FDBCB4"/>
+        <rect x="2" y="5" width="4" height="6" rx="1" fill="#4169E1"/>
+        <rect x="1" y="7" width="2" height="3" fill="#FDBCB4"/>
+        <rect x="5" y="7" width="2" height="3" fill="#FDBCB4"/>
+    </g>
+
+    <!-- Treasure chest -->
+    <g transform="translate(48, 48)">
+        <rect x="0" y="2" width="8" height="5" rx="1" fill="#8B4513"/>
+        <rect x="0" y="4" width="8" height="3" rx="1" fill="#A0522D"/>
+        <circle cx="6" cy="5" r="1" fill="#FFD700"/>
+    </g>
+
+    <!-- Dice -->
+    <g transform="translate(48, 8)">
+        <rect x="1" y="1" width="6" height="6" rx="1" fill="#FFFFFF" stroke="#000" stroke-width="1"/>
+        <circle cx="3" cy="3" r="0.8" fill="#000"/>
+        <circle cx="5" cy="5" r="0.8" fill="#000"/>
+    </g>
+
+    <!-- Skull (danger/monster) -->
+    <g transform="translate(8, 48)">
+        <ellipse cx="4" cy="4" rx="3" ry="2.5" fill="#F5F5DC"/>
+        <circle cx="2.5" cy="3" r="0.8" fill="#000"/>
+        <circle cx="5.5" cy="3" r="0.8" fill="#000"/>
+        <path d="M3 5 L4 6 L5 5" fill="none" stroke="#000" stroke-width="1"/>
+    </g>
+
+    <!-- Magical glow effect -->
+    <circle cx="32" cy="32" r="30" fill="none" stroke="#FFD700" stroke-width="1" opacity="0.4">
+        <animate attributeName="opacity" values="0.2;0.6;0.2" dur="3s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- Corner decorative elements -->
+    <circle cx="6" cy="6" r="2" fill="#4a1a5c" opacity="0.6"/>
+    <circle cx="58" cy="6" r="2" fill="#4a1a5c" opacity="0.6"/>
+    <circle cx="6" cy="58" r="2" fill="#4a1a5c" opacity="0.6"/>
+    <circle cx="58" cy="58" r="2" fill="#4a1a5c" opacity="0.6"/>
+</svg>

@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+if [ -z $INIT ]; then
+    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+    source "${SCRIPT_DIR}/_setup"
+fi
+
+TYPE=$1
+
+case "${TYPE}" in
+    containers | c)
+        $DOCKER_BIN stop `$DOCKER_BIN ps -a -q` && $DOCKER_BIN rm `$DOCKER_BIN ps -a -q`
+        ;;
+    networks | n)
+        $DOCKER_BIN network prune --force
+        ;;
+    all | a)
+        $DOCKER_BIN stop `$DOCKER_BIN ps -a -q` && $DOCKER_BIN rm `$DOCKER_BIN ps -a -q`
+        $DOCKER_BIN network prune --force
+        ;;
+    images | i)
+        $DOCKER_BIN rmi -f `$DOCKER_BIN images -q`
+        ;;
+    *)
+        echo -e "${RED}Syntax: clear [type]\nTypes: [c]ontainers, [n]etworks, [a]ll (containers + networks), or [i]mages${NORMAL}"
+        ;;
+esac

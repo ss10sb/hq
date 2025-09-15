@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+if [ -z $INIT ]; then
+    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+    source "${SCRIPT_DIR}/_setup"
+fi
+
+if [ -z "$@" ]; then
+DIRS=()
+[[ -d "./app" ]] && DIRS+=( 'app' )
+[[ -d "./config" ]] && DIRS+=( 'config' )
+[[ -d "./resources" ]] && DIRS+=( 'resources' )
+[[ -d "./tests" ]] && DIRS+=( 'tests' )
+[[ -d "./src" ]] && DIRS+=( 'src' )
+DIRS="${DIRS[@]}"
+else
+DIRS="$@"
+fi
+
+DOCKER_CONTAINER="dockerizedphp/phploc"
+DOCKER_COMMAND="$DIRS"
+
+d_run

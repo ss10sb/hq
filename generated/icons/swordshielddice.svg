@@ -1,0 +1,56 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background circle -->
+    <circle cx="32" cy="32" r="30" fill="#1a1a2e" stroke="#16213e" stroke-width="2"/>
+
+    <!-- Shield - positioned centrally -->
+    <path d="M32 12 C38 12, 42 16, 42 22 L42 36 C42 44, 38 48, 32 52 C26 48, 22 44, 22 36 L22 22 C22 16, 26 12, 32 12 Z"
+          fill="#8B4513" stroke="#654321" stroke-width="2"/>
+
+    <!-- Shield heraldic detail -->
+    <path d="M32 16 C36 16, 38 18, 38 22 L38 32 C38 38, 36 42, 32 44 C28 42, 26 38, 26 32 L26 22 C26 18, 28 16, 32 16 Z"
+          fill="#A0522D" stroke="#8B4513" stroke-width="1"/>
+
+    <!-- Sword - crossing the shield diagonally -->
+    <g transform="rotate(15 32 32)">
+        <!-- Blade -->
+        <rect x="30.5" y="8" width="3" height="32" fill="#C0C0C0" stroke="#A0A0A0" stroke-width="1"/>
+        <!-- Cross guard -->
+        <rect x="27" y="26" width="10" height="2" fill="#8B7355" stroke="#654321" stroke-width="1"/>
+        <!-- Grip -->
+        <rect x="30" y="28" width="4" height="8" fill="#654321" stroke="#4a2c17" stroke-width="1"/>
+        <!-- Pommel -->
+        <circle cx="32" cy="38" r="2.5" fill="#FFD700" stroke="#DAA520" stroke-width="1"/>
+    </g>
+
+    <!-- Six-sided die - positioned in upper right -->
+    <g transform="translate(44, 8)">
+        <!-- Die face 1 (front) -->
+        <path d="M0 4 L0 12 L8 12 L8 4 Z" fill="#FFFFFF" stroke="#000" stroke-width="1.5"/>
+        <!-- Die face 2 (top) -->
+        <path d="M0 4 L2 2 L10 2 L8 4 Z" fill="#F0F0F0" stroke="#000" stroke-width="1.5"/>
+        <!-- Die face 3 (right) -->
+        <path d="M8 4 L10 2 L10 10 L8 12 Z" fill="#E0E0E0" stroke="#000" stroke-width="1.5"/>
+
+        <!-- Dots on visible faces -->
+        <!-- Front face (showing 5) -->
+        <circle cx="2" cy="6" r="0.8" fill="#000"/>
+        <circle cx="6" cy="6" r="0.8" fill="#000"/>
+        <circle cx="2" cy="10" r="0.8" fill="#000"/>
+        <circle cx="6" cy="10" r="0.8" fill="#000"/>
+        <circle cx="4" cy="8" r="0.8" fill="#000"/>
+
+        <!-- Top face (showing 2) -->
+        <circle cx="3" cy="2.8" r="0.6" fill="#000"/>
+        <circle cx="7" cy="3.2" r="0.6" fill="#000"/>
+    </g>
+
+    <!-- Magical energy effect -->
+    <circle cx="32" cy="32" r="28" fill="none" stroke="#4169E1" stroke-width="1" opacity="0.5" stroke-dasharray="3,2">
+        <animateTransform attributeName="transform" type="rotate" values="0 32 32;360 32 32" dur="8s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- Inner glow -->
+    <circle cx="32" cy="32" r="25" fill="none" stroke="#FFD700" stroke-width="1" opacity="0.3">
+        <animate attributeName="opacity" values="0.2;0.5;0.2" dur="3s" repeatCount="indefinite"/>
+    </circle>
+</svg>

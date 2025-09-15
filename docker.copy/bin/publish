@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+if [ -z $INIT ]; then
+    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+    source "${SCRIPT_DIR}/_setup"
+fi
+
+DEV=${1:-prod}
+
+case "${DEV}" in
+    dev)
+        bash "${SCRIPT_DIR}/composer" update
+        bash "${SCRIPT_DIR}/npm" run dev
+        bash "${SCRIPT_DIR}/tar"
+        bash "${SCRIPT_DIR}/tar" all
+        ;;
+    *)
+        bash "${SCRIPT_DIR}/composer" install --no-dev
+        bash "${SCRIPT_DIR}/npm" run prod
+        bash "${SCRIPT_DIR}/tar"
+        bash "${SCRIPT_DIR}/tar" all
+        ;;
+esac

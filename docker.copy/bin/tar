@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+if [ -z $INIT ]; then
+    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+    source "${SCRIPT_DIR}/_setup"
+fi
+
+if [ -z "$EXCLUDE_TAR" ]; then
+EXCLUDE="*.tar.gz .git .idea bower_components docker* node_modules storage/logs/* \
+storage/framework/sessions/* .env"
+fi
+
+MIN_EXCLUDE="./resources ./config"
+
+DOCKER_EXCLUDE="*.tar.gz .git .idea bower_components node_modules logs/*"
+
+TYPE=${1:-min}
+
+PROJECT=${PROJECT-project}
+
+case "${TYPE}" in
+    all)
+        FILENAME="${PROJECT}.all.tar.gz"
+        ;;
+    docker)
+        EXCLUDE="${DOCKER_EXCLUDE}"
+        FILENAME="${PROJECT}.docker.tar.gz"
+        ;;
+    *)
+        EXCLUDE="${EXCLUDE} ${MIN_EXCLUDE}"
+        FILENAME="${PROJECT}.min.tar.gz"
+        ;;
+esac
+
+echo -e "${GREEN} >>> Tar/gz (${TYPE}) $(pwd) to ${FILENAME}${NORMAL}"
+
+tar -X <(for i in ${EXCLUDE}; do echo $i; done) -czf ${FILENAME} .

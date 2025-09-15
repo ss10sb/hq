@@ -1,0 +1,11 @@
+{
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "/usr/bin/php",
+            "args": [
+                "/data/projects/php/laravel/learning/lvue/artisan",
+                "boost:mcp"
+            ]
+        }
+    }
+}

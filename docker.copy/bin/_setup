@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+if [ -f "${SCRIPT_DIR}/../.env" ]; then
+    set -e
+    source "${SCRIPT_DIR}/../.env"
+    set +e
+else
+    echo "No .env file found" 1>&2
+    exit 1
+fi
+
+INIT=1
+DOCKER_BIN="${DOCKER_BIN-docker}"
+DOCKER_COMPOSE_BIN="${DOCKER_COMPOSE_BIN-docker-compose}"
+CONTAINER_MAILCATCHER="${CONTAINER_MAILCATCHER-mailcatcher}"
+CONTAINER_MARIADB="${CONTAINER_MARIADB-mariadb}"
+CONTAINER_NGINX="${CONTAINER_NGINX-nginx}"
+CONTAINER_PHP="${CONTAINER_PHP-php}"
+CONTAINER_REDIS="${CONTAINER_REDIS-redis}"
+
+RED=$(tput setaf 1)
+GREEN=$(tput setaf 2)
+BLUE=$(tput setaf 6)
+NORMAL=$(tput sgr0)
+UNDERLN=$(tput sgr 0 1)
+BOLD=$(tput bold)
+
+d_run () {
+local user_id=$(id -u)
+local group_id=$(id -g)
+local work_dir=$(pwd)
+local tty=
+echo -e "${BLUE} >>> Run \"${DOCKER_COMMAND}\" in \"${DOCKER_CONTAINER}\" for \"(${user_id}:${group_id})${work_dir}\"${NORMAL}"
+tty -s && tty=--tty
+#--user "${user_id}:${group_id}" \ # add user in for docker, not for podman
+$DOCKER_BIN run \
+    $tty \
+    --interactive \
+    --rm \
+    --volume "${work_dir}":/app \
+    -w /app \
+    "$DOCKER_CONTAINER" $DOCKER_COMMAND
+}
+
+d_exec () {
+local user_id=$(id -u)
+local group_id=$(id -g)
+echo "${GREEN} >>> Exec \"${DOCKER_COMMAND}\" in \"${DOCKER_CONTAINER}\"${NORMAL}"
+#$DOCKER_BIN exec -it --user "${user_id}:${group_id}" "$DOCKER_CONTAINER" $DOCKER_COMMAND #docker
+$DOCKER_BIN exec -it "$DOCKER_CONTAINER" $DOCKER_COMMAND #podman
+}

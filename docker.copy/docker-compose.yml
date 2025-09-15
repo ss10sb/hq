@@ -1,0 +1,77 @@
+services:
+  nginx:
+    container_name: nginx
+    build:
+      context: ./nginx
+      args:
+        - NGINX_GROUP
+        - GROUP_ID
+    volumes:
+      - ./nginx/conf/conf.d:/etc/nginx/conf.d
+      - type: bind
+        source: ./../public
+        target: /app/public
+    depends_on:
+      - php
+    ports:
+      - "127.0.0.1:443:443"
+    restart: always
+  php:
+    container_name: php
+    build:
+      context: ./php
+      args:
+        - WWW_USER=${WWW_USER}
+        - WWW_GROUP=${WWW_GROUP}
+        - USER_ID=${USER_ID}
+        - GROUP_ID=${GROUP_ID}
+        - XDEBUG_INSTALL=${XDEBUG_INSTALL}
+    environment:
+      - PHP_FPM_LISTEN=9001
+    volumes:
+      - type: bind
+        source: ./../
+        target: /app
+    depends_on:
+      - redis
+      - db
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  db:
+    container_name: db
+    image: postgres:17-alpine
+    volumes:
+      - type: volume
+        source: dbdata
+        target: /var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    restart: always
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "${DB_DATABASE}", "-U", "${DB_USERNAME}" ]
+      retries: 3
+      timeout: 5s    
+    environment:
+      PGPASSWORD: '${DB_PASSWORD:-secret}'
+      POSTGRES_DB: '${DB_DATABASE}'
+      POSTGRES_USER: '${DB_USERNAME}'
+      POSTGRES_PASSWORD: '${DB_PASSWORD:-secret}'
+  redis:
+    container_name: redis
+    image: redis:latest
+    restart: always
+  mailcatcher:
+    container_name: mailcatcher
+    image: schickling/mailcatcher
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:1080:1080"
+    restart: always
+volumes:
+  dbdata:
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 192.168.170.0/24

@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+composer () {
+local DOCKER_COMMAND=$@
+local COMPOSER_HOME=$HOME/.composer
+local COMPOSER_CACHE_DIR=$HOME/.composer/cache
+local PACKAGE_HOME=/data/projects/php/laravel/packages
+local user_id=$(id -u)
+local group_id=$(id -g)
+local work_dir=$(pwd)
+local tty=
+tty -s && tty=--tty
+if [ "$1" = "install" ] || [ "$1" = "update" ]; then
+  DOCKER_COMMAND="${DOCKER_COMMAND} --ignore-platform-reqs"
+fi
+echo "Running \"${DOCKER_COMMAND}\" in \"composer\" for \"(${user_id}:${group_id})${work_dir}\""
+#--user "${user_id}:${group_id}" \ #add in for docker
+docker run \
+    $tty \
+    --interactive \
+    --rm \
+    --env COMPOSER_HOME \
+    --env COMPOSER_CACHE_DIR \
+    --env APP_ENV=$APP_ENV \
+    --volume /etc/passwd:/etc/passwd:ro \
+    --volume /etc/group:/etc/group:ro \
+    --volume $SSH_AUTH_SOCK:/ssh-auth.sock \
+    --volume $COMPOSER_HOME:$COMPOSER_HOME \
+    --volume $COMPOSER_CACHE_DIR:$COMPOSER_CACHE_DIR \
+    --volume $PACKAGE_HOME:/packages:ro \
+    --volume "${work_dir}":/app \
+    --env SSH_AUTH_SOCK=/ssh-auth.sock \
+    composer $DOCKER_COMMAND
+}
+
+composer "$@"

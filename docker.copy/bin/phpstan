@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+if [ -z $INIT ]; then
+    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+    source "${SCRIPT_DIR}/_setup"
+fi
+
+DOCKER_CONTAINER="phpstan/phpstan"
+DOCKER_COMMAND="$@"
+
+d_run

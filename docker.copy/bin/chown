@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+if [ -z $INIT ]; then
+    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+    source "${SCRIPT_DIR}/_setup"
+fi
+
+PWD=$(pwd)
+USER=$(id -u)
+GROUP=$(id -g)
+
+echo -e "${GREEN} >>> change ownership on \"${PWD}\" to \"${USER}:${GROUP}\""
+
+sudo find "${PWD}" ! -path "*/docker.*" ! -path "*/node_modules*" -exec chown "${USER}:${GROUP}" {} \;

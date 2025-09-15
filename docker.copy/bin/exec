@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+if [ -z $INIT ]; then
+    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+    source "${SCRIPT_DIR}/_setup"
+fi
+
+CONTAINER=$1
+DOCKER_COMMAND="${@:2}"
+
+if [ -z "$DOCKER_COMMAND" ]; then
+    DOCKER_COMMAND=bash
+fi
+
+case "${CONTAINER}" in
+    php)
+        DOCKER_CONTAINER="${CONTAINER_PHP}"
+        d_exec
+        ;;
+    nginx)
+        DOCKER_CONTAINER="${CONTAINER_NGINX}"
+        d_exec
+        ;;
+    mariadb)
+        DOCKER_CONTAINER="${CONTAINER_MARIADB}"
+        d_exec
+        ;;
+    redis)
+        DOCKER_CONTAINER="${CONTAINER_REDIS}"
+        d_exec
+        ;;
+    mailcatcher)
+        DOCKER_CONTAINER="${CONTAINER_MAILCATCHER}"
+        d_exec
+        ;;
+    *)
+        DOCKER_CONTAINER="${CONTAINER_PHP}"
+        d_exec
+        ;;
+esac

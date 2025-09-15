@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+if [ -z $INIT ]; then
+    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+    source "${SCRIPT_DIR}/_setup"
+fi
+
+DOCKER_CONTAINER=artisan_container
+DOCKER_COMMAND="/usr/local/bin/php artisan $@"
+docker build --build-arg PHP_VERSION="${PHP_VERSION}" -t $DOCKER_CONTAINER - < "${SCRIPT_DIR}/docker/artisan/Dockerfile"
+
+d_run
