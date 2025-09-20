@@ -1,0 +1,16 @@
+FROM php:8.4-cli-alpine
+
+RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS postgresql-dev linux-headers && \
+    apk add --no-cache git libpq && \
+    docker-php-ext-install pcntl pdo pdo_pgsql && \
+    apk del .build-deps
+
+VOLUME ["/app"]
+
+WORKDIR /app
+
+COPY ./ws.entrypoint.sh /entrypoint.sh
+
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

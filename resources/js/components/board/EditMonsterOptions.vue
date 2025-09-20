@@ -6,6 +6,7 @@ import { NumberField, NumberFieldContent, NumberFieldDecrement, NumberFieldIncre
 import { MonsterType } from '@/types/board';
 import type { Stats } from '@/types/gameplay';
 import { computed } from 'vue';
+import { useBoardStore } from '@/stores/board';
 
 const props = defineProps<{
     type: MonsterType;
@@ -18,6 +19,15 @@ const emit = defineEmits<{
     (e: 'update:customText', value: string): void;
     (e: 'update:stats', value: Stats): void;
 }>();
+
+const boardStore = useBoardStore();
+const monsterOptions = computed(() => boardStore.monstersCatalog ?? []);
+
+const selectedMonster = computed(() => (monsterOptions.value || []).find((m: any) => m?.type === props.type));
+const isCustomSelected = computed<boolean>(() => {
+    const sel = selectedMonster.value as any;
+    return !!(sel && sel.custom === true) || props.type === MonsterType.Custom;
+});
 
 const modelType = computed<MonsterType>({
     get() {
@@ -100,14 +110,11 @@ const currentBodyPoints = computed<number>({
                     <SelectValue placeholder="Select a monster type" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem :value="MonsterType.Goblin">Goblin</SelectItem>
-                    <SelectItem :value="MonsterType.Orc">Orc</SelectItem>
-                    <SelectItem :value="MonsterType.Skeleton">Skeleton</SelectItem>
-                    <SelectItem :value="MonsterType.Custom">Custom</SelectItem>
+                    <SelectItem v-for="m in monsterOptions" :key="m.type" :value="m.type as any">{{ m.name }}</SelectItem>
                 </SelectContent>
             </Select>
 
-            <div v-if="modelType === MonsterType.Custom" class="grid gap-2 mt-3">
+            <div v-if="isCustomSelected" class="grid gap-2 mt-3">
                 <Label for="monster-custom">Custom name</Label>
                 <Input id="monster-custom" type="text" v-model="modelCustomText" placeholder="e.g. Chaos Warrior" />
             </div>

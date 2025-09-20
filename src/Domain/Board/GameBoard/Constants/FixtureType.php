@@ -6,17 +6,17 @@ namespace Domain\Board\GameBoard\Constants;
 
 enum FixtureType: string
 {
-    case TREASURE_CHEST = 'treasure-chest';
-    case CHAIR = 'chair';
-    case TABLE = 'table';
-    case BOOKCASE = 'bookcase';
-    case CUPBOARD = 'cupboard';
     case ALCHEMIST_BENCH = 'alchemist-bench';
     case ALTAR = 'altar';
-    case THRONE = 'throne';
+    case BOOKCASE = 'bookcase';
+    case CHAIR = 'chair';
+    case CUPBOARD = 'cupboard';
     case FIREPLACE = 'fireplace';
-    case TORTURE_RACK = 'torture-rack';
-    case TOMB = 'tomb';
     case SORCERERS_TABLE = 'sorcerers-table';
+    case TABLE = 'table';
+    case THRONE = 'throne';
+    case TOMB = 'tomb';
+    case TORTURE_RACK = 'torture-rack';
+    case TREASURE_CHEST = 'treasure-chest';
     case CUSTOM = 'custom';
 }

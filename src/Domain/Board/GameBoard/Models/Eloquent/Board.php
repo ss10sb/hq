@@ -7,10 +7,13 @@ namespace Domain\Board\GameBoard\Models\Eloquent;
 use Database\Factories\Board\BoardFactory;
 use Domain\Board\GameBoard\Constants\BoardGroup;
 use Domain\Board\GameBoard\Models\Builders\BoardBuilder;
+use Domain\Board\GameBoard\Models\Eloquent\Casts\CastAsElements;
 use Domain\Board\GameBoard\Models\Eloquent\Casts\CastAsTiles;
+use Domain\Board\GameSession\Models\Eloquent\Game;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\HasBuilder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Smorken\Model\Eloquent;
 
 #[UseFactory(BoardFactory::class)]
@@ -32,8 +35,14 @@ class Board extends Eloquent implements \Domain\Board\GameBoard\Contracts\Models
         'width',
         'height',
         'tiles',
+        'elements',
         'is_public',
     ];
+
+    public function games(): HasMany
+    {
+        return $this->hasMany(Game::class);
+    }
 
     protected function casts(): array
     {
@@ -41,6 +50,7 @@ class Board extends Eloquent implements \Domain\Board\GameBoard\Contracts\Models
             'width' => 'integer',
             'height' => 'integer',
             'tiles' => CastAsTiles::class,
+            'elements' => CastAsElements::class,
             'is_public' => 'boolean',
             'group' => BoardGroup::class,
             'order' => 'integer',

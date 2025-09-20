@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TrapType } from '@/types/board';
 import { computed } from 'vue';
+import { useBoardStore } from '@/stores/board';
 
 const props = defineProps<{
     type: TrapType;
@@ -14,6 +15,15 @@ const emit = defineEmits<{
     (e: 'update:type', value: TrapType): void;
     (e: 'update:customText', value: string): void;
 }>();
+
+const boardStore = useBoardStore();
+const trapOptions = computed(() => boardStore.trapsCatalog ?? []);
+
+const selectedTrap = computed(() => (trapOptions.value || []).find((t: any) => t?.type === props.type));
+const isCustomSelected = computed<boolean>(() => {
+    const sel = selectedTrap.value as any;
+    return !!(sel && sel.custom === true) || props.type === TrapType.Custom;
+});
 
 const modelType = computed<TrapType>({
     get() {
@@ -44,14 +54,11 @@ const modelCustomText = computed<string>({
                     <SelectValue placeholder="Select a trap type" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem :value="TrapType.Pit">Pit</SelectItem>
-                    <SelectItem :value="TrapType.Spear">Spear</SelectItem>
-                    <SelectItem :value="TrapType.Block">Falling block</SelectItem>
-                    <SelectItem :value="TrapType.Custom">Custom</SelectItem>
+                    <SelectItem v-for="t in trapOptions" :key="t.type" :value="t.type as any">{{ t.name }}</SelectItem>
                 </SelectContent>
             </Select>
 
-            <div v-if="modelType === TrapType.Custom" class="grid gap-2 mt-3">
+            <div v-if="isCustomSelected" class="grid gap-2 mt-3">
                 <Label for="trap-custom">Custom label</Label>
                 <Input id="trap-custom" type="text" v-model="modelCustomText" placeholder="e.g. Gas trap" />
             </div>

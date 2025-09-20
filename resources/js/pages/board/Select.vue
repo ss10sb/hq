@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Board } from '@/types/board';
-import { Head, Link } from '@inertiajs/vue3';
 import { LengthAwarePaginator } from '@/types/pagination';
+import { Head, Link } from '@inertiajs/vue3';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -37,7 +37,7 @@ defineProps<{
                         <CardTitle class="text-xl">Public Boards</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <BoardsList :boards="publicBoards" />
+                        <BoardsList :boards="publicBoards" :show-delete="false" />
                     </CardContent>
                 </Card>
                 <Card>
@@ -45,7 +45,7 @@ defineProps<{
                         <CardTitle class="text-xl">My Boards</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <BoardsList :boards="myBoards" />
+                        <BoardsList :boards="myBoards" :show-delete="true" />
                     </CardContent>
                 </Card>
             </div>

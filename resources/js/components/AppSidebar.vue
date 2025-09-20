@@ -6,9 +6,10 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { LayoutGrid, ListPlus } from 'lucide-vue-next';
+import { Crown, LayoutGrid, ListPlus } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import SelectBoardController from '@/actions/App/Http/Controllers/Board/SelectBoardController';
+import SelectHeroController from '@/actions/App/Http/Controllers/Hero/SelectHeroController';
 
 const mainNavItems: NavItem[] = [
     {
@@ -17,10 +18,15 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
     {
-        title: 'Game Boards', 
+        title: 'Game Boards',
         href: SelectBoardController(),
         icon: ListPlus,
-    }
+    },
+    {
+        title: 'My Heroes',
+        href: SelectHeroController(),
+        icon: Crown,
+    },
 ];
 
 const footerNavItems: NavItem[] = [];

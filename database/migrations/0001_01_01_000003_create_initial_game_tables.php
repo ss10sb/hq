@@ -11,49 +11,58 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::create('boards', function (Blueprint $table) {
+            $table->id();
+            $table->string('name', 128);
+            $table->string('group')->nullable()->default(null);
+            $table->unsignedTinyInteger('order')->default(0);
+            $table->foreignId('creator_id')->constrained('users')->noActionOnDelete();
+            $table->unsignedTinyInteger('width');
+            $table->unsignedTinyInteger('height');
+            $table->json('tiles');
+            $table->json('elements');
+            $table->boolean('is_public');
+            $table->timestamps();
+
+            $table->index('group');
+            $table->index('order');
+            $table->index('creator_id');
+            $table->index('is_public');
+        });
+
         Schema::create('games', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('board_id')->constrained('boards')->cascadeOnDelete();
             $table->string('join_key', 16);
-            $table->string('name');
-            $table->string('description')->nullable()->default(null);
-            $table->foreignId('game_master_id')->constrained('users');
+            $table->foreignId('game_master_id')->constrained('users')->cascadeOnDelete();
             $table->string('status', 16);
-            $table->unsignedTinyInteger('max_players');
-            $table->json('settings');
+            $table->unsignedTinyInteger('max_heroes')->default(4);
+            $table->json('elements');
+            $table->json('tiles');
+            $table->json('heroes');
+            $table->unsignedBigInteger('current_hero_id')->default(0);
             $table->timestamps();
 
             $table->index('join_key');
+            $table->index('game_master_id');
             $table->index('status');
         });
 
-        Schema::create('characters', function (Blueprint $table) {
+        Schema::create('heroes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users');
-            $table->string('class', 16);
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->string('name', 32);
-            $table->string('archetype', 16);
+            $table->string('type', 16);
             $table->json('stats');
             $table->json('equipment');
             $table->json('inventory');
             $table->timestamps();
         });
 
-        Schema::create('game_participants', function (Blueprint $table) {
+        Schema::create('game_user', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('game_id')->constrained('games');
-            $table->foreignId('character_id')->constrained('characters');
-            $table->foreignId('user_id')->constrained('users');
-            $table->timestamp('joined_at');
-        });
-
-        Schema::create('game_sessions', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('game_id')->constrained('games');
-            $table->json('board_state');
-            $table->json('game_state');
-            $table->json('turn_order');
-            $table->foreignId('current_participant_id')->constrained('game_participants');
-            $table->timestamps();
+            $table->foreignId('game_id')->constrained('games')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
         });
     }
 
@@ -62,9 +71,9 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('boards');
         Schema::dropIfExists('games');
-        Schema::dropIfExists('characters');
-        Schema::dropIfExists('game_participants');
-        Schema::dropIfExists('game_sessions');
+        Schema::dropIfExists('heroes');
+        Schema::dropIfExists('game_user');
     }
 };

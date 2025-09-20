@@ -21,6 +21,7 @@ it('can create from a model', function () {
         'created_at' => now(),
         'updated_at' => now(),
         'tiles' => TilesGenerator::generate(10, 10),
+        'elements' => [],
     ]);
     $board = \Domain\Board\GameBoard\DataObjects\Board::fromModel($model);
     expect($board->tiles->count())->toBe(10);

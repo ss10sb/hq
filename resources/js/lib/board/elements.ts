@@ -1,19 +1,23 @@
 import { BoardTool, ElementType, FixtureType, TrapType, MonsterType } from '@/types/board';
 
-export function defaultElementFlags(type: ElementType): { interactive: boolean; hidden: boolean; passthrough: boolean } {
+export function defaultElementFlags(type: ElementType): { interactive: boolean; hidden: boolean; traversable: boolean } {
     switch (type) {
         case ElementType.Door:
-            return { interactive: true, hidden: false, passthrough: false };
+            return { interactive: true, hidden: false, traversable: false };
         case ElementType.SecretDoor:
-            return { interactive: true, hidden: true, passthrough: false };
+            return { interactive: true, hidden: true, traversable: false };
         case ElementType.Monster:
-            return { interactive: true, hidden: true, passthrough: false };
+            return { interactive: true, hidden: false, traversable: false };
         case ElementType.Trap:
-            return { interactive: true, hidden: true, passthrough: true };
+            return { interactive: true, hidden: true, traversable: true };
         case ElementType.Treasure:
-            return { interactive: true, hidden: true, passthrough: true };
+            return { interactive: true, hidden: true, traversable: true };
+        case ElementType.PlayerStart:
+            return { interactive: false, hidden: false, traversable: true };
+        case ElementType.PlayerExit:
+            return { interactive: false, hidden: false, traversable: true };
         default:
-            return { interactive: true, hidden: false, passthrough: false };
+            return { interactive: true, hidden: false, traversable: false };
     }
 }
 
@@ -29,6 +33,10 @@ export function toolToElementType(tool: BoardTool): ElementType | null {
             return ElementType.Trap;
         case BoardTool.AddTreasure:
             return ElementType.Treasure;
+        case BoardTool.AddPlayerStart:
+            return ElementType.PlayerStart;
+        case BoardTool.AddPlayerExit:
+            return ElementType.PlayerExit;
         default:
             return null;
     }

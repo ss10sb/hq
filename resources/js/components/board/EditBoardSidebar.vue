@@ -3,12 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useBoardStore } from '@/stores/board';
 import { BoardTool, FixtureType, TrapType, MonsterType } from '@/types/board';
-import { Bomb, DoorClosed, Gem, Key, Lamp, Layers, Skull, Square } from 'lucide-vue-next';
+import { Bomb, DoorClosed, Gem, Key, Lamp, Layers, Skull, Square, Play, Flag } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import EditMonsterOptions from './EditMonsterOptions.vue';
 import EditFixtureOptions from './EditFixtureOptions.vue';
 import EditTrapOptions from './EditTrapOptions.vue';
 import EditBoardController from '@/actions/App/Http/Controllers/Board/EditBoardController';
+import NewGameController from '@/actions/App/Http/Controllers/Game/NewGameController';
 import { router } from '@inertiajs/vue3';
 
 const isOpen = ref(true);
@@ -34,6 +35,9 @@ async function saveBoard(): Promise<void> {
         await router.put(EditBoardController.store.url(boardStore.id), payload, {
             preserveScroll: true,
             preserveState: true,
+            onSuccess: () => {
+                boardStore.markSaved();
+            },
             onFinish: () => {
                 isSaving.value = false;
             },
@@ -41,6 +45,17 @@ async function saveBoard(): Promise<void> {
     } catch {
         isSaving.value = false;
     }
+}
+
+const isDirty = computed(() => boardStore.isDirty);
+
+const canEdit = computed(() => boardStore.canEdit);
+
+function startGame(): void {
+    if (isDirty.value) {
+        return; // guard: should not be clickable when dirty
+    }
+    router.get(NewGameController.url(boardStore.id), {}, { preserveScroll: true } as any);
 }
 
 const fixtureType = computed<FixtureType>({
@@ -176,7 +191,8 @@ function setTool(tool: BoardTool): void {
 
             <!-- Content -->
             <div class="@container overflow-y-auto p-4">
-                <TooltipProvider :delay-duration="0">
+                <div v-if="canEdit">
+                    <TooltipProvider :delay-duration="0">
                     <div class="">
                         <h1 class="font-semibold text-neutral-700 dark:text-neutral-200">Tiles</h1>
                         <div class="grid grid-cols-3 gap-3 my-5">
@@ -395,6 +411,60 @@ function setTool(tool: BoardTool): void {
                                     <p>Add Treasure</p>
                                 </TooltipContent>
                             </Tooltip>
+
+                            <!-- Player Start -->
+                            <Tooltip>
+                                <TooltipTrigger as-child>
+                                    <Button
+                                        @click="() => setTool(BoardTool.AddPlayerStart)"
+                                        :variant="isTool(BoardTool.AddPlayerStart) ? 'secondary' : 'ghost'"
+                                        size="icon"
+                                        aria-label="Add Player Start"
+                                        :aria-pressed="isTool(BoardTool.AddPlayerStart)"
+                                        :class="[
+                                            'group h-9 w-9 cursor-pointer',
+                                            isTool(BoardTool.AddPlayerStart)
+                                                ? 'bg-green-500/10 text-green-600 ring-1 ring-green-500/30 dark:text-green-400'
+                                                : '',
+                                        ]"
+                                    >
+                                        <span class="sr-only">Add Player Start</span>
+                                        <Play
+                                            :class="['size-5', isTool(BoardTool.AddPlayerStart) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100']"
+                                        />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Add Player Start</p>
+                                </TooltipContent>
+                            </Tooltip>
+
+                            <!-- Player Exit (unique) -->
+                            <Tooltip>
+                                <TooltipTrigger as-child>
+                                    <Button
+                                        @click="() => setTool(BoardTool.AddPlayerExit)"
+                                        :variant="isTool(BoardTool.AddPlayerExit) ? 'secondary' : 'ghost'"
+                                        size="icon"
+                                        aria-label="Add Player Exit"
+                                        :aria-pressed="isTool(BoardTool.AddPlayerExit)"
+                                        :class="[
+                                            'group h-9 w-9 cursor-pointer',
+                                            isTool(BoardTool.AddPlayerExit)
+                                                ? 'bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/30 dark:text-blue-400'
+                                                : '',
+                                        ]"
+                                    >
+                                        <span class="sr-only">Add Player Exit</span>
+                                        <Flag
+                                            :class="['size-5', isTool(BoardTool.AddPlayerExit) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100']"
+                                        />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Add Player Exit</p>
+                                </TooltipContent>
+                            </Tooltip>
                         </div>
                     </div>
                     <!-- Monster options: visible only when Add Monster tool is active -->
@@ -426,13 +496,22 @@ function setTool(tool: BoardTool): void {
                         @update:customText="(v) => (trapCustomText = v)"
                     />
                 </TooltipProvider>
+                </div>
+                <div v-else class="rounded-md border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/40 p-4 text-sm text-neutral-700 dark:text-neutral-200">
+                    This board is view only.
+                </div>
             </div>
 
-            <!-- Footer Save Button -->
+            <!-- Footer Actions -->
             <div class="mt-auto border-t border-neutral-200 p-4 dark:border-neutral-800">
-                <Button type="button" class="w-full" :disabled="isSaving" @click="saveBoard">
-                    {{ isSaving ? 'Saving...' : 'Save Board' }}
-                </Button>
+                <div class="flex gap-2">
+                    <Button v-if="canEdit" type="button" class="flex-1" :disabled="isSaving" @click="saveBoard">
+                        {{ isSaving ? 'Saving...' : 'Save Board' }}
+                    </Button>
+                    <Button v-if="!isDirty" type="button" class="flex-1" variant="secondary" @click="startGame">
+                        Start Game
+                    </Button>
+                </div>
             </div>
         </aside>
     </div>

@@ -25,6 +25,7 @@ class BoardFactory extends Factory
             'height' => $this->faker->numberBetween(10, 50),
             'is_public' => $this->faker->boolean(),
             'tiles' => [],
+            'elements' => [],
             'creator_id' => 1,
         ];
     }

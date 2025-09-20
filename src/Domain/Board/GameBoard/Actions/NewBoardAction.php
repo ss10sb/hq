@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Board\GameBoard\Actions;
 
+use Domain\Board\Elements\DataObjects\Elements;
 use Domain\Board\GameBoard\Contracts\Models\Board;
 use Domain\Board\GameBoard\DataObjects\Board as BoardData;
 use Domain\Board\GameBoard\Support\TilesGenerator;
@@ -30,6 +31,7 @@ class NewBoardAction extends ActionWithEloquent implements \Domain\Board\GameBoa
         $this->validate($data, $this->fromRulesProvider());
         $data['creator_id'] = $this->user->id;
         $data['tiles'] = $this->generateTiles($newBoard);
+        $data['elements'] = new Elements;
 
         return $this->model->newQuery()->create($data);
     }

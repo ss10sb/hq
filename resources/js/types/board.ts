@@ -26,18 +26,32 @@ export enum BoardTool {
     AddSecretDoor = 'add-secret-door',
     AddTrap = 'add-trap',
     AddTreasure = 'add-treasure',
+    AddPlayerStart = 'add-player-start',
+    AddPlayerExit = 'add-player-exit',
+    ToggleVisibility = 'toggle-visibility',
+    OpenDoor = 'open-door',
+    SelectTile = 'select-tile',
+    RevealRoom = 'reveal-room',
+    RevealCorridor = 'reveal-corridor',
+    RemoveElement = 'remove-element',
+    MoveMonster = 'move-monster',
+    MoveElement = 'move-element',
 }
 
 /**
  * Element types the canvas can render. Mirrors backend where possible.
- * From PHP Enum ElementType
+ * From PHP Enum Board\Elements\Constants\ElementType
  */
 export enum ElementType {
     Door = 'door',
     SecretDoor = 'secret_door',
     Monster = 'monster',
+    PlayerStart = 'player_start',
+    PlayerExit = 'player_exit',
     Trap = 'trap',
-    Treasure = 'treasure', // Not yet in backend enum; front-end only for now
+    Treasure = 'treasure',
+    Custom = 'custom',
+    Hero = 'hero',
 }
 
 /**
@@ -46,7 +60,7 @@ export enum ElementType {
 import type { Stats } from '@/types/gameplay';
 
 export type Element = {
-    id: string; // use an uuid for this
+    id: string; // type:x:y or custom (e.g., hero:{playerId})
     name: string;
     description: string;
     type: ElementType;
@@ -54,7 +68,9 @@ export type Element = {
     y: number;
     interactive: boolean;
     hidden: boolean;
-    passthrough: boolean; // Whether players can pass through this element
+    traversable: boolean; // Whether players can pass through this element
+    // Optional display color (used by heroes for per-player coloring)
+    color?: string;
     // Trap-specific metadata (when type === ElementType.Trap)
     trapType?: TrapType;
     trapStatus?: TrapStatus;
@@ -71,6 +87,11 @@ export type Tile = {
     x: number; // The column index.
     y: number; // The row index.
     type: TileType; // The type of the tile (wall, floor, fixture).
+    /**
+     * Whether this tile has been revealed to players (fog of war).
+     * GMs see all tiles regardless of this flag.
+     */
+    visible?: boolean; // Optional for backward compatibility; default false for players
     /**
      * Flags that control interaction and movement on this tile.
      * - Walls: interactive=false, traversable=false
@@ -89,6 +110,7 @@ export interface Board {
     width: number;
     height: number;
     tiles: Tile[][];
+    elements: Element[];
 }
 
 export type FixtureInfo = {
@@ -98,7 +120,10 @@ export type FixtureInfo = {
 
 export interface BoardState extends Board {
     currentTool: BoardTool;
-    elements: Element[];
+    // Catalogs provided by backend (used to populate defaults/options)
+    monstersCatalog: Monster[];
+    trapsCatalog: Trap[];
+    fixturesCatalog: Fixture[];
     // Fixture subtype selection & metadata
     currentFixtureType: FixtureType;
     currentFixtureCustomText: string;
@@ -110,6 +135,9 @@ export interface BoardState extends Board {
     currentMonsterType: MonsterType;
     currentMonsterCustomText: string;
     currentMonsterStats: Stats;
+    canEdit: boolean;
+    // Snapshot signature of the last saved/loaded state to detect dirty state
+    savedSignature: string;
 }
 
 export enum BoardGroup {
@@ -121,7 +149,6 @@ export type BoardGroups = {
     [key: string]: BoardGroup;
 };
 
-
 /**
  * Shape for creating a new board from the New Board form.
  */
@@ -131,30 +158,45 @@ export type NewBoard = {
     order: number;
     width: number;
     height: number;
+    is_public: boolean;
 };
 
 /**
- * From PHP Enum MonsterType
+ * From PHP Enum Board\Elements\Monsters\Constants\MonsterType
  */
 export enum MonsterType {
     Goblin = 'goblin',
     Skeleton = 'skeleton',
+    Zombie = 'zombie',
+    Mummy = 'mummy',
+    Gargoyle = 'gargoyle',
+    DreadWarrior = 'dread-warrior',
+    Abomination = 'abomination',
     Orc = 'orc',
     Custom = 'custom',
 }
 
 /**
- * From PHP Enum FixtureType
+ * From PHP Enum Board\GameBoard\Constants\FixtureType
  */
 export enum FixtureType {
-    TreasureChest = 'treasure_chest',
+    TreasureChest = 'treasure-chest',
     Chair = 'chair',
     Table = 'table',
+    Bookcase = 'bookcase',
+    Cupboard = 'cupboard',
+    AlchemistBench = 'alchemist-bench',
+    Altar = 'altar',
+    Throne = 'throne',
+    Fireplace = 'fireplace',
+    TortureRack = 'torture-rack',
+    Tomb = 'tomb',
+    SorcerersTable = 'sorcerers-table',
     Custom = 'custom',
 }
 
 /**
- * From PHP Enum TrapType
+ * From PHP Enum Board\Elements\Traps\Constants\TrapType
  */
 export enum TrapType {
     Pit = 'pit',
@@ -164,10 +206,32 @@ export enum TrapType {
 }
 
 /**
- * From PHP Enum TrapStatus
+ * From PHP Enum Board\Elements\Traps\Constants\TrapStatus
  */
 export enum TrapStatus {
     Armed = 'armed',
-    Triggered = 'triggered',
     Disarmed = 'disarmed',
+    Triggered = 'triggered',
+}
+
+export type Monster = {
+    name: string;
+    type: MonsterType;
+    stats: Stats;
+    movementSquares: number;
+    custom?: boolean;
+};
+
+export type Trap = {
+    name: string;
+    type: TrapType;
+    status: TrapStatus;
+    custom?: boolean;
+};
+
+export type Fixture = {
+    name: string;
+    type: FixtureType;
+    traversable: boolean;
+    custom?: boolean;
 }

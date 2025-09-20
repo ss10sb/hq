@@ -14,7 +14,8 @@ use Smorken\Model\Contracts\Model;
  * @property int $creator_id
  * @property int $width
  * @property int $height
- * @property \Illuminate\Support\Collection<\Domain\Board\GameBoard\DataObjects\Tile> $tiles
+ * @property \Domain\Board\GameBoard\DataObjects\Tiles $tiles
+ * @property \Domain\Board\Elements\DataObjects\Elements $elements
  * @property bool $is_public
  * @property \Illuminate\Support\Carbon $created_at
  * @property \Illuminate\Support\Carbon $updated_at

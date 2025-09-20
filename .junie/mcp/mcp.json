@@ -3,7 +3,7 @@
         "laravel-boost": {
             "command": "/usr/bin/php",
             "args": [
-                "/data/projects/php/laravel/learning/lvue/artisan",
+                "/data/projects/php/laravel/learning/hq/artisan",
                 "boost:mcp"
             ]
         }

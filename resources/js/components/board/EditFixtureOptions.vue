@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FixtureType } from '@/types/board';
 import { computed } from 'vue';
+import { useBoardStore } from '@/stores/board';
 
 const props = defineProps<{
     type: FixtureType;
@@ -32,6 +33,12 @@ const modelCustomText = computed<string>({
         emit('update:customText', val);
     },
 });
+
+const boardStore = useBoardStore();
+const fixtureOptions = computed(() => {
+    // Use catalog from backend; filter out any items that declare themselves as custom
+    return (boardStore.fixturesCatalog || []).filter((f: any) => !f?.custom);
+});
 </script>
 
 <template>
@@ -44,10 +51,7 @@ const modelCustomText = computed<string>({
                     <SelectValue placeholder="Select a fixture type" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem :value="FixtureType.TreasureChest">Treasure chest</SelectItem>
-                    <SelectItem :value="FixtureType.Chair">Chair</SelectItem>
-                    <SelectItem :value="FixtureType.Table">Table</SelectItem>
-                    <SelectItem :value="FixtureType.Custom">Custom</SelectItem>
+                    <SelectItem v-for="fx in fixtureOptions" :key="fx.type" :value="fx.type">{{ fx.name }}</SelectItem>
                 </SelectContent>
             </Select>
 

@@ -1,0 +1,129 @@
+import type Echo from 'laravel-echo';
+import type { Element } from '@/types/board';
+import type { Player } from '@/types/game';
+
+// Central registry of whisper event names used by gameplay.
+export const WhisperEvents = {
+    GameStateSync: 'gameState.sync',
+    BoardElementsSync: 'board.elements.sync',
+    BoardTilesSync: 'board.tiles.sync',
+    SelectedTileSync: 'board.selected.sync',
+    // Future expansion (placeholders)
+    FogOfWarSync: 'fog.sync',
+    HeroMoved: 'hero.moved',
+    HeroUpdated: 'hero.updated',
+    MonsterMoved: 'monster.moved',
+    MonsterUpdated: 'monster.updated',
+    DoorOpened: 'door.opened',
+    DoorClosed: 'door.closed',
+    TrapTriggered: 'trap.triggered',
+    TrapDisarmed: 'trap.disarmed',
+    VisibilitySync: 'visibility.sync',
+    DiceRolled: 'dice.rolled',
+} as const;
+
+export type WhisperEventName = typeof WhisperEvents[keyof typeof WhisperEvents];
+
+export function broadcastGameStateSync(channel: Echo.Channel, currentHero: number, heroes: any[]): void {
+    try {
+        channel.whisper(WhisperEvents.GameStateSync, {
+            currentHero,
+            heroes,
+        });
+    } catch {
+        // no-op
+    }
+}
+
+export function broadcastElementsSync(channel: Echo.Channel, elements: Element[]): void {
+    try {
+        channel.whisper(WhisperEvents.BoardElementsSync, { elements });
+    } catch {
+        // no-op
+    }
+}
+
+export type SelectedTilePayload = { heroId: number; tile: { x: number; y: number } | null; color?: string };
+
+export function broadcastSelectedTileSync(channel: Echo.Channel, payload: SelectedTilePayload): void {
+    try {
+        console.log('broadcastSelectedTileSync', payload);
+        channel.whisper(WhisperEvents.SelectedTileSync, payload);
+    } catch {
+        // no-op
+    }
+}
+
+/**
+ * Utility to safely listen for known whispers on a presence channel.
+ * Unknown events are ignored, helping future-proof handlers.
+ */
+export function onWhisper<T = any>(channel: Echo.Channel, event: WhisperEventName, handler: (payload: T) => void): void {
+    channel.listenForWhisper(event, (data: T) => handler(data));
+}
+
+export type FogRevealPayload = { tiles: { x: number; y: number }[] };
+
+export function broadcastFogOfWarSync(channel: Echo.Channel, tiles: { x: number; y: number }[]): void {
+    try {
+        channel.whisper(WhisperEvents.FogOfWarSync, { tiles } as FogRevealPayload);
+    } catch {
+        // no-op
+    }
+}
+
+export type TilesSyncChange = { x: number; y: number; tile: any };
+export type TilesFixtureMetaPatch = Record<string, { type: any; label: string } | null>;
+export type TilesSyncPayload =
+    | { tiles: any[][]; fixtureMeta?: TilesFixtureMetaPatch }
+    | { changes: TilesSyncChange[]; fixtureMeta?: TilesFixtureMetaPatch };
+
+export function broadcastTilesSync(channel: Echo.Channel, payload: TilesSyncPayload): void {
+    try {
+        channel.whisper(WhisperEvents.BoardTilesSync, payload);
+    } catch {
+        // no-op
+    }
+}
+
+export type HeroMovedPayload = { heroId: number; x: number; y: number; steps?: number };
+
+export function broadcastHeroMoved(channel: Echo.Channel, payload: HeroMovedPayload): void {
+    try {
+        channel.whisper(WhisperEvents.HeroMoved, payload);
+    } catch {
+        // no-op
+    }
+}
+
+export type HeroUpdatedPayload = { heroId: number; hero: any };
+
+export function broadcastHeroUpdated(channel: Echo.Channel, payload: HeroUpdatedPayload): void {
+    try {
+        channel.whisper(WhisperEvents.HeroUpdated, payload);
+    } catch {
+        // no-op
+    }
+}
+
+export type TrapTriggeredPayload = { heroId: number; heroName: string; trapId: string; trapName: string };
+
+export function broadcastTrapTriggered(channel: Echo.Channel, payload: TrapTriggeredPayload): void {
+    try {
+        channel.whisper(WhisperEvents.TrapTriggered, payload);
+    } catch {
+        // no-op
+    }
+}
+
+// --- Dice Rolls ---
+import type { DieType } from '@/lib/board/game';
+export type DiceRolledPayload = { actorName: string; diceType: DieType; count: number; results: Array<number | string> };
+
+export function broadcastDiceRolled(channel: Echo.Channel, payload: DiceRolledPayload): void {
+    try {
+        channel.whisper(WhisperEvents.DiceRolled, payload);
+    } catch {
+        // no-op
+    }
+}

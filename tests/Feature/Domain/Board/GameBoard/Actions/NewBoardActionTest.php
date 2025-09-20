@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Domain\Board\GameBoard\Actions;
 
+use Domain\Board\Elements\DataObjects\Elements;
 use Domain\Board\GameBoard\Constants\BoardGroup;
 use Domain\Board\GameBoard\Contracts\Actions\NewBoardAction;
 use Domain\Board\GameBoard\DataObjects\Board;
@@ -24,6 +25,7 @@ it('can create a new board', function () {
         height: 10,
         isPublic: true,
         tiles: new Tiles,
+        elements: new Elements
     ));
     $b = \Domain\Board\GameBoard\Models\Eloquent\Board::find($board->id);
     $tiles = $b->tiles;

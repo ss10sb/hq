@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace Domain\Board\GameBoard\DataObjects;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Smorken\Domain\DataObjects\DataObject;
 
+/**
+ * @method bool isEmpty()
+ * @method bool isNotEmpty()
+ */
 class Tiles extends DataObject
 {
     public Collection $tiles;
@@ -25,6 +30,11 @@ class Tiles extends DataObject
     public static function fromJson(string $data): self
     {
         return self::fromArray(json_decode($data, true));
+    }
+
+    public static function fromRequest(Request $request): self
+    {
+        return self::fromArray($request->input('tiles') ?? []);
     }
 
     public function __call(string $name, array $arguments)

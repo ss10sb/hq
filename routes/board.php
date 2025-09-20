@@ -1,7 +1,5 @@
 <?php
 
-use function Pest\Laravel\get;
-
 Route::middleware(['auth', 'verified'])
     ->group(function () {
         Route::get('/board/new', \App\Http\Controllers\Board\NewBoardController::class)
@@ -12,6 +10,8 @@ Route::middleware(['auth', 'verified'])
             ->name('board.edit');
         Route::put('/board/{id}', [\App\Http\Controllers\Board\EditBoardController::class, 'store'])
             ->name('board.edit.store');
+        Route::delete('/board/{id}', \App\Http\Controllers\Board\DeleteBoardController::class)
+            ->name('board.delete');
 
         Route::get('/board', \App\Http\Controllers\Board\SelectBoardController::class)
             ->name('board.select');

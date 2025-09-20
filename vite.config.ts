@@ -2,10 +2,11 @@ import { wayfinder } from '@laravel/vite-plugin-wayfinder';
 import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
+import vueDevTools from 'vite-plugin-vue-devtools'; 
 import { defineConfig } from 'vite';
 import fs from "fs";
 
-export default defineConfig((command, mode) => {
+export default defineConfig((command) => {
     const baseConfig = {
         plugins: [
             laravel({
@@ -24,6 +25,7 @@ export default defineConfig((command, mode) => {
                     },
                 },
             }),
+            vueDevTools(),
         ],
     };
     if (command === 'build') {

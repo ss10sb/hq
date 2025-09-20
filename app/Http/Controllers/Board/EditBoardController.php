@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Board;
 
+use Domain\Board\Elements\Factories\DefaultsRepositoryFactory;
 use Domain\Board\GameBoard\Constants\BoardGroup;
+use Domain\Board\GameBoard\Contracts\Actions\SaveBoardAction;
 use Domain\Board\GameBoard\Contracts\Repositories\FindBoardRepository;
+use Domain\Board\GameBoard\DataObjects\Board;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -16,25 +19,30 @@ class EditBoardController
 {
     public function __construct(
         protected FindBoardRepository $findBoardRepository,
+        protected SaveBoardAction $saveBoardAction,
+        protected DefaultsRepositoryFactory $defaultsRepositoryFactory,
     ) {}
 
     public function __invoke(Request $request, int $id): Response
     {
         $board = ($this->findBoardRepository)($id);
+        $boardData = Board::fromBoardModel($board);
 
         return Inertia::render('board/Edit', [
-            'board' => $board->only(['id', 'name', 'group', 'order', 'width', 'height', 'tiles']),
+            'board' => $boardData,
             'canEdit' => $board->creator_id === (int) $request->user()->getAuthIdentifier(),
             'groups' => BoardGroup::toSelectList(),
+            'monsters' => $this->defaultsRepositoryFactory->monsters(),
+            'traps' => $this->defaultsRepositoryFactory->traps(),
+            'fixtures' => $this->defaultsRepositoryFactory->fixtures(),
         ]);
     }
 
     public function store(Request $request, int $id): RedirectResponse
     {
-        dd($request->all());
-        $board = ($this->findBoardRepository)($id);
+        $boardData = Board::fromRequest($request);
+        ($this->saveBoardAction)($id, $boardData);
 
-        // TODO store board state
-        return Redirect::back();
+        return Redirect::back()->withErrors($this->saveBoardAction->getMessages());
     }
 }

@@ -36,6 +36,9 @@
 
     --color-destructive: var(--destructive);
     --color-destructive-foreground: var(--destructive-foreground);
+    
+    --color-success: var(--success);
+    --color-success-foreground: var(--success-foreground);
 
     --color-border: var(--border);
     --color-input: var(--input);
@@ -118,6 +121,8 @@
     --sidebar-border: hsl(0 0% 91%);
     --sidebar-ring: hsl(217.2 91.2% 59.8%);
     --sidebar: hsl(0 0% 98%);
+    --success: oklch(44.8% 0.119 151.328);
+    --success-foreground: hsl(0 0% 98%);
 }
 
 .dark {
@@ -154,6 +159,8 @@
     --sidebar-border: hsl(0 0% 15.9%);
     --sidebar-ring: hsl(217.2 91.2% 59.8%);
     --sidebar: hsl(240 5.9% 10%);
+    --success: oklch(44.8% 0.119 151.328);
+    --success-foreground: hsl(0 0% 98%);
 }
 
 @layer base {

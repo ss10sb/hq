@@ -38,6 +38,25 @@ services:
     restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"
+  phpws:
+    container_name: phpws
+    build:
+      context: ./phpws
+      args:
+        - WWW_USER=${WWW_USER}
+        - WWW_GROUP=${WWW_GROUP}
+        - USER_ID=${USER_ID}
+        - GROUP_ID=${GROUP_ID}
+    volumes:
+      - type: bind
+        source: ./../
+        target: /app
+    depends_on:
+      - redis
+      - db
+    ports:
+      - "127.0.0.1:8080:8080"
+    restart: always
   db:
     container_name: db
     image: postgres:17-alpine

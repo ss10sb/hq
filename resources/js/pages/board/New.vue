@@ -3,14 +3,15 @@ import NewBoardController from '@/actions/App/Http/Controllers/Board/NewBoardCon
 import SelectBoardController from '@/actions/App/Http/Controllers/Board/SelectBoardController';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { BoardGroups, NewBoard } from '@/types/board';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -37,6 +38,7 @@ const form = useForm<NewBoard>({
     order: board.order,
     height: board.height,
     width: board.width,
+    is_public: board.is_public ?? false,
 });
 
 const submitForm = () => {
@@ -92,6 +94,13 @@ const submitForm = () => {
                     <Label for="width">Columns (width)</Label>
                     <Input id="width" type="number" v-model="form.width" required :tabindex="4" autocomplete="width" name="width" />
                     <InputError :message="form.errors.width" />
+                </div>
+                <div class="grid gap-2">
+                    <Label for="is-public">
+                        <Checkbox v-model="form.is_public" :tabindex="5" name="is_public" id="is-public" />
+                        Public?
+                    </Label>
+                    <InputError :message="form.errors.is_public" />
                 </div>
                 <Button type="submit" class="mt-2 w-full" tabindex="5" :disabled="form.processing">
                     <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
