@@ -10,7 +10,7 @@ use Domain\Shared\Models\Eloquent\User;
 
 it('can create a new game', function () {
     $user = User::factory()->create();
-    $boardModel = \Domain\Board\GameBoard\Models\Eloquent\Board::factory()->create();
+    $boardModel = \Domain\Board\GameBoard\Models\Eloquent\Board::factory()->create(['creator_id' => $user->id]);
     $board = Board::fromBoardModel($boardModel);
     $this->actingAs($user);
     $sut = $this->app[NewGameAction::class];

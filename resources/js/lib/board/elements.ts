@@ -1,4 +1,4 @@
-import { BoardTool, ElementType, FixtureType, TrapType, MonsterType } from '@/types/board';
+import { BoardTool, ElementType, FixtureType, MonsterType, TrapType } from '@/types/board';
 
 export function defaultElementFlags(type: ElementType): { interactive: boolean; hidden: boolean; traversable: boolean } {
     switch (type) {

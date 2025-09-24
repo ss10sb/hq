@@ -25,7 +25,7 @@ export type AppPageProps<T extends Record<string, unknown> = Record<string, unkn
         success?: string;
         error?: string;
         info?: string;
-    }
+    };
 };
 
 export interface User {

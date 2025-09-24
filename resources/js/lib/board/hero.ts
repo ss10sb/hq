@@ -24,7 +24,7 @@ export function heroArchetypes(heroes?: Array<NewHero | Hero>): HeroArchetype[] 
  * a sane zeroed default is returned.
  */
 export function defaultsFor(type: HeroArchetype, heroes?: Array<NewHero | Hero>): NewHero {
-    const found = heroes?.find((h) => h.type === type) as (NewHero | Hero | undefined);
+    const found = heroes?.find((h) => h.type === type) as NewHero | Hero | undefined;
     if (found) {
         return cloneHero(found as NewHero);
     }

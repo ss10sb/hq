@@ -20,7 +20,7 @@ it('dispatches PlayerJoined when entering the waiting room', function () {
     // We'll create a minimal game model using the NewGameAction to align with project conventions
     /** @var NewGameAction $newGame */
     $newGame = app(NewGameAction::class);
-    $boardModel = \Domain\Board\GameBoard\Models\Eloquent\Board::factory()->create();
+    $boardModel = \Domain\Board\GameBoard\Models\Eloquent\Board::factory()->create(['creator_id' => $user->id]);
     $boardDO = new \Domain\Board\GameBoard\DataObjects\Board(
         id: $boardModel->id,
         name: $boardModel->name,
@@ -41,7 +41,8 @@ it('dispatches PlayerJoined when entering the waiting room', function () {
     $response = $this->get(route('game.waiting-room', ['id' => $gameModel->id]));
     $response->assertOk();
 
-    Event::assertDispatched(PlayerJoinedWaitingRoom::class, function (PlayerJoinedWaitingRoom $event) use ($user, $gameModel) {
-        return $event->gameId === $gameModel->id && $event->player->id === $user->id;
-    });
+    Event::assertDispatched(PlayerJoinedWaitingRoom::class,
+        function (PlayerJoinedWaitingRoom $event) use ($user, $gameModel) {
+            return $event->gameId === $gameModel->id && $event->player->id === $user->id;
+        });
 });

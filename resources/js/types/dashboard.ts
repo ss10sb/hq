@@ -3,7 +3,7 @@ export type Board = {
     name: string;
     group: string;
     order: number;
-}
+};
 
 export type Game = {
     id: number;
@@ -11,6 +11,11 @@ export type Game = {
     gameMasterId: number;
     status: GameStatus;
     board: Board;
-}
+};
 
-export enum GameStatus { Pending = 'pending', InProgress = 'in_progress', Completed = 'completed', Aborted = 'aborted' }
+export enum GameStatus {
+    Pending = 'pending',
+    InProgress = 'in_progress',
+    Completed = 'completed',
+    Aborted = 'aborted',
+}

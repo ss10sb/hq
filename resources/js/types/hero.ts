@@ -22,8 +22,7 @@ export interface Character {
     playerId: number;
 }
 
-export interface Zargon extends Character {
-}
+export interface Zargon extends Character {} // eslint-disable-line @typescript-eslint/no-empty-object-type
 
 export interface Hero extends Character {
     type: HeroArchetype;

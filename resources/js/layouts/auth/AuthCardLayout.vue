@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import AppLogoImage from '@/components/AppLogoImage.vue';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { home } from '@/routes';
 import { Link } from '@inertiajs/vue3';
-import AppLogoImage from '@/components/AppLogoImage.vue';
 
 defineProps<{
     title?: string;

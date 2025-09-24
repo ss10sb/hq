@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { useBoardStore } from '@/stores/board';
-import { BoardTool, FixtureType, Monster, MonsterType, Trap, TrapType } from '@/types/board';
-import { Bomb, DoorClosed, Eye, EyeOff, Flag, Gem, Key, Move, Play, Skull, Trash2 } from 'lucide-vue-next';
+import EditFixtureOptions from '@/components/board/EditFixtureOptions.vue';
 import EditMonsterOptions from '@/components/board/EditMonsterOptions.vue';
 import EditTrapOptions from '@/components/board/EditTrapOptions.vue';
-import EditFixtureOptions from '@/components/board/EditFixtureOptions.vue';
+import { useBoardStore } from '@/stores/board';
+import { BoardTool, FixtureType, MonsterType, TrapType } from '@/types/board';
+import { Bomb, DoorClosed, Eye, EyeOff, Flag, Gem, Key, Move, Play, Skull, Trash2 } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 const props = defineProps<{
     isOpen?: boolean;
@@ -29,15 +29,6 @@ const isDrawWalls = computed(() => boardStore.currentTool === BoardTool.DrawWall
 
 // Add Element menu toggle; open when any Add* tool is active
 const isAddMenuOpen = ref(false);
-const isAnyAddToolActive = computed(() => [
-    BoardTool.AddMonster,
-    BoardTool.AddDoor,
-    BoardTool.AddSecretDoor,
-    BoardTool.AddTrap,
-    BoardTool.AddTreasure,
-    BoardTool.AddPlayerStart,
-    BoardTool.AddPlayerExit
-].includes(boardStore.currentTool));
 
 // Proxies for options components (reuse board store state like EditBoardSidebar)
 const monsterType = computed<MonsterType>({
@@ -46,7 +37,7 @@ const monsterType = computed<MonsterType>({
     },
     set(v: MonsterType) {
         boardStore.setCurrentMonsterSelection(v, boardStore.currentMonsterCustomText);
-    }
+    },
 });
 const monsterCustomText = computed<string>({
     get() {
@@ -54,7 +45,7 @@ const monsterCustomText = computed<string>({
     },
     set(v: string) {
         boardStore.setCurrentMonsterSelection(boardStore.currentMonsterType, v, boardStore.currentMonsterStats);
-    }
+    },
 });
 const monsterStats = computed<any>({
     get() {
@@ -62,7 +53,7 @@ const monsterStats = computed<any>({
     },
     set(v: any) {
         boardStore.setCurrentMonsterSelection(boardStore.currentMonsterType, boardStore.currentMonsterCustomText, v);
-    }
+    },
 });
 
 const trapType = computed<TrapType>({
@@ -71,7 +62,7 @@ const trapType = computed<TrapType>({
     },
     set(v: TrapType) {
         boardStore.setCurrentTrapSelection(v, boardStore.currentTrapCustomText);
-    }
+    },
 });
 const trapCustomText = computed<string>({
     get() {
@@ -79,7 +70,7 @@ const trapCustomText = computed<string>({
     },
     set(v: string) {
         boardStore.setCurrentTrapSelection(boardStore.currentTrapType, v);
-    }
+    },
 });
 
 // Fixture selections
@@ -89,7 +80,7 @@ const fixtureType = computed<FixtureType>({
     },
     set(v: FixtureType) {
         boardStore.setCurrentFixtureSelection(v, boardStore.currentFixtureCustomText);
-    }
+    },
 });
 const fixtureCustomText = computed<string>({
     get() {
@@ -97,7 +88,7 @@ const fixtureCustomText = computed<string>({
     },
     set(v: string) {
         boardStore.setCurrentFixtureSelection(boardStore.currentFixtureType, v);
-    }
+    },
 });
 
 function openSidebar(): void {
@@ -111,7 +102,17 @@ function closeSidebar(): void {
 function setTool(tool: BoardTool): void {
     boardStore.setTool(tool);
     // Opening the add element grid when selecting any Add* tool
-    if ([BoardTool.AddMonster, BoardTool.AddDoor, BoardTool.AddSecretDoor, BoardTool.AddTrap, BoardTool.AddTreasure, BoardTool.AddPlayerStart, BoardTool.AddPlayerExit].includes(tool)) {
+    if (
+        [
+            BoardTool.AddMonster,
+            BoardTool.AddDoor,
+            BoardTool.AddSecretDoor,
+            BoardTool.AddTrap,
+            BoardTool.AddTreasure,
+            BoardTool.AddPlayerStart,
+            BoardTool.AddPlayerExit,
+        ].includes(tool)
+    ) {
         isAddMenuOpen.value = true;
     }
 }
@@ -124,7 +125,7 @@ function setTool(tool: BoardTool): void {
         aria-label="Open gamemaster tools sidebar"
         dusk="sidebar-open"
         class="fixed top-3 right-2 z-40 rounded-full border bg-white/90 p-2 shadow-lg transition hover:bg-white dark:bg-neutral-900/90 dark:hover:bg-neutral-900"
-        :class="boardStore.currentTool !== BoardTool.None ? 'border-blue-500 border-2' : 'border-neutral-200 dark:border-neutral-800 '"
+        :class="boardStore.currentTool !== BoardTool.None ? 'border-2 border-blue-500' : 'border-neutral-200 dark:border-neutral-800'"
         @click="openSidebar"
     >
         <!-- Heroicon: Chevron Left -->
@@ -144,8 +145,7 @@ function setTool(tool: BoardTool): void {
             :class="isOpen ? 'translate-x-0' : 'translate-x-full'"
         >
             <!-- Header with close button -->
-            <div
-                class="flex items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-neutral-800">
+            <div class="flex items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-neutral-800">
                 <h2 class="text-sm font-semibold text-neutral-700 dark:text-neutral-200">GM Tools</h2>
                 <button
                     type="button"
@@ -169,11 +169,11 @@ function setTool(tool: BoardTool): void {
             <div class="@container overflow-y-auto p-4">
                 <div class="flex flex-col gap-3">
                     <div>
-                        <div class="text-xs uppercase text-gray-500 mb-2">Reveal</div>
+                        <div class="mb-2 text-xs text-gray-500 uppercase">Reveal</div>
                         <div class="flex gap-2">
                             <button
                                 type="button"
-                                class="px-3 py-2 rounded border text-sm"
+                                class="rounded border px-3 py-2 text-sm"
                                 :class="isRevealRoom ? toolSelectedClasses : toolDeselectedClasses"
                                 @click="setTool(BoardTool.RevealRoom)"
                             >
@@ -181,35 +181,38 @@ function setTool(tool: BoardTool): void {
                             </button>
                             <button
                                 type="button"
-                                class="px-3 py-2 rounded border text-sm"
+                                class="rounded border px-3 py-2 text-sm"
                                 :class="isRevealCorridor ? toolSelectedClasses : toolDeselectedClasses"
                                 @click="setTool(BoardTool.RevealCorridor)"
                             >
                                 Reveal Corridor
                             </button>
                         </div>
-                        <p class="mt-1 text-xs text-neutral-500">Click a room tile to reveal the bounded room and its
-                            doors; or click a corridor tile to reveal straight lines until walls/doors.</p>
+                        <p class="mt-1 text-xs text-neutral-500">
+                            Click a room tile to reveal the bounded room and its doors; or click a corridor tile to reveal straight lines until
+                            walls/doors.
+                        </p>
                     </div>
                     <div>
-                        <div class="text-xs uppercase text-gray-500 mb-2">Doors</div>
+                        <div class="mb-2 text-xs text-gray-500 uppercase">Doors</div>
                         <button
                             type="button"
-                            class="px-3 py-2 rounded border text-sm"
+                            class="rounded border px-3 py-2 text-sm"
                             :class="isOpenDoor ? toolSelectedClasses : toolDeselectedClasses"
                             @click="setTool(BoardTool.OpenDoor)"
                         >
                             <span>Open Door</span>
                         </button>
-                        <p class="mt-1 text-xs text-neutral-500">Click a closed door or secret door to open it. Secret
-                            doors become visible when opened.</p>
+                        <p class="mt-1 text-xs text-neutral-500">
+                            Click a closed door or secret door to open it. Secret doors become visible when opened.
+                        </p>
                     </div>
                     <div>
-                        <div class="text-xs uppercase text-gray-500 mb-2">Movement</div>
-                        <div class="flex gap-2 flex-wrap">
+                        <div class="mb-2 text-xs text-gray-500 uppercase">Movement</div>
+                        <div class="flex flex-wrap gap-2">
                             <button
                                 type="button"
-                                class="px-3 py-2 rounded border text-sm flex items-center gap-2"
+                                class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
                                 :class="isMoveMonster ? toolSelectedClasses : toolDeselectedClasses"
                                 @click="setTool(BoardTool.MoveMonster)"
                             >
@@ -218,7 +221,7 @@ function setTool(tool: BoardTool): void {
                             </button>
                             <button
                                 type="button"
-                                class="px-3 py-2 rounded border text-sm flex items-center gap-2"
+                                class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
                                 :class="isMoveElement ? toolSelectedClasses : toolDeselectedClasses"
                                 @click="setTool(BoardTool.MoveElement)"
                             >
@@ -226,16 +229,17 @@ function setTool(tool: BoardTool): void {
                                 <span>Move Element</span>
                             </button>
                         </div>
-                        <p class="mt-1 text-xs text-neutral-500">Move Monster: click a monster, hover to preview path,
-                            click to move. Move Element: click an element, then click a destination tile to relocate
-                            it.</p>
+                        <p class="mt-1 text-xs text-neutral-500">
+                            Move Monster: click a monster, hover to preview path, click to move. Move Element: click an element, then click a
+                            destination tile to relocate it.
+                        </p>
                     </div>
                     <div>
-                        <div class="text-xs uppercase text-gray-500 mb-2">Elements</div>
-                        <div class="flex gap-2 flex-wrap">
+                        <div class="mb-2 text-xs text-gray-500 uppercase">Elements</div>
+                        <div class="flex flex-wrap gap-2">
                             <button
                                 type="button"
-                                class="px-3 py-2 rounded border text-sm flex items-center gap-2"
+                                class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
                                 :class="isToggleVisibility ? toolSelectedClasses : toolDeselectedClasses"
                                 @click="setTool(BoardTool.ToggleVisibility)"
                             >
@@ -245,7 +249,7 @@ function setTool(tool: BoardTool): void {
                             </button>
                             <button
                                 type="button"
-                                class="px-3 py-2 rounded border text-sm flex items-center gap-2"
+                                class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
                                 :class="isRemoveElement ? toolSelectedClasses : toolDeselectedClasses"
                                 @click="setTool(BoardTool.RemoveElement)"
                             >
@@ -254,17 +258,20 @@ function setTool(tool: BoardTool): void {
                             </button>
                         </div>
                         <p class="mt-1 text-xs text-neutral-500">
-                            Toggle Visibility: click an element to hide/show it for players. Hidden elements appear
-                            dimmed for you.
-                            Remove Element: Click any element to delete it from the board.
+                            Toggle Visibility: click an element to hide/show it for players. Hidden elements appear dimmed for you. Remove Element:
+                            Click any element to delete it from the board.
                         </p>
                     </div>
                     <!-- Edit tools -->
                     <div>
                         <button
                             type="button"
-                            class="px-3 py-2 rounded border text-sm"
-                            :class="showEditTools ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-900/50' : 'bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800'"
+                            class="rounded border px-3 py-2 text-sm"
+                            :class="
+                                showEditTools
+                                    ? 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/50 dark:bg-amber-900/30 dark:text-amber-300'
+                                    : 'border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900'
+                            "
                             @click="showEditTools = !showEditTools"
                         >
                             {{ showEditTools ? 'Hide Edit Tools' : 'Show Edit Tools' }}
@@ -273,11 +280,11 @@ function setTool(tool: BoardTool): void {
                     <div v-if="showEditTools">
                         <!-- Tiles section -->
                         <div class="mb-2">
-                            <div class="text-xs uppercase text-gray-500 mb-2">Tiles</div>
-                            <div class="flex gap-2 flex-wrap mb-2">
+                            <div class="mb-2 text-xs text-gray-500 uppercase">Tiles</div>
+                            <div class="mb-2 flex flex-wrap gap-2">
                                 <button
                                     type="button"
-                                    class="px-3 py-2 rounded border text-sm"
+                                    class="rounded border px-3 py-2 text-sm"
                                     :class="isDrawFloor ? toolSelectedClasses : toolDeselectedClasses"
                                     @click="setTool(BoardTool.DrawFloor)"
                                 >
@@ -285,7 +292,7 @@ function setTool(tool: BoardTool): void {
                                 </button>
                                 <button
                                     type="button"
-                                    class="px-3 py-2 rounded border text-sm"
+                                    class="rounded border px-3 py-2 text-sm"
                                     :class="isAddFixture ? toolSelectedClasses : toolDeselectedClasses"
                                     @click="setTool(BoardTool.AddFixture)"
                                 >
@@ -293,7 +300,7 @@ function setTool(tool: BoardTool): void {
                                 </button>
                                 <button
                                     type="button"
-                                    class="px-3 py-2 rounded border text-sm"
+                                    class="rounded border px-3 py-2 text-sm"
                                     :class="isDrawWalls ? toolSelectedClasses : toolDeselectedClasses"
                                     @click="setTool(BoardTool.DrawWalls)"
                                 >
@@ -310,53 +317,102 @@ function setTool(tool: BoardTool): void {
                         </div>
                         <!-- Add Element section -->
                         <div>
-                            <div class="text-xs uppercase text-gray-500 mb-2">Add Element</div>
-                            <div class="flex gap-2 flex-wrap mb-2">
-                                <button type="button" class="px-3 py-2 rounded border text-sm flex items-center gap-2"
-                                        :class="(boardStore.currentTool === BoardTool.AddMonster) ? toolSelectedClasses : toolDeselectedClasses"
-                                        @click="() => { isAddMenuOpen = true; setTool(BoardTool.AddMonster); }"
+                            <div class="mb-2 text-xs text-gray-500 uppercase">Add Element</div>
+                            <div class="mb-2 flex flex-wrap gap-2">
+                                <button
+                                    type="button"
+                                    class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
+                                    :class="boardStore.currentTool === BoardTool.AddMonster ? toolSelectedClasses : toolDeselectedClasses"
+                                    @click="
+                                        () => {
+                                            isAddMenuOpen = true;
+                                            setTool(BoardTool.AddMonster);
+                                        }
+                                    "
                                 >
                                     <Skull class="size-4" />
                                     <span>Monster</span>
                                 </button>
-                                <button type="button" class="px-3 py-2 rounded border text-sm flex items-center gap-2"
-                                        :class="(boardStore.currentTool === BoardTool.AddDoor) ? toolSelectedClasses : toolDeselectedClasses"
-                                        @click="() => { isAddMenuOpen = true; setTool(BoardTool.AddDoor); }"
+                                <button
+                                    type="button"
+                                    class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
+                                    :class="boardStore.currentTool === BoardTool.AddDoor ? toolSelectedClasses : toolDeselectedClasses"
+                                    @click="
+                                        () => {
+                                            isAddMenuOpen = true;
+                                            setTool(BoardTool.AddDoor);
+                                        }
+                                    "
                                 >
                                     <DoorClosed class="size-4" />
                                     <span>Door</span>
                                 </button>
-                                <button type="button" class="px-3 py-2 rounded border text-sm flex items-center gap-2"
-                                        :class="(boardStore.currentTool === BoardTool.AddSecretDoor) ? toolSelectedClasses : toolDeselectedClasses"
-                                        @click="() => { isAddMenuOpen = true; setTool(BoardTool.AddSecretDoor); }"
+                                <button
+                                    type="button"
+                                    class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
+                                    :class="boardStore.currentTool === BoardTool.AddSecretDoor ? toolSelectedClasses : toolDeselectedClasses"
+                                    @click="
+                                        () => {
+                                            isAddMenuOpen = true;
+                                            setTool(BoardTool.AddSecretDoor);
+                                        }
+                                    "
                                 >
                                     <Key class="size-4" />
                                     <span>Secret Door</span>
                                 </button>
-                                <button type="button" class="px-3 py-2 rounded border text-sm flex items-center gap-2"
-                                        :class="(boardStore.currentTool === BoardTool.AddTrap) ? toolSelectedClasses : toolDeselectedClasses"
-                                        @click="() => { isAddMenuOpen = true; setTool(BoardTool.AddTrap); }"
+                                <button
+                                    type="button"
+                                    class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
+                                    :class="boardStore.currentTool === BoardTool.AddTrap ? toolSelectedClasses : toolDeselectedClasses"
+                                    @click="
+                                        () => {
+                                            isAddMenuOpen = true;
+                                            setTool(BoardTool.AddTrap);
+                                        }
+                                    "
                                 >
                                     <Bomb class="size-4" />
                                     <span>Trap</span>
                                 </button>
-                                <button type="button" class="px-3 py-2 rounded border text-sm flex items-center gap-2"
-                                        :class="(boardStore.currentTool === BoardTool.AddTreasure) ? toolSelectedClasses : toolDeselectedClasses"
-                                        @click="() => { isAddMenuOpen = true; setTool(BoardTool.AddTreasure); }"
+                                <button
+                                    type="button"
+                                    class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
+                                    :class="boardStore.currentTool === BoardTool.AddTreasure ? toolSelectedClasses : toolDeselectedClasses"
+                                    @click="
+                                        () => {
+                                            isAddMenuOpen = true;
+                                            setTool(BoardTool.AddTreasure);
+                                        }
+                                    "
                                 >
                                     <Gem class="size-4" />
                                     <span>Treasure</span>
                                 </button>
-                                <button type="button" class="px-3 py-2 rounded border text-sm flex items-center gap-2"
-                                        :class="(boardStore.currentTool === BoardTool.AddPlayerStart) ? toolSelectedClasses : toolDeselectedClasses"
-                                        @click="() => { isAddMenuOpen = true; setTool(BoardTool.AddPlayerStart); }"
+                                <button
+                                    type="button"
+                                    class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
+                                    :class="boardStore.currentTool === BoardTool.AddPlayerStart ? toolSelectedClasses : toolDeselectedClasses"
+                                    @click="
+                                        () => {
+                                            isAddMenuOpen = true;
+                                            setTool(BoardTool.AddPlayerStart);
+                                        }
+                                    "
                                 >
                                     <Play class="size-4" />
                                     <span>Player Start</span>
                                 </button>
-                                <button type="button" class="px-3 py-2 rounded border text-sm flex items-center gap-2"
-                                        :class="(boardStore.currentTool === BoardTool.AddPlayerExit) ? toolSelectedClasses : toolDeselectedClasses"
-                                        @click="() => { isAddMenuOpen = true; setTool(BoardTool.AddPlayerExit); }"
+                                <button
+                                    type="button"
+                                    class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
+                                    :class="boardStore.currentTool === BoardTool.AddPlayerExit ? toolSelectedClasses : toolDeselectedClasses"
+                                    @click="
+                                        () => {
+                                            isAddMenuOpen = true;
+                                            setTool(BoardTool.AddPlayerExit);
+                                        }
+                                    "
                                 >
                                     <Flag class="size-4" />
                                     <span>Player Exit</span>
@@ -387,6 +443,4 @@ function setTool(tool: BoardTool): void {
     </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

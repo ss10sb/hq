@@ -1,16 +1,16 @@
 <script setup lang="ts">
+import EditBoardController from '@/actions/App/Http/Controllers/Board/EditBoardController';
+import NewGameController from '@/actions/App/Http/Controllers/Game/NewGameController';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useBoardStore } from '@/stores/board';
-import { BoardTool, FixtureType, TrapType, MonsterType } from '@/types/board';
-import { Bomb, DoorClosed, Gem, Key, Lamp, Layers, Skull, Square, Play, Flag } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
-import EditMonsterOptions from './EditMonsterOptions.vue';
-import EditFixtureOptions from './EditFixtureOptions.vue';
-import EditTrapOptions from './EditTrapOptions.vue';
-import EditBoardController from '@/actions/App/Http/Controllers/Board/EditBoardController';
-import NewGameController from '@/actions/App/Http/Controllers/Game/NewGameController';
+import { BoardTool, FixtureType, MonsterType, TrapType } from '@/types/board';
 import { router } from '@inertiajs/vue3';
+import { Bomb, DoorClosed, Flag, Gem, Key, Lamp, Layers, Play, Skull, Square } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import EditFixtureOptions from './EditFixtureOptions.vue';
+import EditMonsterOptions from './EditMonsterOptions.vue';
+import EditTrapOptions from './EditTrapOptions.vue';
 
 const isOpen = ref(true);
 const boardStore = useBoardStore();
@@ -193,311 +193,337 @@ function setTool(tool: BoardTool): void {
             <div class="@container overflow-y-auto p-4">
                 <div v-if="canEdit">
                     <TooltipProvider :delay-duration="0">
-                    <div class="">
-                        <h1 class="font-semibold text-neutral-700 dark:text-neutral-200">Tiles</h1>
-                        <div class="grid grid-cols-3 gap-3 my-5">
-                            <!-- tiles -->
-                            <Tooltip>
-                                <TooltipTrigger as-child>
-                                    <Button
-                                        @click="() => setTool(BoardTool.DrawFloor)"
-                                        :variant="isTool(BoardTool.DrawFloor) ? 'secondary' : 'ghost'"
-                                        size="icon"
-                                        aria-label="Draw Floor"
-                                        :aria-pressed="isTool(BoardTool.DrawFloor)"
-                                        :class="[
-                                            'group h-9 w-9 cursor-pointer',
-                                            isTool(BoardTool.DrawFloor)
-                                                ? 'bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/30 dark:text-blue-400'
-                                                : '',
-                                        ]"
-                                    >
-                                        <span class="sr-only">Draw Floor</span>
-                                        <Square
-                                            :class="['size-5', isTool(BoardTool.DrawFloor) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100']"
-                                        />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Draw Floor</p>
-                                </TooltipContent>
-                            </Tooltip>
-
-                            <Tooltip>
-                                <TooltipTrigger as-child>
-                                    <Button
-                                        @click="() => setTool(BoardTool.AddFixture)"
-                                        :variant="isTool(BoardTool.AddFixture) ? 'secondary' : 'ghost'"
-                                        size="icon"
-                                        aria-label="Add Fixture"
-                                        :aria-pressed="isTool(BoardTool.AddFixture)"
-                                        :class="[
-                                            'group h-9 w-9 cursor-pointer',
-                                            isTool(BoardTool.AddFixture)
-                                                ? 'bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/30 dark:text-blue-400'
-                                                : '',
-                                        ]"
-                                    >
-                                        <span class="sr-only">Add Fixture</span>
-                                        <Lamp
-                                            :class="['size-5', isTool(BoardTool.AddFixture) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100']"
-                                        />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Add Fixture</p>
-                                </TooltipContent>
-                            </Tooltip>
-
-                            <Tooltip>
-                                <TooltipTrigger as-child>
-                                    <Button
-                                        @click="() => setTool(BoardTool.DrawWalls)"
-                                        :variant="isTool(BoardTool.DrawWalls) ? 'secondary' : 'ghost'"
-                                        size="icon"
-                                        aria-label="Draw Walls"
-                                        :aria-pressed="isTool(BoardTool.DrawWalls)"
-                                        :class="[
-                                            'group h-9 w-9 cursor-pointer',
-                                            isTool(BoardTool.DrawWalls)
-                                                ? 'bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/30 dark:text-blue-400'
-                                                : '',
-                                        ]"
-                                    >
-                                        <span class="sr-only">Draw Walls</span>
-                                        <Layers
-                                            :class="['size-5', isTool(BoardTool.DrawWalls) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100']"
-                                        />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Draw Walls</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </div>
-                    </div>
-
-                    <div class="">
-                        <h1 class="font-semibold text-neutral-700 dark:text-neutral-200">Elements</h1>
-                        <div class="grid grid-cols-3 gap-3 my-5">
-                            <!-- elements -->
-                            <Tooltip>
-                                <TooltipTrigger as-child>
-                                    <Button
-                                        @click="() => setTool(BoardTool.AddMonster)"
-                                        :variant="isTool(BoardTool.AddMonster) ? 'secondary' : 'ghost'"
-                                        size="icon"
-                                        aria-label="Add Monster"
-                                        :aria-pressed="isTool(BoardTool.AddMonster)"
-                                        :class="[
-                                            'group h-9 w-9 cursor-pointer',
-                                            isTool(BoardTool.AddMonster)
-                                                ? 'bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/30 dark:text-blue-400'
-                                                : '',
-                                        ]"
-                                    >
-                                        <span class="sr-only">Add Monster</span>
-                                        <Skull
-                                            :class="['size-5', isTool(BoardTool.AddMonster) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100']"
-                                        />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Add Monster</p>
-                                </TooltipContent>
-                            </Tooltip>
-
-                            <Tooltip>
-                                <TooltipTrigger as-child>
-                                    <Button
-                                        @click="() => setTool(BoardTool.AddDoor)"
-                                        :variant="isTool(BoardTool.AddDoor) ? 'secondary' : 'ghost'"
-                                        size="icon"
-                                        aria-label="Add Door"
-                                        :aria-pressed="isTool(BoardTool.AddDoor)"
-                                        :class="[
-                                            'group h-9 w-9 cursor-pointer',
-                                            isTool(BoardTool.AddDoor)
-                                                ? 'bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/30 dark:text-blue-400'
-                                                : '',
-                                        ]"
-                                    >
-                                        <span class="sr-only">Add Door</span>
-                                        <DoorClosed
-                                            :class="['size-5', isTool(BoardTool.AddDoor) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100']"
-                                        />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Add Door</p>
-                                </TooltipContent>
-                            </Tooltip>
-
-                            <Tooltip>
-                                <TooltipTrigger as-child>
-                                    <Button
-                                        @click="() => setTool(BoardTool.AddSecretDoor)"
-                                        :variant="isTool(BoardTool.AddSecretDoor) ? 'secondary' : 'ghost'"
-                                        size="icon"
-                                        aria-label="Add Secret Door"
-                                        :aria-pressed="isTool(BoardTool.AddSecretDoor)"
-                                        :class="[
-                                            'group h-9 w-9 cursor-pointer',
-                                            isTool(BoardTool.AddSecretDoor)
-                                                ? 'bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/30 dark:text-blue-400'
-                                                : '',
-                                        ]"
-                                    >
-                                        <span class="sr-only">Add Secret Door</span>
-                                        <Key
+                        <div class="">
+                            <h1 class="font-semibold text-neutral-700 dark:text-neutral-200">Tiles</h1>
+                            <div class="my-5 grid grid-cols-3 gap-3">
+                                <!-- tiles -->
+                                <Tooltip>
+                                    <TooltipTrigger as-child>
+                                        <Button
+                                            @click="() => setTool(BoardTool.DrawFloor)"
+                                            :variant="isTool(BoardTool.DrawFloor) ? 'secondary' : 'ghost'"
+                                            size="icon"
+                                            aria-label="Draw Floor"
+                                            :aria-pressed="isTool(BoardTool.DrawFloor)"
                                             :class="[
-                                                'size-5',
-                                                isTool(BoardTool.AddSecretDoor) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100',
+                                                'group h-9 w-9 cursor-pointer',
+                                                isTool(BoardTool.DrawFloor)
+                                                    ? 'bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/30 dark:text-blue-400'
+                                                    : '',
                                             ]"
-                                        />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Add Secret Door</p>
-                                </TooltipContent>
-                            </Tooltip>
+                                        >
+                                            <span class="sr-only">Draw Floor</span>
+                                            <Square
+                                                :class="[
+                                                    'size-5',
+                                                    isTool(BoardTool.DrawFloor) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100',
+                                                ]"
+                                            />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Draw Floor</p>
+                                    </TooltipContent>
+                                </Tooltip>
 
-                            <Tooltip>
-                                <TooltipTrigger as-child>
-                                    <Button
-                                        @click="() => setTool(BoardTool.AddTrap)"
-                                        :variant="isTool(BoardTool.AddTrap) ? 'secondary' : 'ghost'"
-                                        size="icon"
-                                        aria-label="Add Trap"
-                                        :aria-pressed="isTool(BoardTool.AddTrap)"
-                                        :class="[
-                                            'group h-9 w-9 cursor-pointer',
-                                            isTool(BoardTool.AddTrap)
-                                                ? 'bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/30 dark:text-blue-400'
-                                                : '',
-                                        ]"
-                                    >
-                                        <span class="sr-only">Add Trap</span>
-                                        <Bomb :class="['size-5', isTool(BoardTool.AddTrap) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100']" />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Add Trap</p>
-                                </TooltipContent>
-                            </Tooltip>
+                                <Tooltip>
+                                    <TooltipTrigger as-child>
+                                        <Button
+                                            @click="() => setTool(BoardTool.AddFixture)"
+                                            :variant="isTool(BoardTool.AddFixture) ? 'secondary' : 'ghost'"
+                                            size="icon"
+                                            aria-label="Add Fixture"
+                                            :aria-pressed="isTool(BoardTool.AddFixture)"
+                                            :class="[
+                                                'group h-9 w-9 cursor-pointer',
+                                                isTool(BoardTool.AddFixture)
+                                                    ? 'bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/30 dark:text-blue-400'
+                                                    : '',
+                                            ]"
+                                        >
+                                            <span class="sr-only">Add Fixture</span>
+                                            <Lamp
+                                                :class="[
+                                                    'size-5',
+                                                    isTool(BoardTool.AddFixture) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100',
+                                                ]"
+                                            />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Add Fixture</p>
+                                    </TooltipContent>
+                                </Tooltip>
 
-                            <Tooltip>
-                                <TooltipTrigger as-child>
-                                    <Button
-                                        @click="() => setTool(BoardTool.AddTreasure)"
-                                        :variant="isTool(BoardTool.AddTreasure) ? 'secondary' : 'ghost'"
-                                        size="icon"
-                                        aria-label="Add Treasure"
-                                        :aria-pressed="isTool(BoardTool.AddTreasure)"
-                                        :class="[
-                                            'group h-9 w-9 cursor-pointer',
-                                            isTool(BoardTool.AddTreasure)
-                                                ? 'bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/30 dark:text-blue-400'
-                                                : '',
-                                        ]"
-                                    >
-                                        <span class="sr-only">Add Treasure</span>
-                                        <Gem
-                                            :class="['size-5', isTool(BoardTool.AddTreasure) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100']"
-                                        />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Add Treasure</p>
-                                </TooltipContent>
-                            </Tooltip>
-
-                            <!-- Player Start -->
-                            <Tooltip>
-                                <TooltipTrigger as-child>
-                                    <Button
-                                        @click="() => setTool(BoardTool.AddPlayerStart)"
-                                        :variant="isTool(BoardTool.AddPlayerStart) ? 'secondary' : 'ghost'"
-                                        size="icon"
-                                        aria-label="Add Player Start"
-                                        :aria-pressed="isTool(BoardTool.AddPlayerStart)"
-                                        :class="[
-                                            'group h-9 w-9 cursor-pointer',
-                                            isTool(BoardTool.AddPlayerStart)
-                                                ? 'bg-green-500/10 text-green-600 ring-1 ring-green-500/30 dark:text-green-400'
-                                                : '',
-                                        ]"
-                                    >
-                                        <span class="sr-only">Add Player Start</span>
-                                        <Play
-                                            :class="['size-5', isTool(BoardTool.AddPlayerStart) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100']"
-                                        />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Add Player Start</p>
-                                </TooltipContent>
-                            </Tooltip>
-
-                            <!-- Player Exit (unique) -->
-                            <Tooltip>
-                                <TooltipTrigger as-child>
-                                    <Button
-                                        @click="() => setTool(BoardTool.AddPlayerExit)"
-                                        :variant="isTool(BoardTool.AddPlayerExit) ? 'secondary' : 'ghost'"
-                                        size="icon"
-                                        aria-label="Add Player Exit"
-                                        :aria-pressed="isTool(BoardTool.AddPlayerExit)"
-                                        :class="[
-                                            'group h-9 w-9 cursor-pointer',
-                                            isTool(BoardTool.AddPlayerExit)
-                                                ? 'bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/30 dark:text-blue-400'
-                                                : '',
-                                        ]"
-                                    >
-                                        <span class="sr-only">Add Player Exit</span>
-                                        <Flag
-                                            :class="['size-5', isTool(BoardTool.AddPlayerExit) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100']"
-                                        />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Add Player Exit</p>
-                                </TooltipContent>
-                            </Tooltip>
+                                <Tooltip>
+                                    <TooltipTrigger as-child>
+                                        <Button
+                                            @click="() => setTool(BoardTool.DrawWalls)"
+                                            :variant="isTool(BoardTool.DrawWalls) ? 'secondary' : 'ghost'"
+                                            size="icon"
+                                            aria-label="Draw Walls"
+                                            :aria-pressed="isTool(BoardTool.DrawWalls)"
+                                            :class="[
+                                                'group h-9 w-9 cursor-pointer',
+                                                isTool(BoardTool.DrawWalls)
+                                                    ? 'bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/30 dark:text-blue-400'
+                                                    : '',
+                                            ]"
+                                        >
+                                            <span class="sr-only">Draw Walls</span>
+                                            <Layers
+                                                :class="[
+                                                    'size-5',
+                                                    isTool(BoardTool.DrawWalls) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100',
+                                                ]"
+                                            />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Draw Walls</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </div>
                         </div>
-                    </div>
-                    <!-- Monster options: visible only when Add Monster tool is active -->
-                    <EditMonsterOptions
-                        v-if="isTool(BoardTool.AddMonster)"
-                        :type="monsterType"
-                        :customText="monsterCustomText"
-                        :stats="monsterStats"
-                        @update:type="(v) => ((monsterType as any) = v)"
-                        @update:customText="(v) => (monsterCustomText = v)"
-                        @update:stats="(v) => (monsterStats = v)"
-                    />
 
-                    <!-- Fixture options: visible only when Add Fixture tool is active -->
-                    <EditFixtureOptions
-                        v-if="isTool(BoardTool.AddFixture)"
-                        :type="fixtureType"
-                        :customText="fixtureCustomText"
-                        @update:type="(v) => ((fixtureType as any) = v)"
-                        @update:customText="(v) => (fixtureCustomText = v)"
-                    />
+                        <div class="">
+                            <h1 class="font-semibold text-neutral-700 dark:text-neutral-200">Elements</h1>
+                            <div class="my-5 grid grid-cols-3 gap-3">
+                                <!-- elements -->
+                                <Tooltip>
+                                    <TooltipTrigger as-child>
+                                        <Button
+                                            @click="() => setTool(BoardTool.AddMonster)"
+                                            :variant="isTool(BoardTool.AddMonster) ? 'secondary' : 'ghost'"
+                                            size="icon"
+                                            aria-label="Add Monster"
+                                            :aria-pressed="isTool(BoardTool.AddMonster)"
+                                            :class="[
+                                                'group h-9 w-9 cursor-pointer',
+                                                isTool(BoardTool.AddMonster)
+                                                    ? 'bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/30 dark:text-blue-400'
+                                                    : '',
+                                            ]"
+                                        >
+                                            <span class="sr-only">Add Monster</span>
+                                            <Skull
+                                                :class="[
+                                                    'size-5',
+                                                    isTool(BoardTool.AddMonster) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100',
+                                                ]"
+                                            />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Add Monster</p>
+                                    </TooltipContent>
+                                </Tooltip>
 
-                    <!-- Trap options: visible only when Add Trap tool is active -->
-                    <EditTrapOptions
-                        v-if="isTool(BoardTool.AddTrap)"
-                        :type="trapType"
-                        :customText="trapCustomText"
-                        @update:type="(v) => ((trapType as any) = v)"
-                        @update:customText="(v) => (trapCustomText = v)"
-                    />
-                </TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger as-child>
+                                        <Button
+                                            @click="() => setTool(BoardTool.AddDoor)"
+                                            :variant="isTool(BoardTool.AddDoor) ? 'secondary' : 'ghost'"
+                                            size="icon"
+                                            aria-label="Add Door"
+                                            :aria-pressed="isTool(BoardTool.AddDoor)"
+                                            :class="[
+                                                'group h-9 w-9 cursor-pointer',
+                                                isTool(BoardTool.AddDoor)
+                                                    ? 'bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/30 dark:text-blue-400'
+                                                    : '',
+                                            ]"
+                                        >
+                                            <span class="sr-only">Add Door</span>
+                                            <DoorClosed
+                                                :class="['size-5', isTool(BoardTool.AddDoor) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100']"
+                                            />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Add Door</p>
+                                    </TooltipContent>
+                                </Tooltip>
+
+                                <Tooltip>
+                                    <TooltipTrigger as-child>
+                                        <Button
+                                            @click="() => setTool(BoardTool.AddSecretDoor)"
+                                            :variant="isTool(BoardTool.AddSecretDoor) ? 'secondary' : 'ghost'"
+                                            size="icon"
+                                            aria-label="Add Secret Door"
+                                            :aria-pressed="isTool(BoardTool.AddSecretDoor)"
+                                            :class="[
+                                                'group h-9 w-9 cursor-pointer',
+                                                isTool(BoardTool.AddSecretDoor)
+                                                    ? 'bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/30 dark:text-blue-400'
+                                                    : '',
+                                            ]"
+                                        >
+                                            <span class="sr-only">Add Secret Door</span>
+                                            <Key
+                                                :class="[
+                                                    'size-5',
+                                                    isTool(BoardTool.AddSecretDoor) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100',
+                                                ]"
+                                            />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Add Secret Door</p>
+                                    </TooltipContent>
+                                </Tooltip>
+
+                                <Tooltip>
+                                    <TooltipTrigger as-child>
+                                        <Button
+                                            @click="() => setTool(BoardTool.AddTrap)"
+                                            :variant="isTool(BoardTool.AddTrap) ? 'secondary' : 'ghost'"
+                                            size="icon"
+                                            aria-label="Add Trap"
+                                            :aria-pressed="isTool(BoardTool.AddTrap)"
+                                            :class="[
+                                                'group h-9 w-9 cursor-pointer',
+                                                isTool(BoardTool.AddTrap)
+                                                    ? 'bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/30 dark:text-blue-400'
+                                                    : '',
+                                            ]"
+                                        >
+                                            <span class="sr-only">Add Trap</span>
+                                            <Bomb
+                                                :class="['size-5', isTool(BoardTool.AddTrap) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100']"
+                                            />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Add Trap</p>
+                                    </TooltipContent>
+                                </Tooltip>
+
+                                <Tooltip>
+                                    <TooltipTrigger as-child>
+                                        <Button
+                                            @click="() => setTool(BoardTool.AddTreasure)"
+                                            :variant="isTool(BoardTool.AddTreasure) ? 'secondary' : 'ghost'"
+                                            size="icon"
+                                            aria-label="Add Treasure"
+                                            :aria-pressed="isTool(BoardTool.AddTreasure)"
+                                            :class="[
+                                                'group h-9 w-9 cursor-pointer',
+                                                isTool(BoardTool.AddTreasure)
+                                                    ? 'bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/30 dark:text-blue-400'
+                                                    : '',
+                                            ]"
+                                        >
+                                            <span class="sr-only">Add Treasure</span>
+                                            <Gem
+                                                :class="[
+                                                    'size-5',
+                                                    isTool(BoardTool.AddTreasure) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100',
+                                                ]"
+                                            />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Add Treasure</p>
+                                    </TooltipContent>
+                                </Tooltip>
+
+                                <!-- Player Start -->
+                                <Tooltip>
+                                    <TooltipTrigger as-child>
+                                        <Button
+                                            @click="() => setTool(BoardTool.AddPlayerStart)"
+                                            :variant="isTool(BoardTool.AddPlayerStart) ? 'secondary' : 'ghost'"
+                                            size="icon"
+                                            aria-label="Add Player Start"
+                                            :aria-pressed="isTool(BoardTool.AddPlayerStart)"
+                                            :class="[
+                                                'group h-9 w-9 cursor-pointer',
+                                                isTool(BoardTool.AddPlayerStart)
+                                                    ? 'bg-green-500/10 text-green-600 ring-1 ring-green-500/30 dark:text-green-400'
+                                                    : '',
+                                            ]"
+                                        >
+                                            <span class="sr-only">Add Player Start</span>
+                                            <Play
+                                                :class="[
+                                                    'size-5',
+                                                    isTool(BoardTool.AddPlayerStart) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100',
+                                                ]"
+                                            />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Add Player Start</p>
+                                    </TooltipContent>
+                                </Tooltip>
+
+                                <!-- Player Exit (unique) -->
+                                <Tooltip>
+                                    <TooltipTrigger as-child>
+                                        <Button
+                                            @click="() => setTool(BoardTool.AddPlayerExit)"
+                                            :variant="isTool(BoardTool.AddPlayerExit) ? 'secondary' : 'ghost'"
+                                            size="icon"
+                                            aria-label="Add Player Exit"
+                                            :aria-pressed="isTool(BoardTool.AddPlayerExit)"
+                                            :class="[
+                                                'group h-9 w-9 cursor-pointer',
+                                                isTool(BoardTool.AddPlayerExit)
+                                                    ? 'bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/30 dark:text-blue-400'
+                                                    : '',
+                                            ]"
+                                        >
+                                            <span class="sr-only">Add Player Exit</span>
+                                            <Flag
+                                                :class="[
+                                                    'size-5',
+                                                    isTool(BoardTool.AddPlayerExit) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100',
+                                                ]"
+                                            />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Add Player Exit</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </div>
+                        </div>
+                        <!-- Monster options: visible only when Add Monster tool is active -->
+                        <EditMonsterOptions
+                            v-if="isTool(BoardTool.AddMonster)"
+                            :type="monsterType"
+                            :customText="monsterCustomText"
+                            :stats="monsterStats"
+                            @update:type="(v) => ((monsterType as any) = v)"
+                            @update:customText="(v) => (monsterCustomText = v)"
+                            @update:stats="(v) => (monsterStats = v)"
+                        />
+
+                        <!-- Fixture options: visible only when Add Fixture tool is active -->
+                        <EditFixtureOptions
+                            v-if="isTool(BoardTool.AddFixture)"
+                            :type="fixtureType"
+                            :customText="fixtureCustomText"
+                            @update:type="(v) => ((fixtureType as any) = v)"
+                            @update:customText="(v) => (fixtureCustomText = v)"
+                        />
+
+                        <!-- Trap options: visible only when Add Trap tool is active -->
+                        <EditTrapOptions
+                            v-if="isTool(BoardTool.AddTrap)"
+                            :type="trapType"
+                            :customText="trapCustomText"
+                            @update:type="(v) => ((trapType as any) = v)"
+                            @update:customText="(v) => (trapCustomText = v)"
+                        />
+                    </TooltipProvider>
                 </div>
-                <div v-else class="rounded-md border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/40 p-4 text-sm text-neutral-700 dark:text-neutral-200">
+                <div
+                    v-else
+                    class="rounded-md border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900/40 dark:text-neutral-200"
+                >
                     This board is view only.
                 </div>
             </div>
@@ -508,9 +534,7 @@ function setTool(tool: BoardTool): void {
                     <Button v-if="canEdit" type="button" class="flex-1" :disabled="isSaving" @click="saveBoard">
                         {{ isSaving ? 'Saving...' : 'Save Board' }}
                     </Button>
-                    <Button v-if="!isDirty" type="button" class="flex-1" variant="secondary" @click="startGame">
-                        Start Game
-                    </Button>
+                    <Button v-if="!isDirty" type="button" class="flex-1" variant="secondary" @click="startGame"> Start Game </Button>
                 </div>
             </div>
         </aside>

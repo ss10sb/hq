@@ -1,6 +1,5 @@
-import type Echo from 'laravel-echo';
 import type { Element } from '@/types/board';
-import type { Player } from '@/types/game';
+import type Echo from 'laravel-echo';
 
 // Central registry of whisper event names used by gameplay.
 export const WhisperEvents = {
@@ -22,7 +21,7 @@ export const WhisperEvents = {
     DiceRolled: 'dice.rolled',
 } as const;
 
-export type WhisperEventName = typeof WhisperEvents[keyof typeof WhisperEvents];
+export type WhisperEventName = (typeof WhisperEvents)[keyof typeof WhisperEvents];
 
 export function broadcastGameStateSync(channel: Echo.Channel, currentHero: number, heroes: any[]): void {
     try {
@@ -117,7 +116,7 @@ export function broadcastTrapTriggered(channel: Echo.Channel, payload: TrapTrigg
 }
 
 // --- Dice Rolls ---
-import type { DieType } from '@/lib/board/game';
+import type { DieType } from '@/lib/game/dice';
 export type DiceRolledPayload = { actorName: string; diceType: DieType; count: number; results: Array<number | string> };
 
 export function broadcastDiceRolled(channel: Echo.Channel, payload: DiceRolledPayload): void {

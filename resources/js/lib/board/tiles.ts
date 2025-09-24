@@ -1,6 +1,6 @@
+import { Tile, TileType } from '@/types/board';
 import type { RectConfig } from 'konva/lib/shapes/Rect';
 import { TILE_SIZE } from './grid';
-import { Tile, TileType } from '@/types/board';
 
 export function getTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
     const isWall = tile.type === TileType.Wall;

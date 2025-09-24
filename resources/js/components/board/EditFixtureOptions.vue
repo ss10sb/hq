@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useBoardStore } from '@/stores/board';
 import { FixtureType } from '@/types/board';
 import { computed } from 'vue';
-import { useBoardStore } from '@/stores/board';
 
 const props = defineProps<{
     type: FixtureType;
@@ -44,9 +44,9 @@ const fixtureOptions = computed(() => {
 <template>
     <div class="mb-6">
         <h2 class="text-sm font-semibold text-neutral-700 dark:text-neutral-200">Fixture Type</h2>
-        <div class="grid gap-2 my-3">
+        <div class="my-3 grid gap-2">
             <Label for="fixture-type">Type</Label>
-            <Select v-model="(modelType as any)">
+            <Select v-model="modelType as any">
                 <SelectTrigger id="fixture-type" class="w-full">
                     <SelectValue placeholder="Select a fixture type" />
                 </SelectTrigger>
@@ -55,7 +55,7 @@ const fixtureOptions = computed(() => {
                 </SelectContent>
             </Select>
 
-            <div v-if="modelType === FixtureType.Custom" class="grid gap-2 mt-3">
+            <div v-if="modelType === FixtureType.Custom" class="mt-3 grid gap-2">
                 <Label for="fixture-custom">Custom label</Label>
                 <Input id="fixture-custom" type="text" v-model="modelCustomText" placeholder="e.g. Door" />
             </div>

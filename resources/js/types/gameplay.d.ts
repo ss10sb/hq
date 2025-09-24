@@ -4,4 +4,4 @@ export type Stats = {
     attackDice: number;
     defenseDice: number;
     currentBodyPoints: number;
-}
+};

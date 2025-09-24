@@ -1,19 +1,9 @@
 <script setup lang="ts">
-import AppHeaderLayout from '@/layouts/app/AppHeaderLayout.vue';
-import axios from 'axios';
-import { Head, router, usePage } from '@inertiajs/vue3';
-import type { Game, Player } from '@/types/game';
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-import { AppPageProps } from '@/types';
+import SaveGameController from '@/actions/App/Http/Controllers/Game/SaveGameController';
 import BoardCanvas from '@/components/board/BoardCanvas.vue';
-import type { Board, Element as BoardElement, Element, Fixture, Monster, Trap } from '@/types/board';
-import { BoardTool, ElementType } from '@/types/board';
-import { useBoardStore } from '@/stores/board';
-import { useGameStore } from '@/stores/game';
-import { useEchoPresence } from '@laravel/echo-vue';
 import GamemasterSidebar from '@/components/game/GamemasterSidebar.vue';
 import GamePanel from '@/components/game/GamePanel.vue';
-import SaveGameController from '@/actions/App/Http/Controllers/Game/SaveGameController';
+import AppHeaderLayout from '@/layouts/app/AppHeaderLayout.vue';
 import { applyTrapColorByStatus } from '@/lib/game/elements';
 import {
     broadcastDiceRolled,
@@ -31,12 +21,26 @@ import {
     type TrapTriggeredPayload,
     WhisperEvents
 } from '@/lib/game/realtime';
-import { heroColorById } from '@/lib/game/colors';
+import { useBoardStore } from '@/stores/board';
+import { useGameStore } from '@/stores/game';
+import { AppPageProps } from '@/types';
+import type { Board, Element as BoardElement, Element, Fixture, Monster, Trap } from '@/types/board';
+import { BoardTool, ElementType } from '@/types/board';
+import type { Game, Player } from '@/types/game';
 import { Hero } from '@/types/hero';
+import { Head, usePage } from '@inertiajs/vue3';
+import { useEchoPresence } from '@laravel/echo-vue';
+import axios from 'axios';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 // Scrolling game information panel (log)
-import type { DieType, DieValue } from '@/lib/board/game';
-import { combatDie, CombatDieSide, rollDice as performRoll, sixSidedDie } from '@/lib/board/game';
 import SelectHeroController from '@/actions/App/Http/Controllers/Hero/SelectHeroController';
+import type { DieType, DieValue } from '@/lib/game/dice';
+import { expandPrimitiveResults, rollDice as performRoll, sortDieValues } from '@/lib/game/dice';
+import {
+    buildSelectedTilePacket,
+    chooseSelectionHeroId as chooseSelectionHeroIdUtil,
+    toSelectedTilesDisplay
+} from '@/lib/game/selection';
 
 const page = usePage<AppPageProps>();
 const props = defineProps<{
@@ -47,9 +51,13 @@ const props = defineProps<{
     fixtures: Fixture[];
 }>();
 
-type LogEntry =
-    | { kind: 'text'; text: string }
-    | { kind: 'dice'; actor: string; diceType: DieType; count: number; results: DieValue[] };
+type LogEntry = { kind: 'text'; text: string } | {
+    kind: 'dice';
+    actor: string;
+    diceType: DieType;
+    count: number;
+    results: DieValue[]
+};
 
 const gameLog = ref<LogEntry[]>([]);
 
@@ -64,7 +72,7 @@ const selectedMonster = computed<Element | null>(() => {
     if (!id) {
         return null;
     }
-    const el = (boardStoreRef.elements as any[]).find(e => (e as any).id === id) as any;
+    const el = (boardStoreRef.elements as any[]).find((e) => (e as any).id === id) as any;
     if (!el || el.type !== ElementType.Monster) {
         return null;
     }
@@ -73,20 +81,7 @@ const selectedMonster = computed<Element | null>(() => {
 
 // Selected tiles per-hero
 const selectedByHero = ref<Record<number, { x: number; y: number } | null>>({});
-const selectedTilesDisplay = computed(() => {
-    const out: { x: number; y: number; color?: string }[] = [];
-    const map = selectedByHero.value || {} as Record<number, { x: number; y: number } | null>;
-    for (const [idStr, sel] of Object.entries(map)) {
-        const id = Number(idStr);
-        if (!Number.isFinite(id)) {
-            continue;
-        }
-        if (sel && typeof sel.x === 'number' && typeof sel.y === 'number') {
-            out.push({ x: sel.x, y: sel.y, color: heroColorById(id) });
-        }
-    }
-    return out;
-});
+const selectedTilesDisplay = computed(() => toSelectedTilesDisplay(selectedByHero.value as any));
 
 const boardStoreRef = useBoardStore();
 const gameStore = useGameStore();
@@ -120,6 +115,24 @@ const canEndTurn = computed<boolean>(() => {
 type PresentUser = { id: number; name: string };
 const usersPresent = ref<PresentUser[]>([]);
 
+// Auto-save UI state
+const autoSave = ref<{ status: 'idle' | 'saving' | 'saved' | 'error'; message?: string }>({ status: 'idle' });
+let autoSaveHideHandle: number | null = null;
+
+function showAutoSave(status: 'saving' | 'saved' | 'error', message?: string): void {
+    autoSave.value = { status, message };
+    if (autoSaveHideHandle != null) {
+        window.clearTimeout(autoSaveHideHandle);
+        autoSaveHideHandle = null;
+    }
+    if (status === 'saved' || status === 'error') {
+        autoSaveHideHandle = window.setTimeout(() => {
+            autoSave.value = { status: 'idle' };
+            autoSaveHideHandle = null;
+        }, 2000);
+    }
+}
+
 const { channel } = useEchoPresence<PresentUser>(`game.play.${props.game.id}`, [], () => {
 });
 
@@ -139,7 +152,7 @@ onMounted(() => {
         if (myId == null) {
             return;
         }
-        if (!usersPresent.value.some(u => u.id === myId)) {
+        if (!usersPresent.value.some((u) => u.id === myId)) {
             const selfName = (page.props.auth.user?.name as string | undefined) ?? 'You';
             usersPresent.value.push({ id: myId, name: selfName });
         }
@@ -165,7 +178,7 @@ onMounted(() => {
             return;
         }
         // Apply incoming elements to board store (source of truth) and mirror to game store
-        const incoming = (data.elements as any[]).map(e => applyTrapColorByStatus(e));
+        const incoming = (data.elements as any[]).map((e) => applyTrapColorByStatus(e));
         boardStoreRef.elements = [...incoming] as any;
     });
 
@@ -261,9 +274,10 @@ onMounted(() => {
         }
         // sync the selected tile for this hero
         const heroId = payload.heroId;
-        const tile = payload.tile && typeof payload.tile.x === 'number' && typeof payload.tile.y === 'number'
-            ? { x: payload.tile.x, y: payload.tile.y }
-            : null;
+        const tile =
+            payload.tile && typeof payload.tile.x === 'number' && typeof payload.tile.y === 'number'
+                ? { x: payload.tile.x, y: payload.tile.y }
+                : null;
         selectedByHero.value = { ...selectedByHero.value, [heroId]: tile };
     });
 
@@ -271,7 +285,8 @@ onMounted(() => {
     if (isGameMaster.value) {
         try {
             broadcastGameStateSync();
-        } catch { /* no-op */
+        } catch {
+            /* no-op */
         }
     }
 
@@ -294,7 +309,11 @@ onMounted(() => {
             gameLog.value.unshift({ kind: 'text', text: `${name} moved ${s} ${s === 1 ? 'space' : 'spaces'}` });
             stepsByHero.value = { ...stepsByHero.value, [payload.heroId]: s };
             // Clear any stale preview for this hero
-            const { [payload.heroId]: _omit, ...rest } = previewStepsByHero.value;
+            const {
+                [payload.heroId]:
+                    _omit, // eslint-disable-line @typescript-eslint/no-unused-vars 
+                ...rest
+            } = previewStepsByHero.value;
             previewStepsByHero.value = rest;
         }
         // sync the hero position
@@ -337,32 +356,8 @@ onMounted(() => {
             return;
         }
         const { actorName, diceType, count, results } = payload as any;
-        const expanded = (results as Array<number | string>).map((v) => {
-            if (diceType === ('six_sided' as any)) {
-                const face = sixSidedDie.find(d => d.value === v);
-                return face ? { ...face } : { ...(sixSidedDie[0] as any) };
-            } else {
-                const face = combatDie.find(d => d.value === v);
-                return face ? { ...face } : { ...(combatDie[0] as any) };
-            }
-        });
-        // Sort them in the same order as local
-        const scoreFor = (v: number | string): number => {
-            if (typeof v === 'number') {
-                return v;
-            }
-            switch (v as any) {
-                case CombatDieSide.SKULL:
-                    return 3;
-                case CombatDieSide.DEFEND:
-                    return 2;
-                case CombatDieSide.MONSTER_DEFEND:
-                    return 1;
-                default:
-                    return 0;
-            }
-        };
-        const sorted = [...expanded].sort((a, b) => scoreFor(b.value) - scoreFor(a.value));
+        const expanded = expandPrimitiveResults(diceType as any, results as Array<number | string>);
+        const sorted = sortDieValues(expanded as any);
         gameLog.value.unshift({ kind: 'dice', actor: actorName, diceType, count, results: sorted } as any);
     });
 
@@ -372,7 +367,7 @@ onMounted(() => {
     });
 
     presenceChannel.joining(async (user: PresentUser) => {
-        if (!usersPresent.value.find(p => p.id === user.id)) {
+        if (!usersPresent.value.find((p) => p.id === user.id)) {
             usersPresent.value.push(user);
         }
         ensureSelfPresent();
@@ -385,7 +380,7 @@ onMounted(() => {
             // Ignore self-leave blips
             return;
         }
-        const index = usersPresent.value.findIndex(p => p.id === user.id);
+        const index = usersPresent.value.findIndex((p) => p.id === user.id);
         if (index !== -1) {
             usersPresent.value.splice(index, 1);
         }
@@ -396,8 +391,9 @@ onMounted(() => {
         // Save every 30 seconds by default
         const intervalMs = 30000;
         // Store on window scoped symbol to allow teardown below
-        ;(window as any).__hqSaveInterval = window.setInterval(async () => {
+        (window as any).__hqSaveInterval = window.setInterval(async () => {
             try {
+                showAutoSave('saving');
                 const payload = {
                     elements: boardStoreRef.elements,
                     heroes: gameStore.heroes,
@@ -406,9 +402,11 @@ onMounted(() => {
                 } as any;
                 const url = SaveGameController(props.game.id).url;
                 await axios.put(url, payload, { withCredentials: true });
+                showAutoSave('saved');
                 // console.debug('[auto-save] game saved');
             } catch (e) {
                 console.warn('[auto-save] failed', e);
+                showAutoSave('error');
             }
         }, intervalMs);
     }
@@ -420,78 +418,14 @@ onUnmounted(() => {
         window.clearInterval(handle);
         delete (window as any).__hqSaveInterval;
     }
+    if (autoSaveHideHandle != null) {
+        window.clearTimeout(autoSaveHideHandle);
+        autoSaveHideHandle = null;
+    }
 });
 
 // --- Players ordering & active selection (GM tools) ---
 const orderedPlayers = ref<Player[]>([...props.game.players]);
-
-// Lightweight refresh of game players from the server (used by GM when new players join)
-const reloadingPlayers = ref(false);
-
-async function refreshGamePlayers(): Promise<void> {
-    if (reloadingPlayers.value) {
-        return;
-    }
-    reloadingPlayers.value = true;
-    await new Promise<void>((resolve) => {
-        router.reload({
-            only: ['game'],
-            preserveScroll: true,
-            onSuccess: (pageData) => {
-                try {
-                    const updatedGame = (pageData.props as any).game as Game;
-                    if (updatedGame?.players) {
-                        orderedPlayers.value = [...updatedGame.players];
-                    }
-                } finally {
-                    reloadingPlayers.value = false;
-                    resolve();
-                }
-            },
-            onError: () => {
-                reloadingPlayers.value = false;
-                resolve();
-            },
-            onFinish: () => {
-                // safety net
-                reloadingPlayers.value = false;
-            }
-        });
-    });
-}
-
-// Lightweight refresh of game elements from the server (used by GM when new players join)
-const reloadingElements = ref(false);
-
-async function refreshGameElements(): Promise<void> {
-    if (reloadingElements.value) {
-        return;
-    }
-    reloadingElements.value = true;
-    await new Promise<void>((resolve) => {
-        router.reload({
-            only: ['game'],
-            preserveScroll: true,
-            onSuccess: (pageData) => {
-                try {
-                    const updatedGame = (pageData.props as any).game as Game;
-                    // apply any updates to the board elements, etc
-                } finally {
-                    reloadingElements.value = false;
-                    resolve();
-                }
-            },
-            onError: () => {
-                reloadingElements.value = false;
-                resolve();
-            },
-            onFinish: () => {
-                // safety net
-                reloadingElements.value = false;
-            }
-        });
-    });
-}
 
 // Keep local state in sync if server sends updated props
 watch(
@@ -619,7 +553,8 @@ function assignHero(payload: { heroId: number; playerId: number }): void {
     gameStore.setHeroes(next as any);
     try {
         broadcastGameStateSync();
-    } catch {}
+    } catch {
+    }
 }
 
 async function saveHero(payload: { heroId: number; hero: any }): Promise<void> {
@@ -642,13 +577,18 @@ async function saveHero(payload: { heroId: number; hero: any }): Promise<void> {
     const incoming = payload.hero as any;
     const cleaned = {
         ...incoming,
-        inventory: Array.isArray(incoming.inventory) ? incoming.inventory.filter((it: any) => it && it.name && String(it.name).trim().length > 0) : [],
-        equipment: Array.isArray(incoming.equipment) ? incoming.equipment.filter((eq: any) => eq && eq.name && String(eq.name).trim().length > 0) : []
+        inventory: Array.isArray(incoming.inventory)
+            ? incoming.inventory.filter((it: any) => it && it.name && String(it.name).trim().length > 0)
+            : [],
+        equipment: Array.isArray(incoming.equipment)
+            ? incoming.equipment.filter((eq: any) => eq && eq.name && String(eq.name).trim().length > 0)
+            : []
     } as any;
     try {
         const url = (SelectHeroController as any).update(heroId).url as string;
         await axios.put(url, cleaned, { withCredentials: true });
     } catch (e) {
+        console.error('Failed to update hero:', e);
         // Even if the response redirects, the update likely succeeded; proceed with local/broadcast updates.
     }
     // Merge into existing hero (preserve id, player, position)
@@ -673,7 +613,7 @@ async function saveHero(payload: { heroId: number; hero: any }): Promise<void> {
 
 // --- Actions (dice + turn) ---
 function rollDice(payload: { type: DieType; count: number }): void {
-    if (!payload || (payload.type !== 'six_sided' as any && payload.type !== 'combat' as any)) {
+    if (!payload || (payload.type !== ('six_sided' as any) && payload.type !== ('combat' as any))) {
         return;
     }
     const type = payload.type as DieType;
@@ -681,30 +621,29 @@ function rollDice(payload: { type: DieType; count: number }): void {
     // Compute results using shared lib
     const results = performRoll(type, count);
     // Sort results by value for easier scanning
-    const scoreFor = (v: number | string): number => {
-        if (typeof v === 'number') {
-            return v; // numeric face value
+    const sorted = sortDieValues(results as any);
+    // Determine actor display name per priority:
+    // 1) If the roller owns the currently active hero, use the hero's name
+    // 2) If the roller is Zargon (GM), use "Zargon"
+    // 3) Otherwise, use the player's name
+    const meId = currentUserId.value;
+    let actor: string;
+    if (isGameMaster.value) {
+        actor = 'Zargon';
+    } else {
+        const active = (gameStore.heroes as any[]).find((h: any) => h.id === (gameStore as any).currentHeroId) as any;
+        if (active && typeof active.playerId === 'number' && meId != null && active.playerId === meId) {
+            actor = (active.name as string) ?? 'Hero';
+        } else {
+            actor = (page.props.auth.user?.name as string | undefined) ?? 'Someone';
         }
-        // combat faces ordering
-        switch (v as any) {
-            case CombatDieSide.SKULL:
-                return 3;
-            case CombatDieSide.DEFEND:
-                return 2;
-            case CombatDieSide.MONSTER_DEFEND:
-                return 1;
-            default:
-                return 0;
-        }
-    };
-    const sorted = [...results].sort((a, b) => scoreFor(b.value) - scoreFor(a.value));
-    const actor = (page.props.auth.user?.name as string | undefined) ?? 'Someone';
+    }
     // Log locally with icons/colors
     gameLog.value.unshift({ kind: 'dice', actor, diceType: type, count, results: sorted });
     // Broadcast to other clients with primitive values
     try {
         const ch = channel();
-        const primitive = sorted.map(r => r.value);
+        const primitive = sorted.map((r) => r.value);
         const packet: DiceRolledPayload = { actorName: actor, diceType: type, count, results: primitive } as any;
         broadcastDiceRolled(ch, packet);
     } catch {
@@ -745,43 +684,23 @@ function toggleSelect(): void {
     }
 }
 
-function chooseSelectionHeroId(): number | null {
-    const me = currentUserId.value;
-    const activeId = gameStore.currentHeroId;
-    const active = (gameStore.heroes as any[]).find(h => (h as any).id === activeId) as any;
-    // If GM, use Zargon's id (0) so selection color is Zargon's color
-    if (isGameMaster.value) {
-        return 0;
-    }
-    // If the active hero is mine, use it
-    if (me != null && active && active.playerId === me) {
-        return activeId;
-    }
-    // Otherwise, find my first available hero
-    const mine = (gameStore.heroes as any[]).find(h => (h as any).playerId === me) as any;
-    if (mine && typeof mine.id === 'number') {
-        return mine.id as number;
-    }
-    // Otherwise, no selection hero id
-    return null;
-}
-
 function clearMySelection(): void {
-    const heroId = chooseSelectionHeroId();
+    const heroId = chooseSelectionHeroIdUtil(isGameMaster.value, currentUserId.value, gameStore.currentHeroId, gameStore.heroes as any);
     if (heroId == null) {
         return;
     }
     selectedByHero.value = { ...selectedByHero.value, [heroId]: null };
     try {
         const ch = channel();
-        broadcastSelectedTileSyncUtil(ch, { heroId, tile: null, color: heroColorById(heroId) });
+        const packet = buildSelectedTilePacket(heroId, null);
+        broadcastSelectedTileSyncUtil(ch, packet);
     } catch {
     }
 }
 
 function onSelectTile(payload: { x: number; y: number }): void {
     // when a hero/player selects a tile, mark it as selected and broadcast the selection to all clients
-    const heroId = chooseSelectionHeroId();
+    const heroId = chooseSelectionHeroIdUtil(isGameMaster.value, currentUserId.value, gameStore.currentHeroId, gameStore.heroes as any);
     if (heroId == null) {
         return;
     }
@@ -791,8 +710,7 @@ function onSelectTile(payload: { x: number; y: number }): void {
     selectedByHero.value = { ...selectedByHero.value, [heroId]: next };
     try {
         const ch = channel();
-        const color = heroColorById(heroId);
-        const packet: SelectedTilePayload = { heroId, tile: next, color };
+        const packet: SelectedTilePayload = buildSelectedTilePacket(heroId, next);
         broadcastSelectedTileSyncUtil(ch, packet);
     } catch {
     }
@@ -818,12 +736,17 @@ function onHeroMoved(payload: { heroes: Hero[]; heroId: number; heroName: string
     }
     // Update local step counters
     stepsByHero.value = { ...stepsByHero.value, [heroId]: Math.max(0, payload.steps) };
-    const { [heroId]: _omit, ...rest } = previewStepsByHero.value;
+    const { 
+        [heroId]: 
+            _omit, // eslint-disable-line @typescript-eslint/no-unused-vars 
+        ...rest } = previewStepsByHero.value;
     previewStepsByHero.value = rest;
-    // Log movement in game information panel
-    const spaces = payload.steps;
-    const msg = `${payload.heroName} moved ${spaces} ${spaces === 1 ? 'space' : 'spaces'}`;
-    gameLog.value.unshift({ kind: 'text', text: msg } as any);
+    // Log movement in game information panel (only when steps > 0)
+    if ((payload.steps ?? 0) > 0) {
+        const spaces = payload.steps;
+        const msg = `${payload.heroName} moved ${spaces} ${spaces === 1 ? 'space' : 'spaces'}`;
+        gameLog.value.unshift({ kind: 'text', text: msg } as any);
+    }
 }
 
 function onTrapTriggered(payload: TrapTriggeredPayload): void {
@@ -855,12 +778,11 @@ function toggleVisibility(elementId: string): void {
     boardStoreRef.elements = next as any;
     try {
         const ch = channel();
-        const elements = (next as any[]).map(e => applyTrapColorByStatus(e));
+        const elements = (next as any[]).map((e) => applyTrapColorByStatus(e));
         broadcastElementsSyncUtil(ch, elements as any);
     } catch {
     }
 }
-
 
 function onMonsterSelected(payload: { elementId: string }): void {
     const id = payload?.elementId;
@@ -901,7 +823,7 @@ function updateMonsterBody(payload: { elementId: string; value: number }): void 
     boardStoreRef.elements = next as any;
     try {
         const ch = channel();
-        const elements = (next as any[]).map(e => applyTrapColorByStatus(e));
+        const elements = (next as any[]).map((e) => applyTrapColorByStatus(e));
         broadcastElementsSyncUtil(ch, elements as any);
     } catch {
     }
@@ -931,7 +853,7 @@ function openDoor(elementId: string): void {
     boardStoreRef.elements = next as any;
     try {
         const ch = channel();
-        const elements = (next as any[]).map(e => applyTrapColorByStatus(e));
+        const elements = (next as any[]).map((e) => applyTrapColorByStatus(e));
         broadcastElementsSyncUtil(ch, elements as any);
     } catch {
     }
@@ -943,7 +865,7 @@ function onElementsChanged(payload: { elements: BoardElement[] }): void {
     boardStoreRef.elements = list as any;
     try {
         const ch = channel();
-        const elements = (list as any[]).map(e => applyTrapColorByStatus(e));
+        const elements = (list as any[]).map((e) => applyTrapColorByStatus(e));
         broadcastElementsSyncUtil(ch, elements as any);
     } catch {
     }
@@ -961,7 +883,7 @@ function onTilesRevealed(tiles: Array<{ x: number; y: number }>): void {
 function onTilesChanged(payload: {
     tiles: any[][];
     changes?: { x: number; y: number; tile: any }[];
-    fixtureMeta?: Record<string, { type: any; label: string } | null>
+    fixtureMeta?: Record<string, { type: any; label: string } | null>;
 }): void {
     // Replace local tiles with a brand new matrix with cloned rows to ensure reactivity
     boardStoreRef.tiles = (payload.tiles as any[]).map((row: any[]) => [...row]) as any;
@@ -1001,7 +923,7 @@ function onTilesChanged(payload: {
     <AppHeaderLayout>
         <GamemasterSidebar v-if="isGameMaster" />
         <!-- Header -->
-        <div class="flex flex-row justify-between items-center gap-3 my-2">
+        <div class="my-2 flex flex-row items-center justify-between gap-3">
             <div class="flex flex-row items-center gap-2">
                 <h1 class="text-2xl font-bold">{{ board.name }}</h1>
                 <span>{{ board.group }} ({{ board.order }})</span>
@@ -1010,17 +932,17 @@ function onTilesChanged(payload: {
         </div>
 
         <!-- Main layout: left+ (board), right (game tools) -->
-        <div class="flex flex-col md:flex-row gap-4">
+        <div class="flex flex-col gap-4 md:flex-row">
             <!-- Board Canvas -->
             <section class="">
                 <div
-                    class="overflow-auto rounded border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-2">
+                    class="overflow-auto rounded border border-gray-200 bg-white p-2 dark:border-neutral-800 dark:bg-neutral-900">
                     <BoardCanvas
                         :board="board"
                         :can-edit="isGameMaster"
                         :selected-tiles="selectedTilesDisplay"
-                        :player-select-mode="(isSelectActive) as any"
-                        :can-move="(canMove) as any"
+                        :player-select-mode="isSelectActive as any"
+                        :can-move="canMove as any"
                         :selected-monster-id="selectedMonsterId"
                         @select-tile="onSelectTile"
                         @toggle-visibility="toggleVisibility"
@@ -1042,12 +964,12 @@ function onTilesChanged(payload: {
                 :heroes="gameStore.heroes"
                 :active-hero-id="gameStore.currentHeroId"
                 :is-game-master="isGameMaster"
-                :present-ids="usersPresent.map(u => u.id)"
+                :present-ids="usersPresent.map((u) => u.id)"
                 :current-user-id="currentUserId"
-                :is-select-active="(isSelectActive) as any"
+                :is-select-active="isSelectActive as any"
                 :steps-by-hero="stepsByHero"
                 :preview-steps-by-hero="previewStepsByHero"
-                :can-end-turn="(canEndTurn) as any"
+                :can-end-turn="canEndTurn as any"
                 :selected-monster="selectedMonster"
                 :game-log="gameLog"
                 @move-up="moveUp"
@@ -1064,8 +986,24 @@ function onTilesChanged(payload: {
             />
         </div>
 
+        <!-- Auto-save indicator (bottom-left) -->
+        <div v-if="autoSave.status !== 'idle'" class="fixed bottom-3 left-3 z-50">
+            <div
+                :class="[
+                    'rounded border px-2 py-1 text-xs shadow select-none',
+                    autoSave.status === 'saving'
+                        ? 'border-blue-500 bg-blue-600 text-white'
+                        : autoSave.status === 'saved'
+                          ? 'border-emerald-500 bg-emerald-600 text-white'
+                          : 'border-red-500 bg-red-600 text-white',
+                ]"
+            >
+                <span v-if="autoSave.status === 'saving'">Auto-saving…</span>
+                <span v-else-if="autoSave.status === 'saved'">Saved</span>
+                <span v-else>Auto-save failed</span>
+            </div>
+        </div>
     </AppHeaderLayout>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { Player } from '@/types/game';
-import { Brain, Footprints, Heart, Shield, SwordIcon } from 'lucide-vue-next';
-import type { NewHero } from '@/types/hero';
-import { Hero, HeroArchetype, Zargon } from '@/types/hero';
 import { isHero } from '@/lib/board/game';
 import { heroColorById } from '@/lib/game/colors';
+import type { Player } from '@/types/game';
+import type { NewHero } from '@/types/hero';
+import { Hero, HeroArchetype, Zargon } from '@/types/hero';
+import { Brain, Footprints, Heart, Shield, SwordIcon } from 'lucide-vue-next';
 
 import HeroForm from '@/components/hero/HeroForm.vue';
 import { ref } from 'vue';
@@ -40,7 +40,7 @@ function toNewHero(h: Hero): NewHero {
         type: h.type,
         stats: { ...h.stats },
         inventory: (h.inventory || []).map((it: any) => ({ ...it })),
-        equipment: (h.equipment || []).map((it: any) => ({ ...it }))
+        equipment: (h.equipment || []).map((it: any) => ({ ...it })),
     } as NewHero;
 }
 
@@ -118,37 +118,41 @@ function heroListOnly(): Hero[] {
 
 function onAssign(heroId: number, playerIdStr: string): void {
     const playerId = Number(playerIdStr);
-    if (!Number.isFinite(playerId)) { return; }
+    if (!Number.isFinite(playerId)) {
+        return;
+    }
     emit('assign-hero', { heroId, playerId });
 }
 </script>
 
 <template>
     <div class="mb-4">
-        <div class="flex items-center justify-between gap-2 mb-1">
-            <div class="text-xs uppercase text-gray-500">Players</div>
+        <div class="mb-1 flex items-center justify-between gap-2">
+            <div class="text-xs text-gray-500 uppercase">Players</div>
             <div v-if="isGameMaster" class="flex items-center gap-2">
                 <button
                     type="button"
-                    class="px-2 py-0.5 text-xs rounded bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 disabled:opacity-50"
+                    class="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-800 disabled:opacity-50 dark:bg-amber-900/30 dark:text-amber-300"
                     @click="gmPlayerActionsActive = !gmPlayerActionsActive"
-                >Actions
+                >
+                    Actions
                 </button>
-                <button
-                    type="button"
-                    class="px-2 py-0.5 text-xs rounded bg-gray-100 dark:bg-neutral-800"
-                    @click="showReassign = !showReassign"
-                >{{ showReassign ? 'Hide' : 'Reassign' }}</button>
+                <button type="button" class="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-neutral-800" @click="showReassign = !showReassign">
+                    {{ showReassign ? 'Hide' : 'Reassign' }}
+                </button>
             </div>
         </div>
 
         <!-- Reassign form (GM only), shown above the list -->
-        <div v-if="isGameMaster && showReassign" class="mb-2 p-2 border rounded-md border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-900/50">
+        <div
+            v-if="isGameMaster && showReassign"
+            class="mb-2 rounded-md border border-gray-200 bg-gray-50 p-2 dark:border-neutral-800 dark:bg-neutral-900/50"
+        >
             <div class="flex flex-col gap-2">
                 <div v-for="h in heroListOnly()" :key="(h as any).id" class="flex items-center gap-2">
                     <div class="flex-1 text-sm">{{ (h as any).name }}</div>
                     <select
-                        class="text-sm rounded border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1"
+                        class="rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
                         :value="(h as any).playerId"
                         @change="onAssign((h as any).id, ($event.target as HTMLSelectElement).value)"
                     >
@@ -159,20 +163,12 @@ function onAssign(heroId: number, playerIdStr: string): void {
         </div>
 
         <ul class="flex flex-col gap-1">
-            <li
-                v-for="(h, idx) in heroes"
-                :key="h.id"
-                class="gap-2 p-1"
-                :class="h.id === activeHeroId ? 'border rounded-md border-blue-500' : ''"
-            >
+            <li v-for="(h, idx) in heroes" :key="h.id" class="gap-2 p-1" :class="h.id === activeHeroId ? 'rounded-md border border-blue-500' : ''">
                 <div class="flex items-center gap-1">
-                <span
-                    class="inline-block h-3 w-3 rounded-full"
-                    :class="playerIsPresent(h.playerId) ? 'bg-green-500' : 'bg-gray-400'"
-                />
+                    <span class="inline-block h-3 w-3 rounded-full" :class="playerIsPresent(h.playerId) ? 'bg-green-500' : 'bg-gray-400'" />
                     <span class="flex-1" :style="isHero(h) ? { color: heroColorById(h.id) } : {}">
-                    {{ h.name }}
-                </span>
+                        {{ h.name }}
+                    </span>
 
                     <!-- Body Points -->
                     <div v-if="isHero(h)" class="flex items-center gap-1 text-sm">
@@ -181,18 +177,16 @@ function onAssign(heroId: number, playerIdStr: string): void {
                             <div class="flex items-center gap-1">
                                 <button
                                     type="button"
-                                    class="px-2 py-0.5 text-xs rounded bg-gray-100 dark:bg-neutral-800"
+                                    class="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-neutral-800"
                                     :disabled="(h.stats?.currentBodyPoints ?? 0) <= 0"
                                     @click="decBody(h as any)"
-                                >−
+                                >
+                                    −
                                 </button>
                                 <span class="min-w-6 text-center">{{ h.stats?.currentBodyPoints ?? 0 }}</span>
                                 <span class="text-xs text-neutral-500">/ {{ h.stats?.bodyPoints ?? 0 }}</span>
-                                <button
-                                    type="button"
-                                    class="px-2 py-0.5 text-xs rounded bg-gray-100 dark:bg-neutral-800"
-                                    @click="incBody(h as any)"
-                                >+
+                                <button type="button" class="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-neutral-800" @click="incBody(h as any)">
+                                    +
                                 </button>
                             </div>
                         </template>
@@ -200,8 +194,10 @@ function onAssign(heroId: number, playerIdStr: string): void {
                             <span class="min-w-6 text-center">{{ h.stats?.currentBodyPoints ?? 0 }}</span>
                             <span class="text-xs text-neutral-500">/ {{ h.stats?.bodyPoints ?? 0 }}</span>
                         </template>
-                        <span v-if="bodyDisplay(h as any).over"
-                              class="ml-1 inline-flex items-center justify-center text-[10px] font-semibold text-rose-600 dark:text-rose-400">
+                        <span
+                            v-if="bodyDisplay(h as any).over"
+                            class="ml-1 inline-flex items-center justify-center text-[10px] font-semibold text-rose-600 dark:text-rose-400"
+                        >
                             +
                         </span>
                     </div>
@@ -209,50 +205,58 @@ function onAssign(heroId: number, playerIdStr: string): void {
                     <div v-if="isGameMaster && gmPlayerActionsActive" class="flex items-center gap-1">
                         <button
                             type="button"
-                            class="px-2 py-0.5 text-xs rounded bg-gray-100 dark:bg-neutral-800"
+                            class="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-neutral-800"
                             :disabled="idx === 0"
                             @click="emit('move-up', idx)"
-                        >↑
+                        >
+                            ↑
                         </button>
                         <button
                             type="button"
-                            class="px-2 py-0.5 text-xs rounded bg-gray-100 dark:bg-neutral-800"
+                            class="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-neutral-800"
                             :disabled="idx === players.length - 1"
                             @click="emit('move-down', idx)"
-                        >↓
+                        >
+                            ↓
                         </button>
                         <button
                             type="button"
-                            class="px-2 py-0.5 text-xs rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 disabled:opacity-50"
+                            class="rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-700 disabled:opacity-50 dark:bg-blue-900/30 dark:text-blue-300"
                             :disabled="h.id === activeHeroId"
                             @click="emit('set-active', h.id)"
-                        >Set Active
+                        >
+                            Set Active
                         </button>
                     </div>
                     <div v-if="isHero(h) && canEditHero(h as any)" class="ml-2">
                         <button
                             type="button"
-                            class="px-2 py-0.5 text-xs rounded bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 disabled:opacity-50"
+                            class="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-800 disabled:opacity-50 dark:bg-amber-900/30 dark:text-amber-300"
                             @click="startEdit(h as any)"
-                        >Edit
+                        >
+                            Edit
                         </button>
                     </div>
                 </div>
 
-                <div v-if="isHero(h) && editingHeroId === h.id"
-                     class="mt-2 p-2 border rounded-md border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-900/50">
+                <div
+                    v-if="isHero(h) && editingHeroId === h.id"
+                    class="mt-2 rounded-md border border-gray-200 bg-gray-50 p-2 dark:border-neutral-800 dark:bg-neutral-900/50"
+                >
                     <HeroForm
-                        :model-value="(editModel as any)"
+                        :model-value="editModel as any"
                         mode="edit"
-                        :archetypes="(Object.values(HeroArchetype) as any)"
+                        :archetypes="Object.values(HeroArchetype) as any"
                         @update:modelValue="(v: any) => (editModel = v)"
                         @submit="saveEdit((h as any).id)"
                         @cancel="cancelEdit"
                     />
                 </div>
 
-                <div v-if="isHero(h) && h.id === activeHeroId"
-                     class="mt-2 px-2 flex flex-row justify-between flex-wrap items-center gap-3 text-sm text-neutral-500">
+                <div
+                    v-if="isHero(h) && h.id === activeHeroId"
+                    class="mt-2 flex flex-row flex-wrap items-center justify-between gap-3 px-2 text-sm text-neutral-500"
+                >
                     <div>{{ h.type }}</div>
                     <div class="flex flex-row items-center gap-5 text-gray-800 dark:text-white">
                         <div class="flex flex-row items-center gap-2">

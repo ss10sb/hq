@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { usePage } from '@inertiajs/vue3';
 import { AppPageProps } from '@/types';
+import { usePage } from '@inertiajs/vue3';
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 const page = usePage<AppPageProps>();
@@ -46,7 +46,7 @@ watch(
         info.value = (f?.info as any) ?? null;
         startHideTimers();
     },
-    { deep: true }
+    { deep: true },
 );
 
 onBeforeUnmount(() => {
@@ -56,22 +56,20 @@ onBeforeUnmount(() => {
 
 <template>
     <div v-if="success" class="mb-4">
-        <div class="bg-green-500 text-white p-4 rounded-lg">
+        <div class="rounded-lg bg-green-500 p-4 text-white">
             {{ success }}
         </div>
     </div>
     <div v-if="error" class="mb-4">
-        <div class="bg-red-500 text-white p-4 rounded-lg">
+        <div class="rounded-lg bg-red-500 p-4 text-white">
             {{ error }}
         </div>
     </div>
     <div v-if="info" class="mb-4">
-        <div class="bg-blue-500 text-white p-4 rounded-lg">
+        <div class="rounded-lg bg-blue-500 p-4 text-white">
             {{ info }}
         </div>
     </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

@@ -234,4 +234,4 @@ export type Fixture = {
     type: FixtureType;
     traversable: boolean;
     custom?: boolean;
-}
+};

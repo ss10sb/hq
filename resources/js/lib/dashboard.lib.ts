@@ -1,4 +1,4 @@
-import { Game, GameStatus } from '@/types/dashboard';
+import { GameStatus } from '@/types/dashboard';
 
 export function statusLabel(status: GameStatus): string {
     switch (status) {

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useBoardStore } from '@/stores/board';
 import { TrapType } from '@/types/board';
 import { computed } from 'vue';
-import { useBoardStore } from '@/stores/board';
 
 const props = defineProps<{
     type: TrapType;
@@ -47,9 +47,9 @@ const modelCustomText = computed<string>({
 <template>
     <div class="mb-6">
         <h2 class="text-sm font-semibold text-neutral-700 dark:text-neutral-200">Trap Type</h2>
-        <div class="grid gap-2 my-3">
+        <div class="my-3 grid gap-2">
             <Label for="trap-type">Type</Label>
-            <Select v-model="(modelType as any)">
+            <Select v-model="modelType as any">
                 <SelectTrigger id="trap-type" class="w-full">
                     <SelectValue placeholder="Select a trap type" />
                 </SelectTrigger>
@@ -58,7 +58,7 @@ const modelCustomText = computed<string>({
                 </SelectContent>
             </Select>
 
-            <div v-if="isCustomSelected" class="grid gap-2 mt-3">
+            <div v-if="isCustomSelected" class="mt-3 grid gap-2">
                 <Label for="trap-custom">Custom label</Label>
                 <Input id="trap-custom" type="text" v-model="modelCustomText" placeholder="e.g. Gas trap" />
             </div>

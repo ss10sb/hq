@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import joinGameController from '@/actions/App/Http/Controllers/Game/JoinGameController';
 import SelectHeroController from '@/actions/App/Http/Controllers/Hero/SelectHeroController';
+import Errors from '@/components/Errors.vue';
 import HeroForm from '@/components/hero/HeroForm.vue';
 import HeroesList from '@/components/hero/HeroesList.vue';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,6 @@ import { Hero, HeroArchetype, type NewHero } from '@/types/hero';
 import type { LengthAwarePaginator } from '@/types/pagination';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
-import Errors from '@/components/Errors.vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -113,7 +113,7 @@ const submitForm = async () => {
 };
 
 const joinGameSession = (heroId: number) => {
-    router.get(joinGameController({heroId, joinKey: joinKey.value}).url);
+    router.get(joinGameController({ heroId, joinKey: joinKey.value }).url);
 };
 const joinKey = ref('');
 </script>
@@ -121,7 +121,7 @@ const joinKey = ref('');
 <template>
     <Head title="Select Hero" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <Errors/>
+        <Errors />
         <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
             <div class="flex flex-row items-center justify-between gap-4">
                 <Button @click="startCreate">Create New Hero</Button>

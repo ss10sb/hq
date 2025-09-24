@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
-import type { DieType } from '@/lib/board/game';
+import type { DieType } from '@/lib/game/dice';
+import { onMounted, ref, watch } from 'vue';
 
-const props = defineProps<{ 
+const props = defineProps<{
     currentUserId: number | null;
     isSelectActive?: boolean;
     canEndTurn?: boolean;
@@ -48,12 +48,15 @@ watch(dieType, () => {
     setDefaultCount();
 });
 
-watch(() => props.activeHeroAttackDice, (v) => {
-    // If showing dice and on combat type, refresh default when hero changes
-    if (showDice.value && dieType.value === ('combat' as any)) {
-        setDefaultCount();
-    }
-});
+watch(
+    () => props.activeHeroAttackDice,
+    () => {
+        // If showing dice and on combat type, refresh default when hero changes
+        if (showDice.value && dieType.value === ('combat' as any)) {
+            setDefaultCount();
+        }
+    },
+);
 
 onMounted(() => {
     setDefaultCount();
@@ -68,46 +71,52 @@ function doRoll(): void {
 
 <template>
     <div>
-        <div class="text-xs uppercase text-gray-500 mb-1">Actions</div>
+        <div class="mb-1 text-xs text-gray-500 uppercase">Actions</div>
         <div class="flex flex-col gap-2">
-            <div class="flex flex-wrap gap-2 items-center">
-                <button class="px-3 py-1 rounded bg-gray-100 dark:bg-neutral-800 text-sm" @click="toggleDice">
-                    Roll Dice
-                </button>
+            <div class="flex flex-wrap items-center gap-2">
+                <button class="rounded bg-gray-100 px-3 py-1 text-sm dark:bg-neutral-800" @click="toggleDice">Roll Dice</button>
                 <button
-                    class="px-3 py-1 rounded text-sm"
+                    class="rounded px-3 py-1 text-sm"
                     :class="props.isSelectActive ? 'bg-emerald-600 text-white' : 'bg-gray-100 dark:bg-neutral-800'"
                     @click="emit('toggle-select')"
                 >
                     Select
                 </button>
-                <button
-                    v-if="props.canEndTurn === true"
-                    class="px-3 py-1 rounded bg-gray-100 dark:bg-neutral-800 text-sm"
-                    @click="emit('end-turn')"
-                >
+                <button v-if="props.canEndTurn === true" class="rounded bg-gray-100 px-3 py-1 text-sm dark:bg-neutral-800" @click="emit('end-turn')">
                     End Turn
                 </button>
             </div>
-            <div v-if="showDice" class="rounded border border-gray-200 dark:border-neutral-800 p-2 bg-gray-50 dark:bg-neutral-800/50">
+            <div v-if="showDice" class="rounded border border-gray-200 bg-gray-50 p-2 dark:border-neutral-800 dark:bg-neutral-800/50">
                 <div class="flex flex-wrap items-center gap-3 text-sm">
                     <div class="inline-flex items-center gap-2">
-                        <div class="inline-flex rounded overflow-hidden border border-gray-200 dark:border-neutral-700">
+                        <div class="inline-flex overflow-hidden rounded border border-gray-200 dark:border-neutral-700">
                             <span class="sr-only">Type</span>
                             <button
                                 aria-description="Click to select 6-sided dice"
                                 type="button"
                                 class="px-3 py-1 text-sm"
-                                :class="dieType === ('six_sided' as any) ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200'"
+                                :class="
+                                    dieType === ('six_sided' as any)
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-gray-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200'
+                                "
                                 @click="dieType = 'six_sided' as any"
-                            >6-sided</button>
+                            >
+                                6-sided
+                            </button>
                             <button
                                 type="button"
                                 aria-description="Click to select combat dice"
                                 class="px-3 py-1 text-sm"
-                                :class="dieType === ('combat' as any) ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200'"
+                                :class="
+                                    dieType === ('combat' as any)
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-gray-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200'
+                                "
                                 @click="dieType = 'combat' as any"
-                            >Combat</button>
+                            >
+                                Combat
+                            </button>
                         </div>
                     </div>
                     <div class="inline-flex items-center gap-1">
@@ -116,23 +125,27 @@ function doRoll(): void {
                             <button
                                 aria-description="Click to decrement"
                                 type="button"
-                                class="px-2 py-0.5 text-xs rounded bg-gray-100 dark:bg-neutral-800"
+                                class="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-neutral-800"
                                 :disabled="(dieCount ?? 1) <= 1"
                                 @click="decCount"
-                            >−</button>
+                            >
+                                −
+                            </button>
                             <span class="min-w-6 text-center">{{ dieCount }}</span>
                             <button
                                 aria-description="Click to increment"
                                 type="button"
-                                class="px-2 py-0.5 text-xs rounded bg-gray-100 dark:bg-neutral-800"
+                                class="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-neutral-800"
                                 :disabled="(dieCount ?? 1) >= 10"
                                 @click="incCount"
-                            >+</button>
+                            >
+                                +
+                            </button>
                         </div>
                     </div>
                     <div class="ml-auto flex gap-2">
-                        <button type="button" class="px-3 py-1 rounded bg-gray-100 dark:bg-neutral-700" @click="showDice=false">Cancel</button>
-                        <button type="button" class="px-3 py-1 rounded bg-blue-600 text-white" @click="doRoll">Roll</button>
+                        <button type="button" class="rounded bg-gray-100 px-3 py-1 dark:bg-neutral-700" @click="showDice = false">Cancel</button>
+                        <button type="button" class="rounded bg-blue-600 px-3 py-1 text-white" @click="doRoll">Roll</button>
                     </div>
                 </div>
             </div>

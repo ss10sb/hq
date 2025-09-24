@@ -1,15 +1,24 @@
 <script setup lang="ts">
-import { Ref, computed, onMounted, ref } from 'vue';
-import { useBoardStore } from '@/stores/board';
-import { Board, BoardTool, TileType, Monster, Trap, ElementType, Tile, Element, TrapType, TrapStatus } from '@/types/board';
-import { BoardDimension } from '@/lib/board';
-import type { RectConfig } from 'konva/lib/shapes/Rect';
-import { TILE_SIZE, computeSelectionRect, getTileConfig, tileFromPointer, pointerPx, ICON_SIZE, iconFor, preloadAllIcons } from '@/lib/board';
-import { Game } from '@/types/game';
-import { useGameStore } from '@/stores/game';
-import { Hero, Zargon } from '@/types/hero';
+import {
+    BoardDimension,
+    ICON_SIZE,
+    TILE_SIZE,
+    computeSelectionRect,
+    getTileConfig,
+    iconFor,
+    pointerPx,
+    preloadAllIcons,
+    tileFromPointer,
+} from '@/lib/board';
 import { getHeroAt, isHero } from '@/lib/board/game';
 import { heroColorById } from '@/lib/game/colors';
+import { useBoardStore } from '@/stores/board';
+import { useGameStore } from '@/stores/game';
+import { Board, BoardTool, Element, ElementType, Monster, Tile, TileType, Trap, TrapStatus, TrapType } from '@/types/board';
+import { Game } from '@/types/game';
+import { Hero, Zargon } from '@/types/hero';
+import type { RectConfig } from 'konva/lib/shapes/Rect';
+import { Ref, computed, onMounted, ref } from 'vue';
 
 const boardStore = useBoardStore();
 const gameStore = useGameStore();
@@ -18,7 +27,7 @@ type HeroMovedPayload = { heroes: Hero[]; heroId: number; heroName: string; step
 
 type HeroMovingPayload = { heroId: number; steps: number };
 
-const emit = defineEmits<{ 
+const emit = defineEmits<{
     (e: 'toggle-visibility', elementId: string): void;
     (e: 'open-door', elementId: string): void;
     (e: 'hero-moving', payload: HeroMovingPayload): void;
@@ -27,26 +36,36 @@ const emit = defineEmits<{
     (e: 'select-tile', payload: { x: number; y: number }): void;
     (e: 'tiles-revealed', payload: { x: number; y: number }[]): void;
     (e: 'elements-changed', payload: { elements: Element[] }): void;
-    (e: 'tiles-changed', payload: { tiles: Tile[][]; changes?: { x: number; y: number; tile: Tile }[]; fixtureMeta?: Record<string, { type: any; label: string } | null> }): void;
+    (
+        e: 'tiles-changed',
+        payload: {
+            tiles: Tile[][];
+            changes?: { x: number; y: number; tile: Tile }[];
+            fixtureMeta?: Record<string, { type: any; label: string } | null>;
+        },
+    ): void;
     (e: 'monster-selected', payload: { elementId: string }): void;
 }>();
 
-const props = withDefaults(defineProps<{
-    board?: Board;
-    game?: Game;
-    canEdit?: boolean;
-    monsters?: Monster[];
-    traps?: Trap[];
-    selectedTiles?: { x: number; y: number; color?: string }[];
-    playerSelectMode?: boolean;
-    canMove?: boolean; // whether the local player can move their character now
-    selectedMonsterId?: string | null; // currently selected monster (for visual highlight)
-}>(), {
-    selectedTiles: () => [],
-    playerSelectMode: false,
-    canMove: false,
-    selectedMonsterId: null,
-});
+const props = withDefaults(
+    defineProps<{
+        board?: Board;
+        game?: Game;
+        canEdit?: boolean;
+        monsters?: Monster[];
+        traps?: Trap[];
+        selectedTiles?: { x: number; y: number; color?: string }[];
+        playerSelectMode?: boolean;
+        canMove?: boolean; // whether the local player can move their character now
+        selectedMonsterId?: string | null; // currently selected monster (for visual highlight)
+    }>(),
+    {
+        selectedTiles: () => [],
+        playerSelectMode: false,
+        canMove: false,
+        selectedMonsterId: null,
+    },
+);
 
 // Konva stage configuration, dynamically sized
 const stageConfig = computed(() => ({
@@ -105,15 +124,9 @@ const monsterMovePath = ref<{ x: number; y: number }[]>([]);
 
 // GM move-any-element: select element then click destination to relocate
 const selectedElementId = ref<string | null>(null);
-
-function neighbors4(x: number, y: number): { x: number; y: number }[] {
-    return [
-        { x: x + 1, y },
-        { x: x - 1, y },
-        { x, y: y + 1 },
-        { x, y: y - 1 },
-    ];
-}
+// GM move-hero using Move Element tool: select hero then click destination
+const selectedHeroId = ref<number | null>(null);
+const selectedHeroStart = ref<{ x: number; y: number } | null>(null);
 
 // Hover state for tooltip
 const hoveredTile = ref<{ x: number; y: number } | null>(null);
@@ -129,7 +142,7 @@ function isTileTraversableForMonster(x: number, y: number): boolean {
     if (!t) {
         return false;
     }
-    if (getHeroAt(x,  y, gameStore)) {
+    if (getHeroAt(x, y, gameStore)) {
         return false;
     }
     const el = boardStore.getElementAt(x, y) as any;
@@ -182,22 +195,46 @@ function handleMouseDown(evt: any): void {
         }
     }
 
-    // GM: Move Any Element tool - select then choose destination
+    // GM: Move Any Element tool - select then choose destination (also supports moving heroes)
     if (isGameMaster.value && isMoveElement.value) {
         const el = boardStore.getElementAt(x, y);
-        if (!selectedElementId.value) {
+        const heroAt = getHeroAt(x, y, gameStore as any);
+        if (!selectedElementId.value && selectedHeroId.value == null) {
             if (el) {
                 selectedElementId.value = el.id;
+                return; // select element to move
             }
-            return; // Do not start drag selection while in this tool
+            if (heroAt) {
+                selectedHeroId.value = heroAt.id as number;
+                selectedHeroStart.value = { x: heroAt.x as number, y: heroAt.y as number };
+                return; // select hero to move
+            }
+            return; // nothing selectable at this tile
         }
-        // If already selected, attempt to move to clicked tile
-        const ok = boardStore.moveElement(selectedElementId.value, x, y);
-        if (ok) {
-            emit('elements-changed', { elements: boardStore.elements as any });
+        // If an element is selected, attempt to move it to clicked tile
+        if (selectedElementId.value) {
+            const ok = boardStore.moveElement(selectedElementId.value, x, y);
+            if (ok) {
+                emit('elements-changed', { elements: boardStore.elements as any });
+            }
+            selectedElementId.value = null;
+            // Also clear any pending hero selection
+            selectedHeroId.value = null;
+            selectedHeroStart.value = null;
+            return;
         }
-        selectedElementId.value = null;
-        return;
+        // If a hero is selected, attempt to move hero directly
+        if (selectedHeroId.value != null) {
+            const id = selectedHeroId.value as number;
+            const ok = gameStore.moveHero(id, x, y, boardStore as any);
+            if (ok) {
+                const heroName = ((gameStore.heroes as any[])?.find((h: any) => h.id === id)?.name as string | undefined) ?? 'Hero';
+                emit('hero-moved', { heroes: gameStore.heroes as any, heroId: id, heroName, steps: 0 });
+            }
+            selectedHeroId.value = null;
+            selectedHeroStart.value = null;
+            return;
+        }
     }
 
     // Player movement mode (no tool selected and not GM): click a hero to start/cancel moving
@@ -288,8 +325,7 @@ function handleMouseMove(evt: any): void {
             if (movingHeroId.value != null) {
                 emit('hero-moving', { heroId: movingHeroId.value, steps });
             }
-        } catch {
-        }
+        } catch {}
         // Do not return; also allow selection rectangle updates for GM tools if needed
     }
 
@@ -330,7 +366,7 @@ function handleMouseMove(evt: any): void {
     }
 }
 
-function handleMouseUp(evt?: any): void {
+function handleMouseUp(): void {
     // Commit movement if in movement mode (player hero)
     if (movingHeroId.value && moveStart.value) {
         // If movement is not permitted (e.g., not player's turn), cancel without applying
@@ -354,7 +390,7 @@ function handleMouseUp(evt?: any): void {
             const heroName = (heroEl as any)?.name ?? 'Hero';
             // Scan path for traps; trigger any armed/hidden traps; handle pit traps by truncating destination
             const toReveal: Array<{ x: number; y: number }> = [];
-            const triggeredTraps: Array<{ trapId: string; trapName: string }>= [];
+            const triggeredTraps: Array<{ trapId: string; trapName: string }> = [];
             let pitAt: { x: number; y: number } | null = null;
             const updatedElements = [...boardStore.elements] as any[];
             const updateElementAtIndex = (idx: number, updater: (e: any) => any) => {
@@ -380,7 +416,7 @@ function handleMouseUp(evt?: any): void {
                         const trapName: string = (elAt.name as string) || (elAt.trapType as string) || 'trap';
                         triggeredTraps.push({ trapId: elAt.id as string, trapName });
                         // Reveal the trap tile to players
-                        const t = (boardStore.tiles[step.y]?.[step.x] as any);
+                        const t = boardStore.tiles[step.y]?.[step.x] as any;
                         if (t && t.visible !== true) {
                             boardStore.setTileVisible(step.x, step.y, true);
                             toReveal.push({ x: step.x, y: step.y });
@@ -410,7 +446,7 @@ function handleMouseUp(evt?: any): void {
                 }
             }
             // Determine tentative final destination (if pit encountered, move back to pit tile)
-            let finalIdx = pitAt ? (path.findIndex(p => p.x === pitAt!.x && p.y === pitAt!.y)) : (path.length - 1);
+            let finalIdx = pitAt ? path.findIndex((p) => p.x === pitAt!.x && p.y === pitAt!.y) : path.length - 1;
             let finalDest: { x: number; y: number } | null = pitAt ?? end;
             // Enforce: cannot stop on the same tile as another hero (but traversal allowed earlier)
             while (finalIdx >= 0 && finalDest) {
@@ -503,7 +539,7 @@ function handleMouseUp(evt?: any): void {
 
     // Paint mode: draw floors, fixtures, or walls (supports click or drag)
     if (isPaintMode.value) {
-        const targetType = isDrawFloor.value ? TileType.Floor : (isAddFixture.value ? TileType.Fixture : TileType.Wall);
+        const targetType = isDrawFloor.value ? TileType.Floor : isAddFixture.value ? TileType.Fixture : TileType.Wall;
         if (isClick) {
             boardStore.setTileType(start.x, start.y, targetType);
         } else {
@@ -530,7 +566,9 @@ function handleMouseUp(evt?: any): void {
         const fixtureMetaPatch: Record<string, { type: any; label: string } | null> = {};
         for (const c of changes) {
             const key = (c.tile as any).id as string;
-            if (!key) { continue; }
+            if (!key) {
+                continue;
+            }
             if (targetType === TileType.Fixture) {
                 // After setTileType, fixtureMeta will contain the selected fixture info
                 const info = (boardStore as any).fixtureMeta?.[key] ?? null;
@@ -643,7 +681,9 @@ onMounted(() => {
 // Elements sorted by render priority so heroes draw above player starts
 const sortedElements = computed(() => {
     const priority = (t: ElementType): number => {
-        if (t === ElementType.PlayerStart) { return 0; }
+        if (t === ElementType.PlayerStart) {
+            return 0;
+        }
         return 10;
     };
     return [...boardStore.elements].sort((a: any, b: any) => priority(a.type) - priority(b.type));
@@ -655,7 +695,9 @@ const visibleElements = computed(() => {
         return sortedElements.value;
     }
     return sortedElements.value.filter((e: any) => {
-        if (e.hidden) { return false; }
+        if (e.hidden) {
+            return false;
+        }
         const t = (boardStore.tiles[e.y] || [])[e.x] as any;
         return !!(t && t.visible === true);
     });
@@ -664,9 +706,13 @@ const visibleElements = computed(() => {
 // Position of the currently selected monster for visual highlight
 const selectedMonsterPos = computed<{ x: number; y: number } | null>(() => {
     const id = props.selectedMonsterId;
-    if (!id) { return null; }
+    if (!id) {
+        return null;
+    }
     const el = visibleElements.value.find((e: any) => e.id === id && e.type === ElementType.Monster) as any;
-    if (!el) { return null; }
+    if (!el) {
+        return null;
+    }
     return { x: el.x, y: el.y };
 });
 
@@ -712,7 +758,14 @@ function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
 <template>
     <div class="relative inline-block" :style="{ width: stageConfig.width + 'px', height: stageConfig.height + 'px' }">
         <!-- Konva stage (tiles + selection overlay) -->
-        <v-stage :config="stageConfig" class="absolute inset-0" @mousedown="handleMouseDown" @mousemove="handleMouseMove" @mouseup="handleMouseUp" @mouseleave="handleMouseUp">
+        <v-stage
+            :config="stageConfig"
+            class="absolute inset-0"
+            @mousedown="handleMouseDown"
+            @mousemove="handleMouseMove"
+            @mouseup="handleMouseUp"
+            @mouseleave="handleMouseUp"
+        >
             <!-- Base tiles layer -->
             <v-layer>
                 <template v-for="(row, rowIndex) in boardStore.tiles" :key="rowIndex">
@@ -726,7 +779,10 @@ function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
                     v-for="el in visibleElements"
                     :key="el.id"
                     :config="{
-                        image: iconFor((el.type === ElementType.Door || el.type === ElementType.SecretDoor) && el.traversable ? 'door_open' : (el.type as any), (el as any).color),
+                        image: iconFor(
+                            (el.type === ElementType.Door || el.type === ElementType.SecretDoor) && el.traversable ? 'door_open' : (el.type as any),
+                            (el as any).color,
+                        ),
                         x: el.x * TILE_SIZE + (TILE_SIZE - ICON_SIZE) / 2,
                         y: el.y * TILE_SIZE + (TILE_SIZE - ICON_SIZE) / 2,
                         width: ICON_SIZE,
@@ -736,13 +792,13 @@ function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
                     }"
                 />
                 <!-- Monster HP badges (top-left of tile) -->
-                <template v-for="el in visibleElements" :key="'hp:'+el.id">
+                <template v-for="el in visibleElements" :key="'hp:' + el.id">
                     <template v-if="el.type === ElementType.Monster">
                         <v-text
                             :config="{
                                 x: el.x * TILE_SIZE + 4,
                                 y: el.y * TILE_SIZE + 4,
-                                text: String((el.stats?.currentBodyPoints ?? el.stats?.bodyPoints ?? 0)),
+                                text: String(el.stats?.currentBodyPoints ?? el.stats?.bodyPoints ?? 0),
                                 fontSize: 16,
                                 fontStyle: 'bold',
                                 fill: '#000000',
@@ -755,8 +811,8 @@ function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
                 <v-rect
                     v-if="selectedMonsterPos"
                     :config="{
-                        x: (selectedMonsterPos.x * TILE_SIZE) + 1,
-                        y: (selectedMonsterPos.y * TILE_SIZE) + 1,
+                        x: selectedMonsterPos.x * TILE_SIZE + 1,
+                        y: selectedMonsterPos.y * TILE_SIZE + 1,
                         width: TILE_SIZE - 2,
                         height: TILE_SIZE - 2,
                         stroke: '#3b82f6', // blue-500
@@ -766,7 +822,7 @@ function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
                 />
                 <!-- Selected tiles outline -->
                 <v-rect
-                    v-for="(sel, idx) in (props.selectedTiles || [])"
+                    v-for="(sel, idx) in props.selectedTiles || []"
                     :key="'sel:' + idx + ':' + sel.x + ':' + sel.y"
                     :config="{
                         x: sel.x * TILE_SIZE + 1,
@@ -781,8 +837,8 @@ function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
                 />
                 <!-- Movement path preview -->
                 <v-rect
-                    v-for="(pt, idx) in (movingHeroId ? movePath : (movingMonsterId ? monsterMovePath : []))"
-                    :key="'mv:'+idx+':'+pt.x+':'+pt.y"
+                    v-for="(pt, idx) in movingHeroId ? movePath : movingMonsterId ? monsterMovePath : []"
+                    :key="'mv:' + idx + ':' + pt.x + ':' + pt.y"
                     :config="{
                         x: pt.x * TILE_SIZE,
                         y: pt.y * TILE_SIZE,
@@ -800,7 +856,7 @@ function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
             <v-layer>
                 <v-image
                     v-for="h in heroesVisible"
-                    :key="'hero:'+h.id"
+                    :key="'hero:' + h.id"
                     :config="{
                         image: iconFor('hero', heroColorById(h.id)),
                         x: h.x * TILE_SIZE + (TILE_SIZE - ICON_SIZE) / 2,
@@ -817,18 +873,20 @@ function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
             <v-layer v-if="isSelectionMode">
                 <v-rect :config="selectionRectConfig" />
             </v-layer>
-            
         </v-stage>
 
         <!-- Tooltip for elements and fixtures (rendered at document level to avoid clipping) -->
         <teleport to="body">
-            <div v-if="tooltipText && mouseViewportPos" class="fixed z-[9999]" :style="{ left: (mouseViewportPos.x + 12) + 'px', top: (mouseViewportPos.y + 12) + 'px' }">
-                <div class="pointer-events-none select-none rounded bg-neutral-900/90 text-white text-xs px-2 py-1 shadow-lg">
+            <div
+                v-if="tooltipText && mouseViewportPos"
+                class="fixed z-[9999]"
+                :style="{ left: mouseViewportPos.x + 12 + 'px', top: mouseViewportPos.y + 12 + 'px' }"
+            >
+                <div class="pointer-events-none rounded bg-neutral-900/90 px-2 py-1 text-xs text-white shadow-lg select-none">
                     {{ tooltipText }}
                 </div>
             </div>
         </teleport>
-
     </div>
 </template>
 

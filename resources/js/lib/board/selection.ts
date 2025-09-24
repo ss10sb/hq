@@ -18,17 +18,9 @@ export function computeSelectionRect(
 
     // Use different visual indicators depending on the active tool
     // Floor: blue, Walls: red, Fixtures: purple
-    const fillColor = options.isDrawWalls
-        ? 'rgba(239,68,68,0.15)'
-        : options.isAddFixture
-            ? 'rgba(168,85,247,0.15)'
-            : 'rgba(59,130,246,0.15)';
+    const fillColor = options.isDrawWalls ? 'rgba(239,68,68,0.15)' : options.isAddFixture ? 'rgba(168,85,247,0.15)' : 'rgba(59,130,246,0.15)';
 
-    const strokeColor = options.isDrawWalls
-        ? 'rgba(239,68,68,0.85)'
-        : options.isAddFixture
-            ? 'rgba(168,85,247,0.85)'
-            : 'rgba(59,130,246,0.8)';
+    const strokeColor = options.isDrawWalls ? 'rgba(239,68,68,0.85)' : options.isAddFixture ? 'rgba(168,85,247,0.85)' : 'rgba(59,130,246,0.8)';
 
     return {
         x: minX,

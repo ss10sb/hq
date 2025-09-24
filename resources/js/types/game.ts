@@ -25,7 +25,7 @@ export type Game = {
     elements: Element[];
     // Tiles come from GameBoard DataObjects; our TS Board type models Tile[][] already
     tiles: Tile[][];
-    heroes: (Hero|Zargon)[];
+    heroes: (Hero | Zargon)[];
     currentHeroId: number;
     players: Player[];
 };

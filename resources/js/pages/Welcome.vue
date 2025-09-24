@@ -34,7 +34,7 @@ import { Head, Link } from '@inertiajs/vue3';
         <div class="flex w-full items-center justify-center opacity-100 transition-opacity duration-750 lg:grow starting:opacity-0">
             <main class="flex w-full flex-col gap-3 overflow-hidden">
                 <div
-                    class="rounded-lg bg-white p-3 text-[13px] text-center leading-[20px] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] lg:p-20 dark:bg-[#161615] dark:text-[#EDEDEC] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d]"
+                    class="rounded-lg bg-white p-3 text-center text-[13px] leading-[20px] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] lg:p-20 dark:bg-[#161615] dark:text-[#EDEDEC] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d]"
                 >
                     <h1 v-if="$page.props.auth.user" class="font-medium">Welcome to our HQ.</h1>
                     <h1 v-else class="font-medium">Please login or register to continue.</h1>

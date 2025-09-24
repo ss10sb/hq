@@ -1,25 +1,34 @@
-import { defineStore } from 'pinia';
+import {
+    BoardDimension,
+    defaultElementFlags,
+    labelForFixtureType,
+    labelForMonsterType,
+    labelForTrapType,
+    rectBounds,
+    statsForMonsterType,
+    toolToElementType,
+} from '@/lib/board';
+import { getBoardElementAt, isBoardTileTraversable, moveBoardElement } from '@/lib/board/board.lib';
 import {
     Board,
     BoardGroup,
     BoardState,
+    BoardTool,
+    Element,
+    ElementType,
+    Fixture,
+    FixtureInfo,
+    FixtureType,
+    Monster,
+    MonsterType,
     Tile,
     TileType,
-    BoardTool,
-    ElementType,
-    Element,
-    FixtureType,
-    FixtureInfo,
-    TrapType,
-    TrapStatus,
-    MonsterType,
-    Monster,
     Trap,
-    Fixture
+    TrapStatus,
+    TrapType,
 } from '@/types/board';
 import type { Stats } from '@/types/gameplay';
-import { rectBounds, defaultElementFlags, toolToElementType, BoardDimension, labelForFixtureType, labelForTrapType, labelForMonsterType, statsForMonsterType } from '@/lib/board';
-import { getBoardElementAt, isBoardTileTraversable, moveBoardElement } from '@/lib/board/board.lib';
+import { defineStore } from 'pinia';
 
 export const useBoardStore = defineStore('board', {
     state: (): BoardState => ({
@@ -72,7 +81,6 @@ export const useBoardStore = defineStore('board', {
     },
 
     actions: {
-
         // --- Fixture subtype selection ---
         setCurrentFixtureSelection(type: FixtureType, customText?: string): void {
             this.currentFixtureType = type;
@@ -87,9 +95,9 @@ export const useBoardStore = defineStore('board', {
 
         // Catalogs setup
         setCatalogs(monsters: Monster[] = [], traps: Trap[] = [], fixtures: Fixture[] = []): void {
-            this.monstersCatalog = monsters ?? [] as any;
-            this.trapsCatalog = traps ?? [] as any;
-            this.fixturesCatalog = fixtures ?? [] as any;
+            this.monstersCatalog = monsters ?? ([] as any);
+            this.trapsCatalog = traps ?? ([] as any);
+            this.fixturesCatalog = fixtures ?? ([] as any);
         },
 
         // --- Monster subtype selection & stats ---
@@ -98,7 +106,11 @@ export const useBoardStore = defineStore('board', {
             this.currentMonsterCustomText = customText ?? this.currentMonsterCustomText;
             const fromCatalog = (this.monstersCatalog ?? []).find((m: any) => m?.type === type);
             const defaults = (fromCatalog?.stats as Stats | undefined) ?? statsForMonsterType(type);
-            this.currentMonsterStats = { ...defaults, ...(statsOverride ?? {}), currentBodyPoints: (statsOverride?.currentBodyPoints ?? defaults.currentBodyPoints) } as Stats;
+            this.currentMonsterStats = {
+                ...defaults,
+                ...(statsOverride ?? {}),
+                currentBodyPoints: statsOverride?.currentBodyPoints ?? defaults.currentBodyPoints,
+            } as Stats;
         },
 
         /**
@@ -189,8 +201,9 @@ export const useBoardStore = defineStore('board', {
                         if (isCustom) {
                             resolvedName = labelForMonsterType(mType, raw.customText ?? this.currentMonsterCustomText);
                         } else {
-                            resolvedName = (fromCatalog?.name as string | undefined)
-                                ?? labelForMonsterType(mType, raw.customText ?? this.currentMonsterCustomText);
+                            resolvedName =
+                                (fromCatalog?.name as string | undefined) ??
+                                labelForMonsterType(mType, raw.customText ?? this.currentMonsterCustomText);
                         }
                     } else {
                         resolvedName = String(type);
@@ -224,7 +237,7 @@ export const useBoardStore = defineStore('board', {
                     const stats: Stats = {
                         ...defaults,
                         ...(raw.stats ?? {}),
-                        currentBodyPoints: (raw.stats?.currentBodyPoints ?? defaults.currentBodyPoints),
+                        currentBodyPoints: raw.stats?.currentBodyPoints ?? defaults.currentBodyPoints,
                     } as Stats;
                     return {
                         ...base,
@@ -288,8 +301,9 @@ export const useBoardStore = defineStore('board', {
                     if (this.currentFixtureType === FixtureType.Custom) {
                         label = this.currentFixtureCustomText || labelForFixtureType(this.currentFixtureType, this.currentFixtureCustomText);
                     } else {
-                        label = (fxFromCatalog?.name as string | undefined)
-                            ?? labelForFixtureType(this.currentFixtureType, this.currentFixtureCustomText);
+                        label =
+                            (fxFromCatalog?.name as string | undefined) ??
+                            labelForFixtureType(this.currentFixtureType, this.currentFixtureCustomText);
                     }
                     this.fixtureMeta[key] = { type: this.currentFixtureType, label } as FixtureInfo;
                 }
@@ -297,12 +311,7 @@ export const useBoardStore = defineStore('board', {
         },
 
         setTilesInRect(x1: number, y1: number, x2: number, y2: number, type: TileType): void {
-            const { minX, maxX, minY, maxY } = rectBounds(
-                { x: x1, y: y1 },
-                { x: x2, y: y2 },
-                this.width,
-                this.height,
-            );
+            const { minX, maxX, minY, maxY } = rectBounds({ x: x1, y: y1 }, { x: x2, y: y2 }, this.width, this.height);
 
             for (let y = minY; y <= maxY; y++) {
                 for (let x = minX; x <= maxX; x++) {
@@ -325,7 +334,9 @@ export const useBoardStore = defineStore('board', {
 
         setTileVisible(x: number, y: number, visible = true): void {
             const t = this.tiles[y]?.[x] as any;
-            if (!t) { return; }
+            if (!t) {
+                return;
+            }
             t.visible = visible;
         },
 
@@ -341,7 +352,9 @@ export const useBoardStore = defineStore('board', {
             const inBounds = (cx: number, cy: number) => cy >= 0 && cy < this.height && cx >= 0 && cx < this.width;
             const key = (cx: number, cy: number) => `${cx}:${cy}`;
             const start = this.tiles[y]?.[x];
-            if (!start || start.type === TileType.Wall) { return []; }
+            if (!start || start.type === TileType.Wall) {
+                return [];
+            }
             const q: Array<{ x: number; y: number }> = [{ x, y }];
             const seen = new Set<string>([key(x, y)]);
             const roomTiles: Array<{ x: number; y: number }> = [];
@@ -356,23 +369,35 @@ export const useBoardStore = defineStore('board', {
                     { x: cur.x, y: cur.y - 1 },
                 ];
                 for (const n of neighbors) {
-                    if (!inBounds(n.x, n.y)) { continue; }
+                    if (!inBounds(n.x, n.y)) {
+                        continue;
+                    }
                     const k = key(n.x, n.y);
-                    if (seen.has(k)) { continue; }
+                    if (seen.has(k)) {
+                        continue;
+                    }
                     const t = this.tiles[n.y]?.[n.x];
-                    if (!t) { continue; }
+                    if (!t) {
+                        continue;
+                    }
                     // Wall bounds the room (stop)
-                    if (t.type === TileType.Wall) { continue; }
+                    if (t.type === TileType.Wall) {
+                        continue;
+                    }
                     // If a door is here, include the door tile as visible, but don't flood beyond it
                     if (this.isDoorAt(n.x, n.y)) {
                         const before = (this.tiles[n.y]?.[n.x] as any).visible === true;
                         (this.tiles[n.y]?.[n.x] as any).visible = true; // reveal the door tile
-                        if (!before) { affected.add(k); }
+                        if (!before) {
+                            affected.add(k);
+                        }
                         seen.add(k);
                         continue; // do not enqueue beyond door
                     }
                     // Secret doors are not included automatically
-                    if (this.isSecretDoorAt(n.x, n.y)) { continue; }
+                    if (this.isSecretDoorAt(n.x, n.y)) {
+                        continue;
+                    }
                     seen.add(k);
                     q.push(n);
                 }
@@ -381,49 +406,71 @@ export const useBoardStore = defineStore('board', {
                 const k = key(rt.x, rt.y);
                 const before = (this.tiles[rt.y]?.[rt.x] as any).visible === true;
                 (this.tiles[rt.y]?.[rt.x] as any).visible = true;
-                if (!before) { affected.add(k); }
+                if (!before) {
+                    affected.add(k);
+                }
             }
-            return Array.from(affected).map((s) => { const [sx, sy] = s.split(':'); return { x: Number(sx), y: Number(sy) }; });
+            return Array.from(affected).map((s) => {
+                const [sx, sy] = s.split(':');
+                return { x: Number(sx), y: Number(sy) };
+            });
         },
 
         revealCorridorFrom(x: number, y: number): { x: number; y: number }[] {
             const inBounds = (cx: number, cy: number) => cy >= 0 && cy < this.height && cx >= 0 && cx < this.width;
             const isBlocking = (cx: number, cy: number) => {
                 const t = this.tiles[cy]?.[cx];
-                if (!t) { return true; }
-                if (t.type === TileType.Wall) { return true; }
+                if (!t) {
+                    return true;
+                }
+                if (t.type === TileType.Wall) {
+                    return true;
+                }
                 // Do not reveal beyond doors (but include non-secret door tile itself)
-                if (this.isSecretDoorAt(cx, cy)) { return true; }
+                if (this.isSecretDoorAt(cx, cy)) {
+                    return true;
+                }
                 return false;
             };
 
             const affected = new Set<string>();
             const key = (cx: number, cy: number) => `${cx}:${cy}`;
             const revealRay = (dx: number, dy: number) => {
-                let cx = x, cy = y;
+                let cx = x,
+                    cy = y;
                 // First include the starting tile if not blocking
-                if (!isBlocking(cx, cy)) { 
+                if (!isBlocking(cx, cy)) {
                     const before = (this.tiles[cy]?.[cx] as any).visible === true;
-                    (this.tiles[cy]?.[cx] as any).visible = true; 
-                    if (!before) { affected.add(key(cx, cy)); }
+                    (this.tiles[cy]?.[cx] as any).visible = true;
+                    if (!before) {
+                        affected.add(key(cx, cy));
+                    }
                 }
                 // March in a straight line until a wall/secret door bounds visibility
                 while (true) {
-                    const nx = cx + dx, ny = cy + dy;
-                    if (!inBounds(nx, ny)) { break; }
+                    const nx = cx + dx,
+                        ny = cy + dy;
+                    if (!inBounds(nx, ny)) {
+                        break;
+                    }
                     if (isBlocking(nx, ny)) {
                         // If it is a regular door, reveal the door tile but stop
                         if (this.isDoorAt(nx, ny)) {
                             const before = (this.tiles[ny]?.[nx] as any).visible === true;
                             (this.tiles[ny]?.[nx] as any).visible = true;
-                            if (!before) { affected.add(key(nx, ny)); }
+                            if (!before) {
+                                affected.add(key(nx, ny));
+                            }
                         }
                         break;
                     }
                     const before = (this.tiles[ny]?.[nx] as any).visible === true;
                     (this.tiles[ny]?.[nx] as any).visible = true;
-                    if (!before) { affected.add(key(nx, ny)); }
-                    cx = nx; cy = ny;
+                    if (!before) {
+                        affected.add(key(nx, ny));
+                    }
+                    cx = nx;
+                    cy = ny;
                 }
             };
 
@@ -432,13 +479,16 @@ export const useBoardStore = defineStore('board', {
             revealRay(-1, 0);
             revealRay(0, 1);
             revealRay(0, -1);
-            return Array.from(affected).map((s) => { const [sx, sy] = s.split(':'); return { x: Number(sx), y: Number(sy) }; });
+            return Array.from(affected).map((s) => {
+                const [sx, sy] = s.split(':');
+                return { x: Number(sx), y: Number(sy) };
+            });
         },
 
         // --- Elements management ---
 
         getElementAt(x: number, y: number): Element | undefined {
-            return getBoardElementAt(x,  y,  this);
+            return getBoardElementAt(x, y, this);
         },
 
         /**
@@ -483,8 +533,8 @@ export const useBoardStore = defineStore('board', {
                     if (isCustom) {
                         resolvedName = labelForMonsterType(this.currentMonsterType, this.currentMonsterCustomText);
                     } else {
-                        resolvedName = (fromCatalog?.name as string | undefined)
-                            ?? labelForMonsterType(this.currentMonsterType, this.currentMonsterCustomText);
+                        resolvedName =
+                            (fromCatalog?.name as string | undefined) ?? labelForMonsterType(this.currentMonsterType, this.currentMonsterCustomText);
                     }
                 } else {
                     resolvedName = String(type);

@@ -1,8 +1,8 @@
-import { defineStore } from 'pinia';
+import { moveGameHero } from '@/lib/board/game';
+import { Board } from '@/types/board';
 import { Game, GameStatus, Player } from '@/types/game';
 import type { Hero, Zargon } from '@/types/hero';
-import { Board } from '@/types/board';
-import { moveGameHero } from '@/lib/board/game';
+import { defineStore } from 'pinia';
 
 export const useGameStore = defineStore('game', {
     state: (): Game => ({
@@ -15,15 +15,15 @@ export const useGameStore = defineStore('game', {
         tiles: [],
         heroes: [],
         currentHeroId: 0,
-        players: [] as Player[]
+        players: [] as Player[],
     }),
     getters: {
         currentHero(state): Hero | Zargon | null {
-            return state.heroes.find(h => h.id === state.currentHeroId) ?? null;
+            return state.heroes.find((h) => h.id === state.currentHeroId) ?? null;
         },
         ownerOfCurrentHero(): Player | null {
             return (this as any).ownerOfHero((this as any).currentHeroId);
-        }
+        },
     },
     actions: {
         hydrateFromGame(game: Game): void {
@@ -48,11 +48,11 @@ export const useGameStore = defineStore('game', {
             this.currentHeroId = id;
         },
         ownerOfHero(heroId: number): Player | null {
-            const hero = this.heroes.find(h => h.id === heroId);
+            const hero = this.heroes.find((h) => h.id === heroId);
             if (!hero || hero.playerId == null) {
                 return null;
             }
-            return this.players.find(p => p.id === hero.playerId) ?? null;
-        }
-    }
+            return this.players.find((p) => p.id === hero.playerId) ?? null;
+        },
+    },
 });

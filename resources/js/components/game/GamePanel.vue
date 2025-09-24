@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { nextTick, ref, watch, computed } from 'vue';
+import ActionsPanel from '@/components/game/ActionsPanel.vue';
 import MonstersPanel from '@/components/game/MonstersPanel.vue';
 import PlayersList from '@/components/game/PlayersList.vue';
-import { Hero, Zargon } from '@/types/hero';
-import { Player } from '@/types/game';
-import ActionsPanel from '@/components/game/ActionsPanel.vue';
 import type { Element } from '@/types/board';
+import { Player } from '@/types/game';
+import { Hero, Zargon } from '@/types/hero';
+import { computed, nextTick, ref, watch } from 'vue';
 
 // Log types mirror PlayGame.vue, but loosened for prop typing simplicity
 // kind: 'text' | 'dice'
@@ -49,7 +49,7 @@ watch(
         if (el) {
             el.scrollTop = 0; // keep newest at top in view
         }
-    }
+    },
 );
 
 const activeHeroAttackDice = computed<number>(() => {
@@ -60,25 +60,28 @@ const activeHeroAttackDice = computed<number>(() => {
 </script>
 
 <template>
-    <aside class="flex-1 bg-white dark:bg-neutral-900 rounded border border-gray-200 dark:border-neutral-800 p-3 flex flex-col h-[80vh] overflow-hidden">
-        <h3 class="font-semibold mb-2">Game Panel</h3>
+    <aside
+        class="flex h-[80vh] flex-1 flex-col overflow-hidden rounded border border-gray-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900"
+    >
+        <h3 class="mb-2 font-semibold">Game Panel</h3>
         <!-- Top tools stack -->
         <div class="flex-shrink-0 overflow-auto">
             <!-- Players/Heroes List -->
-            <PlayersList :heroes="heroes"
-                         :players="players"
-                         :active-hero-id="activeHeroId"
-                         :is-game-master="isGameMaster"
-                         :present-ids="presentIds"
-                         :current-user-id="currentUserId"
-                         :steps-by-hero="props.stepsByHero || {}"
-                         :preview-steps-by-hero="props.previewStepsByHero || {}"
-                         @move-up="(idx) => emit('move-up', idx)"
-                         @move-down="(idx) => emit('move-down', idx)"
-                         @set-active="(heroId) => emit('set-active', heroId)"
-                         @update-body="(payload) => emit('update-body', payload)"
-                         @save-hero="(payload) => emit('save-hero', payload)"
-                         @assign-hero="(payload) => emit('assign-hero', payload)"
+            <PlayersList
+                :heroes="heroes"
+                :players="players"
+                :active-hero-id="activeHeroId"
+                :is-game-master="isGameMaster"
+                :present-ids="presentIds"
+                :current-user-id="currentUserId"
+                :steps-by-hero="props.stepsByHero || {}"
+                :preview-steps-by-hero="props.previewStepsByHero || {}"
+                @move-up="(idx) => emit('move-up', idx)"
+                @move-down="(idx) => emit('move-down', idx)"
+                @set-active="(heroId) => emit('set-active', heroId)"
+                @update-body="(payload) => emit('update-body', payload)"
+                @save-hero="(payload) => emit('save-hero', payload)"
+                @assign-hero="(payload) => emit('assign-hero', payload)"
             />
             <!-- Monsters Panel -->
             <MonstersPanel
@@ -102,19 +105,20 @@ const activeHeroAttackDice = computed<number>(() => {
         <!-- Game Log at the bottom, occupies ~1/3 and flexes -->
         <div
             ref="logContainerRef"
-            class="mt-2 flex-1 basis-1/3 min-h-0 overflow-auto rounded border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-2">
+            class="mt-2 min-h-0 flex-1 basis-1/3 overflow-auto rounded border border-gray-200 bg-white p-2 dark:border-neutral-800 dark:bg-neutral-900"
+        >
             <div class="flex flex-col gap-2">
                 <h3 class="text-sm font-semibold text-neutral-700 dark:text-neutral-300">Game Log</h3>
                 <div v-if="!props.gameLog || props.gameLog.length === 0" class="text-sm text-neutral-500">No activity yet.</div>
                 <ul v-else class="flex flex-col gap-1 text-sm">
-                    <li v-for="(entry, idx) in (props.gameLog || [])" :key="idx" class="text-neutral-800 dark:text-neutral-200">
-                        <template v-if="entry.kind === 'text'">
-                            • {{ (entry as any).text }}
-                        </template>
+                    <li v-for="(entry, idx) in props.gameLog || []" :key="idx" class="text-neutral-800 dark:text-neutral-200">
+                        <template v-if="entry.kind === 'text'"> • {{ (entry as any).text }} </template>
                         <template v-else>
                             <div class="flex flex-col gap-1">
                                 <div>
-                                    • {{ (entry as any).actor }} rolled {{ (entry as any).count }} {{ (entry as any).diceType === 'six_sided' ? 'six-sided' : 'combat' }} {{ (entry as any).count === 1 ? 'die' : 'dice' }}:
+                                    • {{ (entry as any).actor }} rolled {{ (entry as any).count }}
+                                    {{ (entry as any).diceType === 'six_sided' ? 'six-sided' : 'combat' }}
+                                    {{ (entry as any).count === 1 ? 'die' : 'dice' }}:
                                 </div>
                                 <div class="flex flex-row flex-wrap items-center gap-2 pl-3">
                                     <span v-for="(r, i) in (entry as any).results" :key="i" class="inline-flex items-center">

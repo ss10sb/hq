@@ -1,4 +1,4 @@
-import { Bomb, DoorClosed, DoorOpen, Gem, Key, Skull, Play, Flag, Shield, UserRound } from 'lucide';
+import { Bomb, DoorClosed, DoorOpen, Flag, Gem, Key, Play, Skull, UserRound } from 'lucide';
 
 // Lucide SVG rendering for Konva
 export const ICON_SIZE = 24;
@@ -46,9 +46,7 @@ function iconNodeToSvg(children: IconNode, color: string, size = ICON_SIZE): str
             .map(([k, v]) => `${k}="${String(v)}"`)
             .join(' ');
 
-    const childStr = (children || [])
-        .map(([cTag, cAttrs]) => `<${cTag} ${attrsToString(cAttrs)}></${cTag}>`)
-        .join('');
+    const childStr = (children || []).map(([cTag, cAttrs]) => `<${cTag} ${attrsToString(cAttrs)}></${cTag}>`).join('');
 
     return `<svg ${attrsToString(baseAttrs)}>${childStr}</svg>`;
 }
@@ -80,7 +78,7 @@ export function iconFor(type: string, colorOverride?: string): HTMLImageElement 
     if (!img) {
         // Ensure the icon is prepared if it hasn't been requested yet
         prepareIcon(type, colorOverride);
-        img = imageCache.get(key) ?? null as any;
+        img = imageCache.get(key) ?? (null as any);
     }
     // Return the Image element immediately. Konva will re-draw the node when the
     // image finishes loading because it listens to image.onload internally.
