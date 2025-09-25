@@ -1,24 +1,25 @@
 <script setup lang="ts">
 import {
     BoardDimension,
-    ICON_SIZE,
-    TILE_SIZE,
     computeSelectionRect,
     getTileConfig,
+    ICON_SIZE,
     iconFor,
     pointerPx,
     preloadAllIcons,
+    TILE_SIZE,
     tileFromPointer,
 } from '@/lib/board';
 import { getHeroAt, isHero } from '@/lib/board/game';
-import { heroColorById } from '@/lib/game/colors';
+import { Colors, Colors500, heroColorById } from '@/lib/game/colors';
+import { badgeCircleConfig, badgeGroupConfig, badgeTextConfig, makeBadge, SearchBadge, SearchBadgeType } from '@/lib/game/searchBadges';
 import { useBoardStore } from '@/stores/board';
 import { useGameStore } from '@/stores/game';
 import { Board, BoardTool, Element, ElementType, Monster, Tile, TileType, Trap, TrapStatus, TrapType } from '@/types/board';
 import { Game } from '@/types/game';
 import { Hero, Zargon } from '@/types/hero';
 import type { RectConfig } from 'konva/lib/shapes/Rect';
-import { Ref, computed, onMounted, ref } from 'vue';
+import { computed, onMounted, Ref, ref } from 'vue';
 
 const boardStore = useBoardStore();
 const gameStore = useGameStore();
@@ -66,6 +67,14 @@ const props = withDefaults(
         selectedMonsterId: null,
     },
 );
+
+// GM-only search badge tool
+const gmSearchBadgeTool = defineModel<{
+    active: boolean;
+    type: SearchBadgeType;
+}>('gmSearchBadgeTool');
+
+const searchBadges = ref<SearchBadge[]>([]);
 
 // Konva stage configuration, dynamically sized
 const stageConfig = computed(() => ({
@@ -158,6 +167,41 @@ function isTileTraversableForMonster(x: number, y: number): boolean {
 }
 
 function handleMouseDown(evt: any): void {
+    // GM search badge placement (local-only)
+    if (isGameMaster.value && gmSearchBadgeTool?.value?.active) {
+        const nativeEvt = (evt && (evt.evt || evt)) as MouseEvent | undefined;
+        const isRightClick = !!nativeEvt && nativeEvt.button === 2;
+        const pos = pointerPx(evt);
+        if (!pos) {
+            return;
+        }
+        if (isRightClick) {
+            // remove nearest within 16px
+            let bestIdx = -1;
+            let bestD2 = 16 * 16;
+            for (let i = 0; i < searchBadges.value.length; i++) {
+                const b = searchBadges.value[i];
+                const dx = b.x - pos.x;
+                const dy = b.y - pos.y;
+                const d2 = dx * dx + dy * dy;
+                if (d2 <= bestD2) {
+                    bestD2 = d2;
+                    bestIdx = i;
+                }
+            }
+            if (bestIdx !== -1) {
+                const next = [...searchBadges.value];
+                next.splice(bestIdx, 1);
+                searchBadges.value = next;
+            }
+            return; // do not propagate to other tools
+        }
+        // add a badge at pointer location using current config
+        const cfg = gmSearchBadgeTool.value!;
+        const badge = makeBadge(pos.x, pos.y, cfg.type);
+        searchBadges.value = [...searchBadges.value, badge];
+        return; // do not run other handlers when placing badges
+    }
     const { x, y } = tileFromPointer(evt);
 
     // Player select mode: clicking sets selection (available to all roles)
@@ -367,6 +411,7 @@ function handleMouseMove(evt: any): void {
 }
 
 function handleMouseUp(): void {
+    // No-op here for context menu; actual prevent is in handleContextMenu
     // Commit movement if in movement mode (player hero)
     if (movingHeroId.value && moveStart.value) {
         // If movement is not permitted (e.g., not player's turn), cancel without applying
@@ -441,7 +486,12 @@ function handleMouseUp(): void {
             if (triggeredTraps.length > 0 && movingHeroId.value != null) {
                 for (const t of triggeredTraps) {
                     try {
-                        emit('trap-triggered', { heroId: movingHeroId.value, heroName, trapId: t.trapId, trapName: t.trapName });
+                        emit('trap-triggered', {
+                            heroId: movingHeroId.value,
+                            heroName,
+                            trapId: t.trapId,
+                            trapName: t.trapName,
+                        });
                     } catch {}
                 }
             }
@@ -594,6 +644,17 @@ function handleMouseUp(): void {
     isPointerDown.value = false;
     dragStart.value = null;
     dragCurrent.value = null;
+}
+
+// Safely prevent browser context menu on Konva stage (Konva passes { evt: MouseEvent })
+function handleContextMenu(evt: any): void {
+    const nativeEvt: any = evt && (evt.evt || evt);
+    if (nativeEvt && typeof nativeEvt.preventDefault === 'function') {
+        nativeEvt.preventDefault();
+    }
+    if (nativeEvt && typeof nativeEvt.stopPropagation === 'function') {
+        nativeEvt.stopPropagation();
+    }
 }
 
 /**
@@ -756,7 +817,7 @@ function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
 </script>
 
 <template>
-    <div class="relative inline-block" :style="{ width: stageConfig.width + 'px', height: stageConfig.height + 'px' }">
+    <div class="relative inline-block" :style="{ width: stageConfig.width + 'px', height: stageConfig.height + 'px' }" @contextmenu.prevent.stop>
         <!-- Konva stage (tiles + selection overlay) -->
         <v-stage
             :config="stageConfig"
@@ -765,6 +826,7 @@ function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
             @mousemove="handleMouseMove"
             @mouseup="handleMouseUp"
             @mouseleave="handleMouseUp"
+            @contextmenu="handleContextMenu"
         >
             <!-- Base tiles layer -->
             <v-layer>
@@ -801,7 +863,7 @@ function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
                                 text: String(el.stats?.currentBodyPoints ?? el.stats?.bodyPoints ?? 0),
                                 fontSize: 16,
                                 fontStyle: 'bold',
-                                fill: '#000000',
+                                fill: Colors.Black,
                                 listening: false,
                             }"
                         />
@@ -815,7 +877,7 @@ function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
                         y: selectedMonsterPos.y * TILE_SIZE + 1,
                         width: TILE_SIZE - 2,
                         height: TILE_SIZE - 2,
-                        stroke: '#3b82f6', // blue-500
+                        stroke: Colors500.Blue, // blue-500
                         strokeWidth: 4,
                         listening: false,
                     }"
@@ -850,10 +912,16 @@ function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
                         listening: false,
                     }"
                 />
-            </v-layer>
-
-            <!-- Heroes layer (always visible, not subject to fog/hidden rules) -->
-            <v-layer>
+                <!-- gm search badges -->
+                <template v-if="isGameMaster">
+                    <template v-for="b in searchBadges" :key="b.id">
+                        <v-group :config="badgeGroupConfig(b)">
+                            <v-circle :config="badgeCircleConfig(b)" />
+                            <v-text :config="badgeTextConfig(b)" />
+                        </v-group>
+                    </template>
+                </template>
+                <!-- heroes -->
                 <v-image
                     v-for="h in heroesVisible"
                     :key="'hero:' + h.id"

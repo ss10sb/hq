@@ -2,6 +2,7 @@
 import EditFixtureOptions from '@/components/board/EditFixtureOptions.vue';
 import EditMonsterOptions from '@/components/board/EditMonsterOptions.vue';
 import EditTrapOptions from '@/components/board/EditTrapOptions.vue';
+import type { SearchBadgeType } from '@/lib/game/searchBadges';
 import { useBoardStore } from '@/stores/board';
 import { BoardTool, FixtureType, MonsterType, TrapType } from '@/types/board';
 import { Bomb, DoorClosed, Eye, EyeOff, Flag, Gem, Key, Move, Play, Skull, Trash2 } from 'lucide-vue-next';
@@ -100,6 +101,8 @@ function closeSidebar(): void {
 }
 
 function setTool(tool: BoardTool): void {
+    // Selecting any GM tool should disable the Search Badge tool
+    gmBadgeActive.value = false;
     boardStore.setTool(tool);
     // Opening the add element grid when selecting any Add* tool
     if (
@@ -116,6 +119,32 @@ function setTool(tool: BoardTool): void {
         isAddMenuOpen.value = true;
     }
 }
+
+const badgeTypes: Array<{ key: SearchBadgeType; label: string }> = [
+    { key: 'treasure', label: 'Treasure' },
+    { key: 'trap', label: 'Traps' },
+    { key: 'secret', label: 'Hidden Doors' },
+];
+
+const gmBadgeActive = defineModel<boolean>('badgeActive', { default: false });
+const gmBadgeType = defineModel<SearchBadgeType>('badgeType', { default: 'treasure' });
+
+function selectSearchBadge(type: SearchBadgeType): void {
+    // Toggle logic: clicking the same type turns it off; otherwise, activate this type
+    if (gmBadgeActive.value && gmBadgeType.value === type) {
+        gmBadgeActive.value = false;
+        return;
+    }
+    gmBadgeType.value = type;
+    gmBadgeActive.value = true;
+    // Activating Search Badge should deselect any other GM tool
+    boardStore.setTool(BoardTool.None);
+    // Close Add menu if it was open
+    isAddMenuOpen.value = false;
+}
+const isAnyGMToolActive = computed(() => {
+    return boardStore.currentTool !== BoardTool.None || gmBadgeActive.value;
+});
 </script>
 
 <template>
@@ -125,7 +154,7 @@ function setTool(tool: BoardTool): void {
         aria-label="Open gamemaster tools sidebar"
         dusk="sidebar-open"
         class="fixed top-3 right-2 z-40 rounded-full border bg-white/90 p-2 shadow-lg transition hover:bg-white dark:bg-neutral-900/90 dark:hover:bg-neutral-900"
-        :class="boardStore.currentTool !== BoardTool.None ? 'border-2 border-blue-500' : 'border-neutral-200 dark:border-neutral-800'"
+        :class="isAnyGMToolActive ? 'border-2 border-blue-500' : 'border-neutral-200 dark:border-neutral-800'"
         @click="openSidebar"
     >
         <!-- Heroicon: Chevron Left -->
@@ -177,7 +206,7 @@ function setTool(tool: BoardTool): void {
                                 :class="isRevealRoom ? toolSelectedClasses : toolDeselectedClasses"
                                 @click="setTool(BoardTool.RevealRoom)"
                             >
-                                Reveal Room
+                                Room
                             </button>
                             <button
                                 type="button"
@@ -185,7 +214,15 @@ function setTool(tool: BoardTool): void {
                                 :class="isRevealCorridor ? toolSelectedClasses : toolDeselectedClasses"
                                 @click="setTool(BoardTool.RevealCorridor)"
                             >
-                                Reveal Corridor
+                                Corridor
+                            </button>
+                            <button
+                                type="button"
+                                class="rounded border px-3 py-2 text-sm"
+                                :class="isOpenDoor ? toolSelectedClasses : toolDeselectedClasses"
+                                @click="setTool(BoardTool.OpenDoor)"
+                            >
+                                <span>Open Door</span>
                             </button>
                         </div>
                         <p class="mt-1 text-xs text-neutral-500">
@@ -194,18 +231,20 @@ function setTool(tool: BoardTool): void {
                         </p>
                     </div>
                     <div>
-                        <div class="mb-2 text-xs text-gray-500 uppercase">Doors</div>
-                        <button
-                            type="button"
-                            class="rounded border px-3 py-2 text-sm"
-                            :class="isOpenDoor ? toolSelectedClasses : toolDeselectedClasses"
-                            @click="setTool(BoardTool.OpenDoor)"
-                        >
-                            <span>Open Door</span>
-                        </button>
-                        <p class="mt-1 text-xs text-neutral-500">
-                            Click a closed door or secret door to open it. Secret doors become visible when opened.
-                        </p>
+                        <div class="mb-2 text-xs text-gray-500 uppercase">Search Badges (GM only)</div>
+                        <div class="mb-2 flex flex-wrap gap-2">
+                            <button
+                                v-for="t in badgeTypes"
+                                :key="t.key"
+                                type="button"
+                                class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
+                                :class="gmBadgeActive && gmBadgeType === t.key ? toolSelectedClasses : toolDeselectedClasses"
+                                @click="selectSearchBadge(t.key)"
+                            >
+                                <component :is="t.key === 'treasure' ? Gem : t.key === 'trap' ? Bomb : Key" class="size-4" />
+                            </button>
+                        </div>
+                        <p class="mt-1 text-xs text-neutral-500">Tip: Right-click a badge to remove the nearest one.</p>
                     </div>
                     <div>
                         <div class="mb-2 text-xs text-gray-500 uppercase">Movement</div>
@@ -217,7 +256,7 @@ function setTool(tool: BoardTool): void {
                                 @click="setTool(BoardTool.MoveMonster)"
                             >
                                 <Move class="size-4" />
-                                <span>Move Monster</span>
+                                <span>Monster</span>
                             </button>
                             <button
                                 type="button"
@@ -226,7 +265,7 @@ function setTool(tool: BoardTool): void {
                                 @click="setTool(BoardTool.MoveElement)"
                             >
                                 <Move class="size-4" />
-                                <span>Move Element</span>
+                                <span>Element</span>
                             </button>
                         </div>
                         <p class="mt-1 text-xs text-neutral-500">

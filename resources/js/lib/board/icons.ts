@@ -1,3 +1,4 @@
+import { Colors500 } from '@/lib/game/colors';
 import { Bomb, DoorClosed, DoorOpen, Flag, Gem, Key, Play, Skull, UserRound } from 'lucide';
 
 // Lucide SVG rendering for Konva
@@ -21,12 +22,12 @@ const iconMap: Record<string, IconNode | undefined> = {
 const iconColor: Record<string, string> = {
     monster: 'oklch(50.5% 0.213 27.518)', // red-700
     door: 'oklch(27.9% 0.077 45.635)', // amber-950
-    door_open: 'oklch(27.9% 0.077 45.635)', // amber-950
+    door_open: Colors500.Lime, // lime-500
     secret_door: 'oklch(28.3% 0.141 291.089)', // violet-950
-    trap: '#f59e0b', // amber-500
-    treasure: '#10b981', // emerald-500
-    player_start: '#22c55e', // green-500
-    player_exit: '#3b82f6', // blue-500
+    trap: Colors500.Amber, // amber-500
+    treasure: Colors500.Emerald, // emerald-500
+    player_start: Colors500.Green, // green-500
+    player_exit: Colors500.Blue, // blue-500
 };
 
 function iconNodeToSvg(children: IconNode, color: string, size = ICON_SIZE): string {

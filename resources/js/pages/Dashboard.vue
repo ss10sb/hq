@@ -45,7 +45,7 @@ const linkClasses = 'cursor-pointer rounded px-3 py-2 hover:bg-muted';
                 <div class="relative overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                     <div class="p-3">
                         <h1 class="mb-1 font-medium">Start a new game</h1>
-                        <p class="mb-3 text-orange-200">Select or create a board to start a new game.</p>
+                        <p class="mb-3 text-orange-500 dark:text-orange-200">Select or create a board to start a new game.</p>
                         <Link :href="selectBoardController()">
                             <Button variant="outline" class="w-full"> New Game</Button>
                         </Link>
@@ -54,7 +54,7 @@ const linkClasses = 'cursor-pointer rounded px-3 py-2 hover:bg-muted';
                 <div class="relative overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                     <div class="p-3">
                         <h1 class="mb-1 font-medium">Pick your hero</h1>
-                        <p class="mb-3 text-orange-200">Create or select a hero.</p>
+                        <p class="mb-3 text-orange-500 dark:text-orange-200">Create or select a hero.</p>
                         <Link :href="selectHeroController()">
                             <Button variant="outline" class="w-full"> Select Hero</Button>
                         </Link>
@@ -64,7 +64,9 @@ const linkClasses = 'cursor-pointer rounded px-3 py-2 hover:bg-muted';
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
                 <div class="p-3">
                     <h1 class="mb-1 font-medium">My games</h1>
-                    <p class="mb-3 text-orange-200">Click the name of an In Progress or Pending game to be taken to the gameboard or waiting room.</p>
+                    <p class="mb-3 text-orange-500 dark:text-orange-200">
+                        Click the name of an In Progress or Pending game to be taken to the gameboard or waiting room.
+                    </p>
                     <div v-if="games.data.length" class="@container">
                         <div v-for="game in games.data" :key="game.id" class="flex flex-row items-center justify-between gap-2 py-4">
                             <Link v-if="game.status === GameStatus.InProgress" :href="PlayGameController(game.id)" :class="linkClasses">

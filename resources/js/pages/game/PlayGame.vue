@@ -19,8 +19,9 @@ import {
     onWhisper,
     type SelectedTilePayload,
     type TrapTriggeredPayload,
-    WhisperEvents
+    WhisperEvents,
 } from '@/lib/game/realtime';
+import type { SearchBadgeScope, SearchBadgeType } from '@/lib/game/searchBadges';
 import { useBoardStore } from '@/stores/board';
 import { useGameStore } from '@/stores/game';
 import { AppPageProps } from '@/types';
@@ -32,15 +33,16 @@ import { Head, usePage } from '@inertiajs/vue3';
 import { useEchoPresence } from '@laravel/echo-vue';
 import axios from 'axios';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+// GM search badges state (local only; not persisted/broadcasted)
+const gmBadgeActive = ref<boolean>(false);
+const gmBadgeType = ref<SearchBadgeType>('treasure');
+const gmBadgeScope = ref<SearchBadgeScope>('tile');
+
 // Scrolling game information panel (log)
 import SelectHeroController from '@/actions/App/Http/Controllers/Hero/SelectHeroController';
 import type { DieType, DieValue } from '@/lib/game/dice';
 import { expandPrimitiveResults, rollDice as performRoll, sortDieValues } from '@/lib/game/dice';
-import {
-    buildSelectedTilePacket,
-    chooseSelectionHeroId as chooseSelectionHeroIdUtil,
-    toSelectedTilesDisplay
-} from '@/lib/game/selection';
+import { buildSelectedTilePacket, chooseSelectionHeroId as chooseSelectionHeroIdUtil, toSelectedTilesDisplay } from '@/lib/game/selection';
 
 const page = usePage<AppPageProps>();
 const props = defineProps<{
@@ -51,13 +53,15 @@ const props = defineProps<{
     fixtures: Fixture[];
 }>();
 
-type LogEntry = { kind: 'text'; text: string } | {
-    kind: 'dice';
-    actor: string;
-    diceType: DieType;
-    count: number;
-    results: DieValue[]
-};
+type LogEntry =
+    | { kind: 'text'; text: string }
+    | {
+          kind: 'dice';
+          actor: string;
+          diceType: DieType;
+          count: number;
+          results: DieValue[];
+      };
 
 const gameLog = ref<LogEntry[]>([]);
 
@@ -133,8 +137,7 @@ function showAutoSave(status: 'saving' | 'saved' | 'error', message?: string): v
     }
 }
 
-const { channel } = useEchoPresence<PresentUser>(`game.play.${props.game.id}`, [], () => {
-});
+const { channel } = useEchoPresence<PresentUser>(`game.play.${props.game.id}`, [], () => {});
 
 onMounted(() => {
     gameStore.hydrateFromGame(props.game);
@@ -291,12 +294,7 @@ onMounted(() => {
     }
 
     // Listen for hero moved events from any client
-    onWhisper(presenceChannel, WhisperEvents.HeroMoved, (payload: {
-        heroId: number;
-        x: number;
-        y: number;
-        steps?: number
-    }) => {
+    onWhisper(presenceChannel, WhisperEvents.HeroMoved, (payload: { heroId: number; x: number; y: number; steps?: number }) => {
         if (!payload || typeof payload.heroId !== 'number') {
             return;
         }
@@ -310,8 +308,7 @@ onMounted(() => {
             stepsByHero.value = { ...stepsByHero.value, [payload.heroId]: s };
             // Clear any stale preview for this hero
             const {
-                [payload.heroId]:
-                    _omit, // eslint-disable-line @typescript-eslint/no-unused-vars 
+                [payload.heroId]: _omit, // eslint-disable-line @typescript-eslint/no-unused-vars
                 ...rest
             } = previewStepsByHero.value;
             previewStepsByHero.value = rest;
@@ -335,7 +332,7 @@ onMounted(() => {
             id: existing.id,
             playerId: existing.playerId,
             x: existing.x,
-            y: existing.y
+            y: existing.y,
         } as any;
         const next = [...(gameStore.heroes as any[])];
         next.splice(idx, 1, merged);
@@ -398,7 +395,7 @@ onMounted(() => {
                     elements: boardStoreRef.elements,
                     heroes: gameStore.heroes,
                     currentHeroId: gameStore.currentHeroId,
-                    tiles: boardStoreRef.tiles
+                    tiles: boardStoreRef.tiles,
                 } as any;
                 const url = SaveGameController(props.game.id).url;
                 await axios.put(url, payload, { withCredentials: true });
@@ -436,7 +433,7 @@ watch(
         }
         gameStore.hydrateFromGame(g);
     },
-    { deep: true }
+    { deep: true },
 );
 
 function broadcastGameStateSync(): void {
@@ -518,7 +515,7 @@ function updateBody(payload: { heroId: number | null; value: number }): void {
     }
     const updated = {
         ...(gameStore.heroes[idx] as any),
-        stats: { ...(hero.stats || {}), currentBodyPoints: nextVal }
+        stats: { ...(hero.stats || {}), currentBodyPoints: nextVal },
     } as any;
     const next = [...(gameStore.heroes as any[])];
     next.splice(idx, 1, updated);
@@ -527,8 +524,7 @@ function updateBody(payload: { heroId: number | null; value: number }): void {
     if (isGameMaster.value || isOwner) {
         try {
             broadcastGameStateSync();
-        } catch {
-        }
+        } catch {}
     }
 }
 
@@ -553,8 +549,7 @@ function assignHero(payload: { heroId: number; playerId: number }): void {
     gameStore.setHeroes(next as any);
     try {
         broadcastGameStateSync();
-    } catch {
-    }
+    } catch {}
 }
 
 async function saveHero(payload: { heroId: number; hero: any }): Promise<void> {
@@ -582,7 +577,7 @@ async function saveHero(payload: { heroId: number; hero: any }): Promise<void> {
             : [],
         equipment: Array.isArray(incoming.equipment)
             ? incoming.equipment.filter((eq: any) => eq && eq.name && String(eq.name).trim().length > 0)
-            : []
+            : [],
     } as any;
     try {
         const url = (SelectHeroController as any).update(heroId).url as string;
@@ -598,7 +593,7 @@ async function saveHero(payload: { heroId: number; hero: any }): Promise<void> {
         id: existing.id,
         playerId: existing.playerId,
         x: existing.x,
-        y: existing.y
+        y: existing.y,
     } as any;
     const next = [...(gameStore.heroes as any[])];
     next.splice(idx, 1, merged);
@@ -607,8 +602,7 @@ async function saveHero(payload: { heroId: number; hero: any }): Promise<void> {
     try {
         const ch = channel();
         broadcastHeroUpdatedUtil(ch, { heroId, hero: merged } as any);
-    } catch {
-    }
+    } catch {}
 }
 
 // --- Actions (dice + turn) ---
@@ -646,8 +640,7 @@ function rollDice(payload: { type: DieType; count: number }): void {
         const primitive = sorted.map((r) => r.value);
         const packet: DiceRolledPayload = { actorName: actor, diceType: type, count, results: primitive } as any;
         broadcastDiceRolled(ch, packet);
-    } catch {
-    }
+    } catch {}
 }
 
 function endTurn(): void {
@@ -667,8 +660,7 @@ function endTurn(): void {
     // Broadcast new active hero so all clients update
     try {
         broadcastGameStateSync();
-    } catch {
-    }
+    } catch {}
 }
 
 function toggleSelect(): void {
@@ -694,8 +686,7 @@ function clearMySelection(): void {
         const ch = channel();
         const packet = buildSelectedTilePacket(heroId, null);
         broadcastSelectedTileSyncUtil(ch, packet);
-    } catch {
-    }
+    } catch {}
 }
 
 function onSelectTile(payload: { x: number; y: number }): void {
@@ -712,8 +703,7 @@ function onSelectTile(payload: { x: number; y: number }): void {
         const ch = channel();
         const packet: SelectedTilePayload = buildSelectedTilePacket(heroId, next);
         broadcastSelectedTileSyncUtil(ch, packet);
-    } catch {
-    }
+    } catch {}
 }
 
 function onHeroMoving(payload: { heroId: number; steps: number }): void {
@@ -732,14 +722,13 @@ function onHeroMoved(payload: { heroes: Hero[]; heroId: number; heroName: string
     try {
         const ch = channel();
         broadcastHeroMovedUtil(ch, { heroId: heroId, x: movedEl.x, y: movedEl.y, steps: payload.steps });
-    } catch {
-    }
+    } catch {}
     // Update local step counters
     stepsByHero.value = { ...stepsByHero.value, [heroId]: Math.max(0, payload.steps) };
-    const { 
-        [heroId]: 
-            _omit, // eslint-disable-line @typescript-eslint/no-unused-vars 
-        ...rest } = previewStepsByHero.value;
+    const {
+        [heroId]: _omit, // eslint-disable-line @typescript-eslint/no-unused-vars
+        ...rest
+    } = previewStepsByHero.value;
     previewStepsByHero.value = rest;
     // Log movement in game information panel (only when steps > 0)
     if ((payload.steps ?? 0) > 0) {
@@ -758,8 +747,7 @@ function onTrapTriggered(payload: TrapTriggeredPayload): void {
     try {
         const ch = channel();
         broadcastTrapTriggered(ch, payload);
-    } catch {
-    }
+    } catch {}
 }
 
 function toggleVisibility(elementId: string): void {
@@ -780,8 +768,7 @@ function toggleVisibility(elementId: string): void {
         const ch = channel();
         const elements = (next as any[]).map((e) => applyTrapColorByStatus(e));
         broadcastElementsSyncUtil(ch, elements as any);
-    } catch {
-    }
+    } catch {}
 }
 
 function onMonsterSelected(payload: { elementId: string }): void {
@@ -825,8 +812,7 @@ function updateMonsterBody(payload: { elementId: string; value: number }): void 
         const ch = channel();
         const elements = (next as any[]).map((e) => applyTrapColorByStatus(e));
         broadcastElementsSyncUtil(ch, elements as any);
-    } catch {
-    }
+    } catch {}
 }
 
 function openDoor(elementId: string): void {
@@ -855,8 +841,7 @@ function openDoor(elementId: string): void {
         const ch = channel();
         const elements = (next as any[]).map((e) => applyTrapColorByStatus(e));
         broadcastElementsSyncUtil(ch, elements as any);
-    } catch {
-    }
+    } catch {}
 }
 
 function onElementsChanged(payload: { elements: BoardElement[] }): void {
@@ -867,8 +852,7 @@ function onElementsChanged(payload: { elements: BoardElement[] }): void {
         const ch = channel();
         const elements = (list as any[]).map((e) => applyTrapColorByStatus(e));
         broadcastElementsSyncUtil(ch, elements as any);
-    } catch {
-    }
+    } catch {}
 }
 
 function onTilesRevealed(tiles: Array<{ x: number; y: number }>): void {
@@ -921,7 +905,7 @@ function onTilesChanged(payload: {
 <template>
     <Head title="Play Game" />
     <AppHeaderLayout>
-        <GamemasterSidebar v-if="isGameMaster" />
+        <GamemasterSidebar v-if="isGameMaster" v-model:badge-active="gmBadgeActive" v-model:badge-type="gmBadgeType" />
         <!-- Header -->
         <div class="my-2 flex flex-row items-center justify-between gap-3">
             <div class="flex flex-row items-center gap-2">
@@ -935,8 +919,7 @@ function onTilesChanged(payload: {
         <div class="flex flex-col gap-4 md:flex-row">
             <!-- Board Canvas -->
             <section class="">
-                <div
-                    class="overflow-auto rounded border border-gray-200 bg-white p-2 dark:border-neutral-800 dark:bg-neutral-900">
+                <div class="overflow-auto rounded border border-gray-200 bg-white p-2 dark:border-neutral-800 dark:bg-neutral-900">
                     <BoardCanvas
                         :board="board"
                         :can-edit="isGameMaster"
@@ -954,6 +937,7 @@ function onTilesChanged(payload: {
                         @elements-changed="onElementsChanged"
                         @tiles-changed="onTilesChanged"
                         @monster-selected="onMonsterSelected"
+                        :gm-search-badge-tool="{ active: gmBadgeActive, type: gmBadgeType, scope: gmBadgeScope } as any"
                     />
                 </div>
             </section>
