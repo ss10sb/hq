@@ -26,6 +26,6 @@ class CompleteGameController
         );
         ($this->setGameStatusAction)($game, Status::COMPLETED);
 
-        return Redirect::route('dashboard')->with('success', 'Game completed!');
+        return Redirect::route('dashboard', [], 303)->with('success', 'Game completed!');
     }
 }

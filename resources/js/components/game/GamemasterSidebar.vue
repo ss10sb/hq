@@ -145,6 +145,12 @@ function selectSearchBadge(type: SearchBadgeType): void {
 const isAnyGMToolActive = computed(() => {
     return boardStore.currentTool !== BoardTool.None || gmBadgeActive.value;
 });
+const emit = defineEmits<{
+    (e: 'complete-game'): void;
+}>();
+const confirmComplete = () => {
+    return window.confirm('Are you sure you want to mark this game as complete?');
+};
 </script>
 
 <template>
@@ -477,6 +483,23 @@ const isAnyGMToolActive = computed(() => {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Footer actions -->
+            <div class="mt-auto border-t border-neutral-200 p-4 dark:border-neutral-800">
+                <button
+                    type="button"
+                    class="w-full rounded border border-red-200 bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700 dark:border-red-800"
+                    @click="
+                        () => {
+                            if (confirmComplete()) {
+                                emit('complete-game');
+                            }
+                        }
+                    "
+                >
+                    Complete Game
+                </button>
             </div>
         </aside>
     </div>

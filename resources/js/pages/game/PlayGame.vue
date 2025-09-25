@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
+import CompleteGameController from '@/actions/App/Http/Controllers/Game/CompleteGameController';
 import SaveGameController from '@/actions/App/Http/Controllers/Game/SaveGameController';
 import BoardCanvas from '@/components/board/BoardCanvas.vue';
 import GamemasterSidebar from '@/components/game/GamemasterSidebar.vue';
@@ -900,12 +902,31 @@ function onTilesChanged(payload: {
         // no-op
     }
 }
+
+async function completeGame(): Promise<void> {
+    // Build payload from current local state (same shape as auto-save)
+    const payload = {
+        elements: boardStoreRef.elements,
+        heroes: gameStore.heroes,
+        currentHeroId: gameStore.currentHeroId,
+        tiles: boardStoreRef.tiles,
+    } as any;
+    try {
+        const url = (CompleteGameController as any)({ id: props.game.id }).url as string;
+        await axios.put(url, payload, { withCredentials: true });
+        const dashUrl = (DashboardController as any)().url as string;
+        window.location.href = dashUrl;
+    } catch (e) {
+        console.error('Failed to complete game:', e);
+        window.alert('Failed to complete the game. Please try again.');
+    }
+}
 </script>
 
 <template>
     <Head title="Play Game" />
     <AppHeaderLayout>
-        <GamemasterSidebar v-if="isGameMaster" v-model:badge-active="gmBadgeActive" v-model:badge-type="gmBadgeType" />
+        <GamemasterSidebar v-if="isGameMaster" v-model:badge-active="gmBadgeActive" v-model:badge-type="gmBadgeType" @complete-game="completeGame" />
         <!-- Header -->
         <div class="my-2 flex flex-row items-center justify-between gap-3">
             <div class="flex flex-row items-center gap-2">
