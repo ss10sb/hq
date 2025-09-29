@@ -8,9 +8,10 @@ use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 
-final class GameHeroesUpdated implements ShouldBroadcast
+final class GameHeroesUpdated implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets;
 

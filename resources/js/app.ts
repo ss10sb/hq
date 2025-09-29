@@ -10,7 +10,7 @@ import VueKonva from 'vue-konva';
 import { initializeTheme } from './composables/useAppearance';
 
 configureEcho({
-    broadcaster: 'reverb',
+    broadcaster: 'pusher',
     namespace: '',
 });
 
