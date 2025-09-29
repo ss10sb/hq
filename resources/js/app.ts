@@ -12,6 +12,8 @@ import { initializeTheme } from './composables/useAppearance';
 configureEcho({
     broadcaster: 'pusher',
     namespace: '',
+    key: import.meta.env.VITE_PUSHER_APP_KEY,
+    cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
 });
 
 const pinia = createPinia();
