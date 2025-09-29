@@ -18,6 +18,7 @@ it('can create from a hero', function () {
         ),
         inventory: new \Domain\Board\Elements\Heros\DataObjects\Inventory,
         equipment: new \Domain\Board\Elements\Heros\DataObjects\Equipment,
+        gold: 1,
         x: 1,
         y: 1,
     );

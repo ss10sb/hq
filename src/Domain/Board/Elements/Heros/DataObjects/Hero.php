@@ -20,6 +20,7 @@ final class Hero extends DataObject
         public readonly Stats $stats,
         public readonly Inventory $inventory,
         public readonly Equipment $equipment,
+        public readonly int $gold,
     ) {}
 
     public static function from(Hero|array|string $data): self
@@ -43,6 +44,20 @@ final class Hero extends DataObject
             stats: Stats::fromArray($data['stats'] ?? []),
             inventory: Inventory::fromArray($data['inventory'] ?? []),
             equipment: Equipment::fromArray($data['equipment'] ?? []),
+            gold: $data['gold'] ?? 0,
+        );
+    }
+
+    public static function fromGameHeroData(\Domain\Board\GameSession\DataObjects\Hero $hero): self
+    {
+        return new self(
+            id: $hero->id,
+            name: $hero->name,
+            type: $hero->type,
+            stats: $hero->stats,
+            inventory: $hero->inventory,
+            equipment: $hero->equipment,
+            gold: $hero->gold,
         );
     }
 
@@ -55,6 +70,7 @@ final class Hero extends DataObject
             stats: $model->stats,
             inventory: $model->inventory,
             equipment: $model->equipment,
+            gold: $model->gold,
         );
     }
 
@@ -82,6 +98,7 @@ final class Hero extends DataObject
             stats: Stats::fromArray($request->input('stats')),
             inventory: Inventory::fromArray($request->input('inventory')),
             equipment: Equipment::fromArray($request->input('equipment')),
+            gold: $request->input('gold') ?? 0,
         );
     }
 
@@ -93,6 +110,7 @@ final class Hero extends DataObject
             'stats' => $this->stats,
             'inventory' => $this->inventory,
             'equipment' => $this->equipment,
+            'gold' => $this->gold,
         ];
     }
 }

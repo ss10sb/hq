@@ -82,14 +82,14 @@ it('places joining hero onto a PlayerStart and removes the marker', function ():
     // Assert: Heroes now have hero and no player_start at (2,3)
     $game->refresh();
     $elements = $game->elements->toArray();
-    $heroes = $game->heroes->toArray();
+    $gameHeroes = $game->gameHeroes;
 
     expect($elements)->toHaveCount(0)
-        ->and($heroes)->toHaveCount(2)
-        ->and($heroes[1]['type'])->toBe(HeroArchetype::BERSERKER)
-        ->and($heroes[1]['id'])->toBe($hero->id)
-        ->and($heroes[1]['x'])->toBe(2)
-        ->and($heroes[1]['y'])->toBe(3);
+        ->and($gameHeroes)->toHaveCount(2)
+        ->and($gameHeroes[1]->hero['type'])->toBe(HeroArchetype::BERSERKER)
+        ->and($gameHeroes[1]->hero['id'])->toBe($hero->id)
+        ->and($gameHeroes[1]['x'])->toBe(2)
+        ->and($gameHeroes[1]['y'])->toBe(3);
 });
 
 it('does not create duplicate hero element if joining twice', function (): void {
@@ -126,11 +126,11 @@ it('does not create duplicate hero element if joining twice', function (): void 
 
     $game->refresh();
     $elements = $game->elements->toArray();
-    $heroes = $game->heroes->toArray();
+    $gameHeroes = $game->gameHeroes;
     expect($elements)->toHaveCount(0)
-        ->and($heroes)->toHaveCount(2)
-        ->and($heroes[1]['type'])->toBe(HeroArchetype::BERSERKER)
-        ->and($heroes[1]['id'])->toBe($hero->id);
+        ->and($gameHeroes)->toHaveCount(2)
+        ->and($gameHeroes[1]->hero['type'])->toBe(HeroArchetype::BERSERKER)
+        ->and($gameHeroes[1]->hero['id'])->toBe($hero->id);
 });
 
 it('does nothing to elements if no PlayerStart is available', function (): void {
@@ -170,9 +170,9 @@ it('does nothing to elements if no PlayerStart is available', function (): void 
 
     $game->refresh();
     $elements = $game->elements->toArray();
-    $heroes = $game->heroes->toArray();
+    $gameHeroes = $game->gameHeroes->toArray();
     expect($elements)->toHaveCount(0)
-        ->and($heroes)->toHaveCount(2)
-        ->and($heroes[1]['x'])->toBe(0)
-        ->and($heroes[1]['y'])->toBe(0);
+        ->and($gameHeroes)->toHaveCount(2)
+        ->and($gameHeroes[1]['x'])->toBe(0)
+        ->and($gameHeroes[1]['y'])->toBe(0);
 });

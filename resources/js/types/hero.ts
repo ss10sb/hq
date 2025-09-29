@@ -14,6 +14,7 @@ export type NewHero = {
     stats: Stats;
     inventory: InventoryItem[];
     equipment: EquipmentItem[];
+    gold: number;
 };
 
 export interface Character {
@@ -31,6 +32,7 @@ export interface Hero extends Character {
     equipment: EquipmentItem[];
     x: number;
     y: number;
+    gold: number;
 }
 
 export type InventoryItem = {

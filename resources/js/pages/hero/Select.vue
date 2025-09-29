@@ -42,6 +42,7 @@ const form = useForm<NewHero>({
     },
     inventory: [],
     equipment: [],
+    gold: 0,
 });
 
 const archetypes = computed<HeroArchetype[]>(() => heroArchetypes(props.heroes));
@@ -52,6 +53,7 @@ const heroDraft = ref<NewHero>({
     stats: { bodyPoints: 0, mindPoints: 0, attackDice: 0, defenseDice: 0, currentBodyPoints: 0 },
     inventory: [],
     equipment: [],
+    gold: 0,
 });
 
 function startCreate() {
@@ -86,6 +88,7 @@ function resetToIdle() {
         stats: { bodyPoints: 0, mindPoints: 0, attackDice: 0, defenseDice: 0, currentBodyPoints: 0 },
         inventory: [],
         equipment: [],
+        gold: 0,
     };
     form.reset();
 }

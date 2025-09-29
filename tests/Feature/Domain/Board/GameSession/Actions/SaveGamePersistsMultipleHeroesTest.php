@@ -1,6 +1,8 @@
 <?php
 
+use Domain\Board\Elements\DataObjects\Stats;
 use Domain\Board\Elements\Heros\Constants\HeroArchetype;
+use Domain\Board\Elements\Heros\Models\Eloquent\Hero;
 use Domain\Board\GameSession\Actions\NewGameAction;
 use Domain\Board\GameSession\Constants\Status as GameStatus;
 use Domain\Shared\Models\Eloquent\User;
@@ -12,6 +14,8 @@ it('persists multiple hero elements including duplicate controller player ids', 
     // Given an authenticated GM
     $user = User::factory()->create();
     $this->actingAs($user);
+    $player = User::factory()->create(['id' => 2]);
+    $player2 = User::factory()->create(['id' => 3]);
 
     // And an existing board + new game
     $board = \Domain\Board\GameBoard\Models\Eloquent\Board::factory()->create(['creator_id' => $user->id]);
@@ -31,44 +35,67 @@ it('persists multiple hero elements including duplicate controller player ids', 
     );
     $game = $newGame($boardDO, 'JOINMANY');
     expect($game->status)->toBe(GameStatus::PENDING);
+    $hero1 = Hero::query()->create([
+        'user_id' => $player->id,
+        'name' => 'Red Sonja',
+        'type' => HeroArchetype::BERSERKER->value,
+        'stats' => new Stats(
+            7,
+            0,
+            1,
+            1,
+            2
+        ),
+        'equipment' => [],
+        'inventory' => [],
+    ]);
+    $hero2 = Hero::query()->create([
+        'user_id' => $player->id,
+        'name' => 'Merlin',
+        'type' => HeroArchetype::WIZARD->value,
+        'stats' => new Stats(
+            5,
+            0,
+            1,
+            1,
+            3
+        ),
+        'equipment' => [],
+        'inventory' => [],
+    ]);
+    $game->gameHeroes()->create(['hero_id' => $hero1->id, 'order' => 2, 'x' => 0, 'y' => 0, 'user_id' => $player->id]);
+    $game->gameHeroes()->create(['hero_id' => $hero2->id, 'order' => 1, 'x' => 0, 'y' => 0, 'user_id' => $player2->id]);
 
     // When we save elements containing two hero tokens controlled by the same player id (different unique ids)
     $payload = [
         'heroes' => [
+            \Domain\Board\GameSession\DataObjects\Hero::fromHeroModel($hero1, $player->id, 1, 1, 4),
             [
-                'id' => 5,
-                'name' => 'Hero A',
-                'type' => HeroArchetype::WIZARD->value,
-                'x' => 1,
-                'y' => 1,
-                'interactive' => true,
-                'hidden' => false,
-                'traversable' => false,
+                'id' => 0,
+                'playerId' => $user->id,
+                'name' => 'Zargon',
             ],
-            [
-                'id' => 6,
-                'name' => 'Hero B',
-                'type' => HeroArchetype::DWARF->value,
-                'x' => 2,
-                'y' => 1,
-                'interactive' => true,
-                'hidden' => false,
-                'traversable' => false,
-            ],
+            \Domain\Board\GameSession\DataObjects\Hero::fromHeroModel($hero2, $player->id, 2, 1, 5),
         ],
     ];
 
     $this->putJson(route('game.play.save', ['id' => $game->id]), $payload)
         ->assertOk();
 
-    // Then both hero elements are persisted
+    // Then both heroes are persisted
     $game->refresh();
-    $els = $game->heroes; // Elements DTO
-    $arr = $els->toArray();
-    expect($arr)->toHaveCount(2)
-        ->and($arr[0]['type'])->toBe(HeroArchetype::WIZARD)
-        ->and($arr[1]['type'])->toBe(HeroArchetype::DWARF);
-    // Ensure both entries are hero type and ids preserved
-    expect([$arr[0]['id'], $arr[1]['id']])->toContain(5)
-        ->and([$arr[0]['id'], $arr[1]['id']])->toContain(6);
+    $heroes = $game->gameHeroes;
+    expect($heroes)->toHaveCount(3)
+        ->and($heroes[0]->hero['type'])->toBe(HeroArchetype::BERSERKER)
+        ->and($heroes[0]->hero['id'])->toBe($hero1->id)
+        ->and($heroes[0]['x'])->toBe(1)
+        ->and($heroes[0]['y'])->toBe(1)
+        ->and($heroes[0]['body_points'])->toBe(4)
+        ->and($heroes[1]['hero_id'])->toBe(0)
+        ->and($heroes[1]['body_points'])->toBe(0)
+        ->and($heroes[2]->hero['type'])->toBe(HeroArchetype::WIZARD)
+        ->and($heroes[2]->hero['id'])->toBe($hero2->id)
+        ->and($heroes[2]['x'])->toBe(2)
+        ->and($heroes[2]['y'])->toBe(1)
+        ->and($heroes[2]['body_points'])->toBe(5);
 });

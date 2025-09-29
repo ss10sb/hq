@@ -34,5 +34,6 @@ export function defaultsFor(type: HeroArchetype, heroes?: Array<NewHero | Hero>)
         stats: { bodyPoints: 0, mindPoints: 0, attackDice: 0, defenseDice: 0, currentBodyPoints: 0 },
         inventory: [],
         equipment: [],
+        gold: 0,
     } satisfies NewHero;
 }

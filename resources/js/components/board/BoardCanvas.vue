@@ -15,7 +15,19 @@ import { Colors, Colors500, heroColorById } from '@/lib/game/colors';
 import { badgeCircleConfig, badgeGroupConfig, badgeTextConfig, makeBadge, SearchBadge, SearchBadgeType } from '@/lib/game/searchBadges';
 import { useBoardStore } from '@/stores/board';
 import { useGameStore } from '@/stores/game';
-import { Board, BoardTool, Element, ElementType, Monster, Tile, TileType, Trap, TrapStatus, TrapType } from '@/types/board';
+import {
+    Board,
+    BoardTool,
+    Element,
+    ElementType,
+    Fixture,
+    Monster,
+    Tile,
+    TileType,
+    Trap,
+    TrapStatus,
+    TrapType
+} from '@/types/board';
 import { Game } from '@/types/game';
 import { Hero, Zargon } from '@/types/hero';
 import type { RectConfig } from 'konva/lib/shapes/Rect';
@@ -55,6 +67,7 @@ const props = withDefaults(
         canEdit?: boolean;
         monsters?: Monster[];
         traps?: Trap[];
+        fixtures?: Fixture[];
         selectedTiles?: { x: number; y: number; color?: string }[];
         playerSelectMode?: boolean;
         canMove?: boolean; // whether the local player can move their character now
@@ -612,24 +625,9 @@ function handleMouseUp(): void {
                 }
             }
         }
-        // Prepare fixture metadata patch for changed tiles so tooltips remain accurate across clients
-        const fixtureMetaPatch: Record<string, { type: any; label: string } | null> = {};
-        for (const c of changes) {
-            const key = (c.tile as any).id as string;
-            if (!key) {
-                continue;
-            }
-            if (targetType === TileType.Fixture) {
-                // After setTileType, fixtureMeta will contain the selected fixture info
-                const info = (boardStore as any).fixtureMeta?.[key] ?? null;
-                fixtureMetaPatch[key] = info ? { ...info } : null;
-            } else {
-                // Removing fixture -> clear meta on receivers
-                fixtureMetaPatch[key] = null;
-            }
-        }
         // Broadcast updated tiles to other clients (send sparse patch as well as full for local application)
-        emit('tiles-changed', { tiles: boardStore.tiles as any, changes, fixtureMeta: fixtureMetaPatch });
+        // Fixture labels are now persisted on the tile itself (tile.name), so no extra metadata patch is needed.
+        emit('tiles-changed', { tiles: boardStore.tiles as any, changes });
     } else {
         // Element placement mode (single tile toggle)
         if (isClick && isElementMode.value) {
@@ -726,8 +724,8 @@ onMounted(() => {
     }
 
     // Provide catalogs (monsters/traps) from backend to the store
-    if (props.monsters || props.traps) {
-        boardStore.setCatalogs(props.monsters as any, props.traps as any);
+    if (props.monsters || props.traps || props.fixtures) {
+        boardStore.setCatalogs(props.monsters as any, props.traps as any, props.fixtures as any);
         // Refresh current monster defaults from catalog if available
         boardStore.setCurrentMonsterSelection(boardStore.currentMonsterType, boardStore.currentMonsterCustomText);
     }

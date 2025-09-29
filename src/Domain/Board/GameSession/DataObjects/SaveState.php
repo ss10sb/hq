@@ -30,13 +30,19 @@ final class SaveState extends DataObject
         );
     }
 
-    public function toModelArray(): array
+    public function toGameHeroesArray(): array
+    {
+        return array_filter([
+            'heroes' => $this->heroes,
+        ]);
+    }
+
+    public function toGameModelArray(): array
     {
         return array_filter([
             'current_hero_id' => $this->currentHeroId,
             'elements' => $this->elements,
             'tiles' => $this->tiles,
-            'heroes' => $this->heroes,
         ]);
     }
 }

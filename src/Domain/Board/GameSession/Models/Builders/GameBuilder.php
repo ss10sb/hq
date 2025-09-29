@@ -19,6 +19,11 @@ class GameBuilder extends Builder
         return $this->where('board_id', '=', $id);
     }
 
+    public function defaultWiths(): Builder
+    {
+        return $this->with(['gameHeroes', 'gameHeroes.hero', 'users', 'board']);
+    }
+
     public function gameMasterIdIs(int $id): self
     {
         return $this->where('game_master_id', '=', $id);

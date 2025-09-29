@@ -29,6 +29,7 @@ class DefaultHeroesProvider
                 ),
                 new Inventory,
                 new Equipment,
+                0,
             ),
             new Hero(
                 0,
@@ -43,6 +44,7 @@ class DefaultHeroesProvider
                 ),
                 new Inventory,
                 new Equipment,
+                0,
             ),
             new Hero(
                 0,
@@ -57,6 +59,7 @@ class DefaultHeroesProvider
                 ),
                 new Inventory,
                 new Equipment,
+                0,
             ),
             new Hero(
                 0,
@@ -71,6 +74,7 @@ class DefaultHeroesProvider
                 ),
                 new Inventory,
                 new Equipment,
+                0,
             ),
             new Hero(
                 0,
@@ -85,6 +89,7 @@ class DefaultHeroesProvider
                 ),
                 new Inventory,
                 new Equipment,
+                0,
             ),
         ]);
     }

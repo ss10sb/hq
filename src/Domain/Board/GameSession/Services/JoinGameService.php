@@ -12,6 +12,7 @@ use Domain\Board\GameSession\Contracts\Models\Game as GameModel;
 use Domain\Board\GameSession\Contracts\Repositories\FindAvailableGameRepository;
 use Domain\Board\GameSession\DataObjects\Game;
 use Domain\Board\GameSession\DataObjects\Hero;
+use Domain\Board\GameSession\Events\GameHeroesUpdated;
 use Domain\Board\GameSession\Exceptions\GameNotFoundException;
 use Domain\Board\GameSession\Exceptions\HeroNotAllowedException;
 use Domain\Shared\Contracts\Models\User;
@@ -36,7 +37,35 @@ class JoinGameService implements \Domain\Board\GameSession\Contracts\Services\Jo
         $game->save();
         $game->refresh();
 
-        return Game::fromGameModel($game);
+        $gameData = Game::fromGameModel($game);
+
+        return $gameData;
+    }
+
+    protected function addGameHero(GameModel $game, Hero $hero): void
+    {
+        /** @var ?\Domain\Board\GameSession\Contracts\Models\GameHero $gameHero */
+        $gameHero = $game->gameHeroes->first(function ($gameHero) use ($hero) {
+            return $gameHero->hero_id === $hero->id;
+        });
+        if ($gameHero) {
+            $gameHero->update([
+                'user_id' => $hero->playerId,
+                'body_points' => $hero->stats->bodyPoints,
+                'x' => $hero->x,
+                'y' => $hero->y,
+            ]);
+
+            return;
+        }
+        $game->gameHeroes()->create([
+            'hero_id' => $hero->id,
+            'user_id' => $hero->playerId,
+            'body_points' => $hero->stats->bodyPoints,
+            'order' => $this->getOrder($game),
+            'x' => $hero->x,
+            'y' => $hero->y,
+        ]);
     }
 
     protected function addHeroToGame(GameModel $game, HeroModel $hero): void
@@ -45,7 +74,7 @@ class JoinGameService implements \Domain\Board\GameSession\Contracts\Services\Jo
             return;
         }
         $hero = $this->createHeroDataObject($hero, $game);
-        $game->heroes->addHero($hero);
+        $this->addGameHero($game, $hero);
     }
 
     protected function addPlayerToGame(GameModel $game): void
@@ -77,7 +106,7 @@ class JoinGameService implements \Domain\Board\GameSession\Contracts\Services\Jo
     {
         ['x' => $x, 'y' => $y] = $this->findFirstAvailableStartPosition($game);
 
-        return Hero::fromHeroModel($hero, (int) $this->user->getAuthIdentifier(), $x, $y);
+        return Hero::fromHeroModel($hero, (int) $this->user->getAuthIdentifier(), $x, $y, $hero->stats->bodyPoints);
     }
 
     /**
@@ -101,7 +130,7 @@ class JoinGameService implements \Domain\Board\GameSession\Contracts\Services\Jo
 
     protected function gameHasHero(GameModel $game, int $heroId): bool
     {
-        foreach ($game->heroes->heroes as $gameHero) {
+        foreach ($game->heroes as $gameHero) {
             if ($gameHero->id === $heroId) {
                 return true;
             }
@@ -120,6 +149,11 @@ class JoinGameService implements \Domain\Board\GameSession\Contracts\Services\Jo
         }
 
         return false;
+    }
+
+    protected function getOrder(GameModel $game): int
+    {
+        return ($game->gameHeroes->max('order') + 1) ?? 0;
     }
 
     protected function isUserGameMaster(GameModel $game): bool

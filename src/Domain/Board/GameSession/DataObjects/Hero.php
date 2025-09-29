@@ -9,6 +9,7 @@ use Domain\Board\Elements\Heros\Constants\HeroArchetype;
 use Domain\Board\Elements\Heros\Contracts\Models\Hero as HeroModel;
 use Domain\Board\Elements\Heros\DataObjects\Equipment;
 use Domain\Board\Elements\Heros\DataObjects\Inventory;
+use Domain\Board\GameSession\Contracts\Models\GameHero;
 
 final class Hero extends Character
 {
@@ -20,6 +21,7 @@ final class Hero extends Character
         public readonly Stats $stats,
         public readonly Inventory $inventory,
         public readonly Equipment $equipment,
+        public readonly int $gold,
         public readonly int $x,
         public readonly int $y,
 
@@ -46,21 +48,36 @@ final class Hero extends Character
             stats: Stats::fromArray($data['stats'] ?? []),
             inventory: Inventory::fromArray($data['inventory'] ?? []),
             equipment: Equipment::fromArray($data['equipment'] ?? []),
+            gold: $data['gold'] ?? 0,
             x: $data['x'] ?? 0,
             y: $data['y'] ?? 0,
         );
     }
 
-    public static function fromHeroModel(HeroModel $hero, int $playerId, int $x, int $y): self
+    public static function fromGameHeroModel(GameHero $gameHero): self
     {
+        return self::fromHeroModel(
+            $gameHero->hero,
+            $gameHero->user_id,
+            $gameHero->x,
+            $gameHero->y,
+            $gameHero->body_points
+        );
+    }
+
+    public static function fromHeroModel(HeroModel $hero, int $playerId, int $x, int $y, int $bodyPoints): self
+    {
+        $stats = $hero->stats->updateCurrentBodyPoints($bodyPoints);
+
         return new self(
             id: $hero->id,
             name: $hero->name,
             playerId: $playerId,
             type: $hero->type,
-            stats: $hero->stats,
+            stats: $stats,
             inventory: $hero->inventory,
             equipment: $hero->equipment,
+            gold: $hero->gold ?? 0,
             x: $x,
             y: $y,
         );

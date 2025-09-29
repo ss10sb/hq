@@ -39,7 +39,6 @@ return new class extends Migration
             $table->unsignedTinyInteger('max_heroes')->default(4);
             $table->json('elements');
             $table->json('tiles');
-            $table->json('heroes');
             $table->unsignedBigInteger('current_hero_id')->default(0);
             $table->timestamps();
 
@@ -56,7 +55,22 @@ return new class extends Migration
             $table->json('stats');
             $table->json('equipment');
             $table->json('inventory');
+            $table->unsignedMediumInteger('gold')->default(0);
             $table->timestamps();
+        });
+
+        Schema::create('game_hero', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('game_id')->constrained('games')->cascadeOnDelete();
+            $table->unsignedBigInteger('hero_id')->default(0);
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->unsignedTinyInteger('order')->default(0);
+            $table->unsignedTinyInteger('body_points')->default(0);
+            $table->mediumInteger('x')->default(0);
+            $table->mediumInteger('y')->default(0);
+            $table->timestamps();
+
+            $table->unique(['game_id', 'hero_id']);
         });
 
         Schema::create('game_user', function (Blueprint $table) {

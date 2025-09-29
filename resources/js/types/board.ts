@@ -87,6 +87,7 @@ export type Tile = {
     x: number; // The column index.
     y: number; // The row index.
     type: TileType; // The type of the tile (wall, floor, fixture).
+    name?: string;
     /**
      * Whether this tile has been revealed to players (fog of war).
      * GMs see all tiles regardless of this flag.

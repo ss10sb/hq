@@ -7,8 +7,6 @@ namespace Domain\Board\GameSession\Actions;
 use Domain\Board\GameBoard\DataObjects\Board;
 use Domain\Board\GameSession\Constants\Status;
 use Domain\Board\GameSession\Contracts\Models\Game;
-use Domain\Board\GameSession\DataObjects\Heroes;
-use Domain\Board\GameSession\DataObjects\Zargon;
 use Domain\Shared\Contracts\Models\User;
 use Illuminate\Container\Attributes\CurrentUser;
 use Smorken\Domain\Actions\ActionWithEloquent;
@@ -40,11 +38,14 @@ class NewGameAction extends ActionWithEloquent implements \Domain\Board\GameSess
             'current_hero_id' => 0,
             'elements' => $board->elements,
             'tiles' => $board->tiles,
-            'heroes' => new Heroes([
-                new Zargon(playerId: $userId),
-            ]),
         ]);
         $game->users()->attach($userId);
+        $game->gameHeroes()->create([
+            'user_id' => $userId,
+            'hero_id' => 0,
+            'current_body_points' => 0,
+            'order' => 0,
+        ]);
 
         return $game;
     }

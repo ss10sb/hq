@@ -7,7 +7,8 @@ import { Hero, HeroArchetype, Zargon } from '@/types/hero';
 import { Brain, Footprints, Heart, Shield, SwordIcon } from 'lucide-vue-next';
 
 import HeroForm from '@/components/hero/HeroForm.vue';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
+import { CardTitle } from '@/components/ui/card';
 
 const props = defineProps<{
     heroes: (Hero | Zargon)[];
@@ -34,13 +35,27 @@ const editModel = ref<NewHero | null>(null);
 const gmPlayerActionsActive = ref(false);
 const showReassign = ref(false);
 
+const viewHeroId = ref<number | null>(null);
+const viewHero = computed<Hero | null>(() => {
+    const id = viewHeroId.value;
+    if (id == null) {
+        return null;
+    }
+    const found = (props.heroes || []).find((x: any) => isHero(x) && (x as any).id === id) as any;
+    return found && isHero(found) ? (found as Hero) : null;
+});
+
+function closeView(): void {
+    viewHeroId.value = null;
+}
+
 function toNewHero(h: Hero): NewHero {
     return {
         name: h.name,
         type: h.type,
         stats: { ...h.stats },
         inventory: (h.inventory || []).map((it: any) => ({ ...it })),
-        equipment: (h.equipment || []).map((it: any) => ({ ...it })),
+        equipment: (h.equipment || []).map((it: any) => ({ ...it }))
     } as NewHero;
 }
 
@@ -137,7 +152,8 @@ function onAssign(heroId: number, playerIdStr: string): void {
                 >
                     Actions
                 </button>
-                <button type="button" class="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-neutral-800" @click="showReassign = !showReassign">
+                <button type="button" class="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-neutral-800"
+                        @click="showReassign = !showReassign">
                     {{ showReassign ? 'Hide' : 'Reassign' }}
                 </button>
             </div>
@@ -163,12 +179,24 @@ function onAssign(heroId: number, playerIdStr: string): void {
         </div>
 
         <ul class="flex flex-col gap-1">
-            <li v-for="(h, idx) in heroes" :key="h.id" class="gap-2 p-1" :class="h.id === activeHeroId ? 'rounded-md border border-blue-500' : ''">
+            <li v-for="(h, idx) in heroes" :key="h.id" class="gap-2 p-1"
+                :class="h.id === activeHeroId ? 'rounded-md border border-blue-500' : ''">
                 <div class="flex items-center gap-1">
-                    <span class="inline-block h-3 w-3 rounded-full" :class="playerIsPresent(h.playerId) ? 'bg-green-500' : 'bg-gray-400'" />
-                    <span class="flex-1" :style="isHero(h) ? { color: heroColorById(h.id) } : {}">
-                        {{ h.name }}
-                    </span>
+                    <span class="inline-block h-3 w-3 rounded-full"
+                          :class="playerIsPresent(h.playerId) ? 'bg-green-500' : 'bg-gray-400'" />
+                    <template v-if="!isHero(h)">
+                        <span class="flex-1">{{ h.name }}</span>
+                    </template>
+                    <template v-else>
+                        <button
+                            type="button"
+                            class="flex-1 text-left underline decoration-dotted hover:decoration-solid cursor-pointer"
+                            :style="{ color: heroColorById((h as any).id) }"
+                            @click="viewHeroId = (h as any).id"
+                        >
+                            {{ h.name }}
+                        </button>
+                    </template>
 
                     <!-- Body Points -->
                     <div v-if="isHero(h)" class="flex items-center gap-1 text-sm">
@@ -185,7 +213,9 @@ function onAssign(heroId: number, playerIdStr: string): void {
                                 </button>
                                 <span class="min-w-6 text-center">{{ h.stats?.currentBodyPoints ?? 0 }}</span>
                                 <span class="text-xs text-neutral-500">/ {{ h.stats?.bodyPoints ?? 0 }}</span>
-                                <button type="button" class="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-neutral-800" @click="incBody(h as any)">
+                                <button type="button"
+                                        class="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-neutral-800"
+                                        @click="incBody(h as any)">
                                     +
                                 </button>
                             </div>
@@ -214,7 +244,7 @@ function onAssign(heroId: number, playerIdStr: string): void {
                         <button
                             type="button"
                             class="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-neutral-800"
-                            :disabled="idx === players.length - 1"
+                            :disabled="idx === heroes.length - 1"
                             @click="emit('move-down', idx)"
                         >
                             ↓
@@ -280,6 +310,74 @@ function onAssign(heroId: number, playerIdStr: string): void {
                 </div>
             </li>
         </ul>
+
+        <!-- Readonly Hero Details Dialog -->
+        <div v-if="viewHero" class="fixed inset-0 z-50 flex items-center justify-center">
+            <div class="absolute inset-0 bg-black/50" @click="closeView"></div>
+            <div
+                class="relative z-10 w-full max-w-md rounded-md border border-gray-200 bg-white p-4 shadow-lg dark:border-neutral-800 dark:bg-neutral-900"
+                role="dialog"
+                aria-modal="true"
+            >
+                <div class="mb-2 flex items-start justify-between">
+                    <h3 class="text-lg font-semibold">{{ (viewHero as any).name }}</h3>
+                    <button type="button" class="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-neutral-800"
+                            @click="closeView">Close
+                    </button>
+                </div>
+                <div class="mb-3 text-sm text-neutral-500">{{ (viewHero as any).type }}</div>
+                <div class="flex flex-row flex-wrap items-center gap-5 text-gray-800 dark:text-white">
+                    <div class="flex items-center gap-2">
+                        <Brain :size="18" class="text-blue-500" />
+                        <div>{{ (viewHero as any).stats.mindPoints }}</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <SwordIcon :size="18" class="text-red-500" />
+                        <div>{{ (viewHero as any).stats.attackDice }}</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <Shield :size="18" class="text-green-500" />
+                        <div>{{ (viewHero as any).stats.defenseDice }}</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <Heart :size="18" class="text-red-500" />
+                        <div>
+                            {{ (viewHero as any).stats.currentBodyPoints }}
+                            <span class="text-xs text-neutral-500">/ {{ (viewHero as any).stats.bodyPoints }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div v-if="(viewHero as any).equipment.length"
+                     class="mt-4 flex flex-col gap-3 text-sm text-gray-800 dark:text-white">
+                    <CardTitle class="text-base text-neutral-500">Equipment</CardTitle>
+                    <template v-for="(item, idx) in (viewHero as any).equipment" :key="idx">
+                        <div class="flex flex-row justify-between items-center flex-wrap gap-2">
+                            <div>{{ item.name }}</div>
+                            <div class="flex items-center gap-2">
+                                <SwordIcon :size="18" class="text-red-500" />
+                                <div>{{ item.attackDice }}</div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <Shield :size="18" class="text-green-500" />
+                                <div>{{ item.defenseDice }}</div>
+                            </div>
+                        </div>
+                        <div v-if="item.description">{{ item.description }}</div>
+                    </template>
+                </div>
+                <div v-if="(viewHero as any).inventory.length"
+                     class="mt-4 flex flex-col gap-3 text-sm text-gray-800 dark:text-white">
+                    <CardTitle class="text-base text-neutral-500">Inventory</CardTitle>
+                    <template v-for="(item, idx) in (viewHero as any).inventory" :key="idx">
+                        <div class="flex flex-row justify-between items-center flex-wrap gap-2">
+                            <div>{{ item.name }}</div>
+                            <div>{{ item.quantity }}</div>
+                        </div>
+                        <div v-if="item.description">{{ item.description }}</div>
+                    </template>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 

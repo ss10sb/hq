@@ -40,7 +40,7 @@ final class Game extends DataObject
             gameMasterId: $gameModel->game_master_id,
             maxHeroes: $gameModel->max_heroes,
             currentHeroId: $gameModel->current_hero_id,
-            heroes: $gameModel->heroes,
+            heroes: new Heroes($gameModel->gameHeroes),
             players: $gameModel->users,
         );
     }

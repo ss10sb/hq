@@ -15,10 +15,9 @@ it('can create a new game', function () {
     $this->actingAs($user);
     $sut = $this->app[NewGameAction::class];
     $game = $sut($board, 'ABCDEF');
-    $zargon = $game->heroes->first();
+    $zargon = $game->gameHeroes->first();
     expect($game->board->id)->toBe($board->id)
         ->and($game->current_hero_id)->toBe(0)
-        ->and($zargon->id)->toBe(0)
-        ->and($zargon->name)->toBe('Zargon')
-        ->and($zargon->playerId)->toBe($user->id);
+        ->and($zargon->isZargon())->toBeTrue()
+        ->and($zargon->user_id)->toBe($user->id);
 });

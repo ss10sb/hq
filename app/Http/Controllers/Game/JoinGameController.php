@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Game;
 
 use Domain\Board\GameSession\Constants\Status;
 use Domain\Board\GameSession\Contracts\Services\JoinGameService;
+use Domain\Board\GameSession\Events\GameHeroesUpdated;
 use Domain\Board\GameSession\Events\PlayerJoinedGame;
 use Domain\Board\GameSession\Events\PlayerJoinedWaitingRoom;
 use Domain\Board\GameSession\Exceptions\GameException;
@@ -41,6 +42,7 @@ class JoinGameController
         }
 
         PlayerJoinedGame::dispatch($game->id, $player);
+        GameHeroesUpdated::dispatch($game->id, $game->heroes->toArray());
 
         return Redirect::route('game.play', ['id' => $game->id]);
     }

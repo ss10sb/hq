@@ -167,6 +167,20 @@ function updateEquipmentItem<K extends keyof EquipmentItem>(index: number, key: 
                         </NumberFieldContent>
                     </NumberField>
                 </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-medium">Gold</label>
+                    <NumberField
+                        :model-value="modelValue.gold"
+                        :min="0"
+                        @update:model-value="(v) => update('gold', Number(v))"
+                    >
+                        <NumberFieldContent>
+                            <NumberFieldDecrement />
+                            <NumberFieldInput />
+                            <NumberFieldIncrement />
+                        </NumberFieldContent>
+                    </NumberField>
+                </div>
             </div>
 
             <!-- Inventory Management -->

@@ -26,6 +26,7 @@ class Hero extends Eloquent implements \Domain\Board\Elements\Heros\Contracts\Mo
         'stats',
         'equipment',
         'inventory',
+        'gold',
     ];
 
     protected $hidden = ['user_id'];
@@ -42,6 +43,7 @@ class Hero extends Eloquent implements \Domain\Board\Elements\Heros\Contracts\Mo
             'stats' => CastAsStats::class,
             'equipment' => CastAsEquipment::class,
             'inventory' => CastAsInventory::class,
+            'gold' => 'integer',
         ];
     }
 }

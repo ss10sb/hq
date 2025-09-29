@@ -14,6 +14,7 @@ use Smorken\Model\Contracts\Model;
  * @property \Domain\Board\Elements\DataObjects\Stats $stats
  * @property \Domain\Board\Elements\Heros\DataObjects\Equipment $equipment
  * @property \Domain\Board\Elements\Heros\DataObjects\Inventory $inventory
+ * @property int $gold
  * @property \Illuminate\Support\Carbon $created_at
  * @property \Illuminate\Support\Carbon $updated_at
  */

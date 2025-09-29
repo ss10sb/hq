@@ -15,7 +15,6 @@ use Smorken\Model\Contracts\Model;
  * @property int $max_heroes
  * @property \Domain\Board\Elements\DataObjects\Elements $elements
  * @property \Domain\Board\GameBoard\DataObjects\Tiles $tiles
- * @property \Domain\Board\GameSession\DataObjects\Heroes $heroes
  * @property int $current_hero_id
  * @property \Illuminate\Support\Carbon $created_at
  * @property \Illuminate\Support\Carbon $updated_at
@@ -23,6 +22,8 @@ use Smorken\Model\Contracts\Model;
  * Relations
  * @property \Domain\Board\GameBoard\Contracts\Models\Board $board
  * @property \Illuminate\Support\Collection<\Domain\Shared\Contracts\Models\User> $users
+ * @property \Illuminate\Support\Collection<\Domain\Board\GameSession\Contracts\Models\GameHero> $gameHeroes
+ * @property \Illuminate\Support\Collection<\Domain\Board\Elements\Heros\Contracts\Models\Hero> $heroes
  *
  * @phpstan-require-extends \Domain\Board\GameSession\Models\Eloquent\Game
  */

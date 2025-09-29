@@ -15,6 +15,7 @@ class Tile extends DataObject
         public readonly int $y,
         public readonly TileType $type,
         public readonly bool $visible = false,
+        public readonly ?string $name = null,
     ) {}
 
     public static function from(array|string $data): self
@@ -34,6 +35,7 @@ class Tile extends DataObject
             y: $data['y'],
             type: TileType::from($data['type']),
             visible: (bool) ($data['visible'] ?? false),
+            name: $data['name'] ?? null,
         );
     }
 

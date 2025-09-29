@@ -284,19 +284,21 @@ export const useBoardStore = defineStore('board', {
                 if (type === TileType.Wall) {
                     tile.interactive = false;
                     tile.traversable = false;
-                    // remove any fixture meta if present
+                    // clear any previous fixture name/metadata
+                    (tile as any).name = undefined;
                     delete this.fixtureMeta[key];
                 } else if (type === TileType.Floor) {
                     tile.interactive = false;
                     tile.traversable = true;
-                    // remove any fixture meta if present
+                    // clear any previous fixture name/metadata
+                    (tile as any).name = undefined;
                     delete this.fixtureMeta[key];
                 } else if (type === TileType.Fixture) {
                     tile.interactive = true; // fixtures can be interactive
                     // Prefer traversable from catalog if available, else default false
                     const fxFromCatalog = (this.fixturesCatalog ?? []).find((f: any) => f?.type === this.currentFixtureType);
                     tile.traversable = typeof fxFromCatalog?.traversable === 'boolean' ? fxFromCatalog.traversable : false;
-                    // set/update fixture subtype & label based on current selection and catalog
+                    // set/update fixture label based on current selection and catalog and store on the tile
                     let label: string;
                     if (this.currentFixtureType === FixtureType.Custom) {
                         label = this.currentFixtureCustomText || labelForFixtureType(this.currentFixtureType, this.currentFixtureCustomText);
@@ -305,7 +307,9 @@ export const useBoardStore = defineStore('board', {
                             (fxFromCatalog?.name as string | undefined) ??
                             labelForFixtureType(this.currentFixtureType, this.currentFixtureCustomText);
                     }
-                    this.fixtureMeta[key] = { type: this.currentFixtureType, label } as FixtureInfo;
+                    (tile as any).name = label;
+                    // legacy cleanup: fixtureMeta no longer used for tooltips
+                    delete this.fixtureMeta[key];
                 }
             }
         },
@@ -604,14 +608,15 @@ export const useBoardStore = defineStore('board', {
         },
 
         getFixtureLabel(x: number, y: number): string {
-            const info = this.getFixtureInfoAt(x, y);
-            if (info && info.label) {
-                return info.label;
+            const t = this.tiles[y]?.[x] as any;
+            if (!t) {
+                return '';
             }
-            // Fallback: if tile is a Fixture but metadata is missing (e.g., from older boards or not yet persisted),
-            // return a generic label so tooltips still display.
-            const t = this.tiles[y]?.[x];
-            if (t && t.type === TileType.Fixture) {
+            // Prefer persisted tile name for fixtures (customizable and saved)
+            if (typeof t.name === 'string' && t.name.length > 0) {
+                return t.name as string;
+            }
+            if (t.type === TileType.Fixture) {
                 return 'Fixture';
             }
             return '';

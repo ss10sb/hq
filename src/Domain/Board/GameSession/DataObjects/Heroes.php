@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Board\GameSession\DataObjects;
 
+use Domain\Board\GameSession\Contracts\Models\GameHero;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Smorken\Domain\DataObjects\DataObject;
@@ -58,8 +59,15 @@ final class Heroes extends DataObject
         return $this->heroes->toArray();
     }
 
-    protected function createHeroOrZargon(array|string $data): Hero|Zargon
+    protected function createHeroOrZargon(array|string|GameHero $data): Hero|Zargon
     {
+        if (is_a($data, GameHero::class)) {
+            if ($data->isZargon()) {
+                return Zargon::from(['playerId' => $data->user_id]);
+            }
+
+            return Hero::fromGameHeroModel($data);
+        }
         if (Hero::isHero($data)) {
             return Hero::from($data);
         }

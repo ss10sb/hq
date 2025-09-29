@@ -31,4 +31,15 @@ final class Stats extends DataObject
     {
         return self::fromArray(json_decode($data, true));
     }
+
+    public function updateCurrentBodyPoints(int $bodyPoints): self
+    {
+        return new self(
+            bodyPoints: $this->bodyPoints,
+            mindPoints: $this->mindPoints,
+            attackDice: $this->attackDice,
+            defenseDice: $this->defenseDice,
+            currentBodyPoints: $bodyPoints,
+        );
+    }
 }

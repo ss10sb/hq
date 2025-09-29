@@ -152,6 +152,17 @@ onMounted(() => {
     boardStoreRef.setCurrentMonsterSelection(boardStoreRef.currentMonsterType, boardStoreRef.currentMonsterCustomText);
 
     const presenceChannel = channel();
+
+    // Server broadcasts when heroes change (e.g., a player adds a new hero)
+    try {
+        presenceChannel.listen('.game.heroes.updated', (e: any) => {
+            const heroes = Array.isArray(e?.heroes) ? e.heroes : null;
+            if (heroes) {
+                gameStore.setHeroes(heroes as any);
+            }
+        });
+    } catch {}
+
     const ensureSelfPresent = () => {
         const myId = currentUserId.value;
         if (myId == null) {
