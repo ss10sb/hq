@@ -191,36 +191,41 @@ function updateEquipmentItem<K extends keyof EquipmentItem>(index: number, key: 
                 </div>
                 <div v-if="modelValue.inventory.length" class="space-y-3">
                     <div v-for="(item, idx) in modelValue.inventory" :key="idx" class="rounded border p-3">
-                        <div class="grid grid-cols-1 gap-3 md:grid-cols-12">
-                            <div class="md:col-span-3">
-                                <label class="text-sm font-medium">Name</label>
-                                <Input
-                                    :model-value="item.name"
-                                    @update:model-value="(v) => updateInventoryItem(idx, 'name', v as string)"
-                                    placeholder="Item name"
-                                />
+                        <div class="flex flex-col gap-3">
+                            <!-- Top row: Name + Quantity -->
+                            <div class="grid grid-cols-1 gap-3 md:grid-cols-12">
+                                <div class="md:col-span-8">
+                                    <label class="text-sm font-medium">Name</label>
+                                    <Input
+                                        :model-value="item.name"
+                                        @update:model-value="(v) => updateInventoryItem(idx, 'name', v as string)"
+                                        placeholder="Item name"
+                                    />
+                                </div>
+                                <div class="md:col-span-4">
+                                    <label class="text-sm font-medium">Quantity</label>
+                                    <NumberField
+                                        :model-value="item.quantity"
+                                        :min="0"
+                                        @update:model-value="(v) => updateInventoryItem(idx, 'quantity', Number(v))"
+                                    >
+                                        <NumberFieldContent>
+                                            <NumberFieldDecrement />
+                                            <NumberFieldInput />
+                                            <NumberFieldIncrement />
+                                        </NumberFieldContent>
+                                    </NumberField>
+                                </div>
                             </div>
-                            <div class="md:col-span-7">
+
+                            <!-- Second row: Description full width -->
+                            <div>
                                 <label class="text-sm font-medium">Description</label>
                                 <Input
                                     :model-value="item.description"
                                     @update:model-value="(v) => updateInventoryItem(idx, 'description', v as string)"
                                     placeholder="Item description"
                                 />
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="text-sm font-medium">Quantity</label>
-                                <NumberField
-                                    :model-value="item.quantity"
-                                    :min="0"
-                                    @update:model-value="(v) => updateInventoryItem(idx, 'quantity', Number(v))"
-                                >
-                                    <NumberFieldContent>
-                                        <NumberFieldDecrement />
-                                        <NumberFieldInput />
-                                        <NumberFieldIncrement />
-                                    </NumberFieldContent>
-                                </NumberField>
                             </div>
                         </div>
                         <div class="mt-2 flex justify-end">
@@ -239,50 +244,56 @@ function updateEquipmentItem<K extends keyof EquipmentItem>(index: number, key: 
                 </div>
                 <div v-if="modelValue.equipment.length" class="space-y-3">
                     <div v-for="(eq, idx) in modelValue.equipment" :key="idx" class="rounded border p-3">
-                        <div class="grid grid-cols-1 gap-3 md:grid-cols-12">
-                            <div class="md:col-span-3">
-                                <label class="text-sm font-medium">Name</label>
-                                <Input
-                                    :model-value="eq.name"
-                                    @update:model-value="(v) => updateEquipmentItem(idx, 'name', v as string)"
-                                    placeholder="Equipment name"
-                                />
+                        <div class="flex flex-col gap-3">
+                            <!-- Top row: Name + Attack + Defense -->
+                            <div class="grid grid-cols-1 gap-3 md:grid-cols-12">
+                                <div class="md:col-span-6">
+                                    <label class="text-sm font-medium">Name</label>
+                                    <Input
+                                        :model-value="eq.name"
+                                        @update:model-value="(v) => updateEquipmentItem(idx, 'name', v as string)"
+                                        placeholder="Equipment name"
+                                    />
+                                </div>
+                                <div class="md:col-span-6">
+                                    <label class="text-sm font-medium">Description</label>
+                                    <Input
+                                        :model-value="eq.description"
+                                        @update:model-value="(v) => updateEquipmentItem(idx, 'description', v as string)"
+                                        placeholder="Equipment description"
+                                    />
+                                </div>
+                                
                             </div>
-                            <div class="md:col-span-5">
-                                <label class="text-sm font-medium">Description</label>
-                                <Input
-                                    :model-value="eq.description"
-                                    @update:model-value="(v) => updateEquipmentItem(idx, 'description', v as string)"
-                                    placeholder="Equipment description"
-                                />
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="text-sm font-medium">Attack Dice</label>
-                                <NumberField
-                                    :model-value="eq.attackDice"
-                                    :min="0"
-                                    @update:model-value="(v) => updateEquipmentItem(idx, 'attackDice', Number(v))"
-                                >
-                                    <NumberFieldContent>
-                                        <NumberFieldDecrement />
-                                        <NumberFieldInput />
-                                        <NumberFieldIncrement />
-                                    </NumberFieldContent>
-                                </NumberField>
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="text-sm font-medium">Defense Dice</label>
-                                <NumberField
-                                    :model-value="eq.defenseDice"
-                                    :min="0"
-                                    @update:model-value="(v) => updateEquipmentItem(idx, 'defenseDice', Number(v))"
-                                >
-                                    <NumberFieldContent>
-                                        <NumberFieldDecrement />
-                                        <NumberFieldInput />
-                                        <NumberFieldIncrement />
-                                    </NumberFieldContent>
-                                </NumberField>
+                            <div class="grid grid-cols-1 gap-3 md:grid-cols-12">
+                                <div class="md:col-span-6">
+                                    <label class="text-sm font-medium">Attack Dice</label>
+                                    <NumberField
+                                        :model-value="eq.attackDice"
+                                        :min="0"
+                                        @update:model-value="(v) => updateEquipmentItem(idx, 'attackDice', Number(v))"
+                                    >
+                                        <NumberFieldContent>
+                                            <NumberFieldDecrement />
+                                            <NumberFieldInput />
+                                            <NumberFieldIncrement />
+                                        </NumberFieldContent>
+                                    </NumberField>
+                                </div>
+                                <div class="md:col-span-6">
+                                    <label class="text-sm font-medium">Defense Dice</label>
+                                    <NumberField
+                                        :model-value="eq.defenseDice"
+                                        :min="0"
+                                        @update:model-value="(v) => updateEquipmentItem(idx, 'defenseDice', Number(v))"
+                                    >
+                                        <NumberFieldContent>
+                                            <NumberFieldDecrement />
+                                            <NumberFieldInput />
+                                            <NumberFieldIncrement />
+                                        </NumberFieldContent>
+                                    </NumberField>
+                                </div>
                             </div>
                         </div>
                         <div class="mt-2 flex justify-end">

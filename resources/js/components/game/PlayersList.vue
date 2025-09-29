@@ -271,7 +271,7 @@ function onAssign(heroId: number, playerIdStr: string): void {
 
                 <div
                     v-if="isHero(h) && editingHeroId === h.id"
-                    class="mt-2 rounded-md border border-gray-200 bg-gray-50 p-2 dark:border-neutral-800 dark:bg-neutral-900/50"
+                    class="mt-2 rounded-md border border-gray-200 bg-gray-50 p-2 dark:border-neutral-800 dark:bg-neutral-900/50 max-h-[50vh] overflow-y-auto"
                 >
                     <HeroForm
                         :model-value="editModel as any"
@@ -348,7 +348,7 @@ function onAssign(heroId: number, playerIdStr: string): void {
                     </div>
                 </div>
                 <div v-if="(viewHero as any).equipment.length"
-                     class="mt-4 flex flex-col gap-3 text-sm text-gray-800 dark:text-white">
+                     class="mt-3 flex flex-col text-sm text-gray-800 dark:text-white">
                     <CardTitle class="text-base text-neutral-500">Equipment</CardTitle>
                     <template v-for="(item, idx) in (viewHero as any).equipment" :key="idx">
                         <div class="flex flex-row justify-between items-center flex-wrap gap-2">
@@ -362,18 +362,18 @@ function onAssign(heroId: number, playerIdStr: string): void {
                                 <div>{{ item.defenseDice }}</div>
                             </div>
                         </div>
-                        <div v-if="item.description">{{ item.description }}</div>
+                        <div v-if="item.description" class="text-neutral-500 ml-2">{{ item.description }}</div>
                     </template>
                 </div>
                 <div v-if="(viewHero as any).inventory.length"
-                     class="mt-4 flex flex-col gap-3 text-sm text-gray-800 dark:text-white">
+                     class="mt-3 flex flex-col text-sm text-gray-800 dark:text-white">
                     <CardTitle class="text-base text-neutral-500">Inventory</CardTitle>
                     <template v-for="(item, idx) in (viewHero as any).inventory" :key="idx">
                         <div class="flex flex-row justify-between items-center flex-wrap gap-2">
                             <div>{{ item.name }}</div>
                             <div>{{ item.quantity }}</div>
                         </div>
-                        <div v-if="item.description">{{ item.description }}</div>
+                        <div v-if="item.description" class="text-neutral-500 ml-2">{{ item.description }}</div>
                     </template>
                 </div>
             </div>
