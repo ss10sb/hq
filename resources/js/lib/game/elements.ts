@@ -27,3 +27,69 @@ export function applyTrapColorByStatus<T extends Element | any>(el: T): T {
         return el;
     }
 }
+
+
+// Track used display IDs to ensure uniqueness
+const usedDisplayIds = new Set<string>();
+
+/**
+ * Generates incrementing display IDs using capital letters.
+ * Sequence: A-Z, AA-ZZ, AAA-ZZZ, etc.
+ * 
+ * @returns The next available display ID
+ */
+export function generateDisplayId(): string {
+    let length = 1;
+    
+    while (true) {
+        // Generate all possible IDs of current length
+        const maxForLength = Math.pow(26, length);
+        
+        for (let i = 0; i < maxForLength; i++) {
+            const id = numberToAlpha(i, length);
+            if (!usedDisplayIds.has(id)) {
+                usedDisplayIds.add(id);
+                return id;
+            }
+        }
+        
+        // Move to next length (A-Z -> AA-ZZ -> AAA-ZZZ, etc.)
+        length++;
+    }
+}
+
+/**
+ * Converts a number to alphabetical representation
+ * @param num The number to convert (0-based)
+ * @param length The desired length of the output string
+ */
+function numberToAlpha(num: number, length: number): string {
+    let result = '';
+    let n = num;
+    
+    for (let i = 0; i < length; i++) {
+        const remainder = n % 26;
+        result = String.fromCharCode(97 + remainder) + result; // 65 is 'A'
+        n = Math.floor(n / 26);
+    }
+    
+    return result;
+}
+
+/**
+ * Resets the used display IDs tracker.
+ * Useful when starting a new game or loading saved state.
+ */
+export function resetDisplayIds(): void {
+    usedDisplayIds.clear();
+}
+
+/**
+ * Registers an existing display ID as used.
+ * Call this when loading saved elements to prevent ID collisions.
+ */
+export function registerDisplayId(id: string): void {
+    if (id && typeof id === 'string') {
+        usedDisplayIds.add(id);
+    }
+}

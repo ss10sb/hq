@@ -11,6 +11,15 @@ use Smorken\Model\Contracts\Model;
 
 class HeroPolicy extends ModelBasedPolicy
 {
+    protected function isUserAllowedToDestroy(Authenticatable $user, Model $model): Response
+    {
+        if ($model->user_id !== $user->id) {
+            return $this->deny('You are not allowed to delete this hero.');
+        }
+
+        return $this->allow();
+    }
+
     protected function isUserAllowedToUpdate(Authenticatable $user, Model $model): Response
     {
         if ($model->user_id !== $user->id) {

@@ -72,7 +72,8 @@ function selectHero(hero: Hero) {
 
 function onTypeChange(newType: HeroArchetype) {
     if (mode.value === 'create') {
-        heroDraft.value = defaultsFor(newType, props.heroes);
+        const newHero = defaultsFor(newType, props.heroes);
+        heroDraft.value = { ...heroDraft.value, type: newHero.type,  stats: newHero.stats};
     } else {
         heroDraft.value = { ...heroDraft.value, type: newType };
     }

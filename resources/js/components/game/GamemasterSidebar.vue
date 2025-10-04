@@ -145,6 +145,18 @@ function selectSearchBadge(type: SearchBadgeType): void {
 const isAnyGMToolActive = computed(() => {
     return boardStore.currentTool !== BoardTool.None || gmBadgeActive.value;
 });
+const isGMToolDestructive = computed(() => {
+    return boardStore.currentTool === BoardTool.RemoveElement;
+})
+const openButtonClasses = computed(() => {
+    if (isGMToolDestructive.value) {
+        return ['border-2', 'border-red-500']
+    }
+    if (isAnyGMToolActive.value) {
+        return ['border-2', 'border-blue-500']
+    }
+    return ['border-neutral-200', 'dark:border-neutral-800']
+})
 const emit = defineEmits<{
     (e: 'complete-game'): void;
 }>();
@@ -160,7 +172,7 @@ const confirmComplete = () => {
         aria-label="Open gamemaster tools sidebar"
         dusk="sidebar-open"
         class="fixed top-3 right-2 z-40 rounded-full border bg-white/90 p-2 shadow-lg transition hover:bg-white dark:bg-neutral-900/90 dark:hover:bg-neutral-900"
-        :class="isAnyGMToolActive ? 'border-2 border-blue-500' : 'border-neutral-200 dark:border-neutral-800'"
+        :class="openButtonClasses"
         @click="openSidebar"
     >
         <!-- Heroicon: Chevron Left -->
@@ -257,7 +269,7 @@ const confirmComplete = () => {
                         <div class="flex flex-wrap gap-2">
                             <button
                                 type="button"
-                                class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
+                                class="flex items-center gap-2 rounded border px-3 py-2 text-sm text-red-500"
                                 :class="isMoveMonster ? toolSelectedClasses : toolDeselectedClasses"
                                 @click="setTool(BoardTool.MoveMonster)"
                             >
@@ -266,7 +278,7 @@ const confirmComplete = () => {
                             </button>
                             <button
                                 type="button"
-                                class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
+                                class="flex items-center gap-2 rounded border px-3 py-2 text-sm text-blue-500"
                                 :class="isMoveElement ? toolSelectedClasses : toolDeselectedClasses"
                                 @click="setTool(BoardTool.MoveElement)"
                             >
@@ -290,16 +302,16 @@ const confirmComplete = () => {
                             >
                                 <Eye v-if="!isToggleVisibility" class="size-4" />
                                 <EyeOff v-else class="size-4" />
-                                <span>Toggle Visibility</span>
+                                <span>Visibility</span>
                             </button>
                             <button
                                 type="button"
-                                class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
+                                class="flex items-center gap-2 rounded border px-3 py-2 text-sm text-red-500"
                                 :class="isRemoveElement ? toolSelectedClasses : toolDeselectedClasses"
                                 @click="setTool(BoardTool.RemoveElement)"
                             >
                                 <Trash2 class="size-4" />
-                                <span>Remove Element</span>
+                                <span>Remove</span>
                             </button>
                         </div>
                         <p class="mt-1 text-xs text-neutral-500">

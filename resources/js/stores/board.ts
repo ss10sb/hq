@@ -6,7 +6,7 @@ import {
     labelForTrapType,
     rectBounds,
     statsForMonsterType,
-    toolToElementType,
+    toolToElementType
 } from '@/lib/board';
 import { getBoardElementAt, isBoardTileTraversable, moveBoardElement } from '@/lib/board/board.lib';
 import {
@@ -25,10 +25,11 @@ import {
     TileType,
     Trap,
     TrapStatus,
-    TrapType,
+    TrapType
 } from '@/types/board';
 import type { Stats } from '@/types/gameplay';
 import { defineStore } from 'pinia';
+import { generateDisplayId, registerDisplayId } from '@/lib/game/elements';
 
 export const useBoardStore = defineStore('board', {
     state: (): BoardState => ({
@@ -212,6 +213,7 @@ export const useBoardStore = defineStore('board', {
 
                 const base: Element = {
                     id: raw.id ?? `${type}:${raw.x}:${raw.y}`,
+                    displayId: raw.displayId ?? '', 
                     name: resolvedName,
                     description: raw.description ?? '',
                     type,
@@ -232,6 +234,13 @@ export const useBoardStore = defineStore('board', {
                 }
 
                 if (type === ElementType.Monster) {
+                    // Preserve existing displayId if present, otherwise generate new one
+                    let displayId = raw.displayId as string | undefined;
+                    if (displayId && typeof displayId === 'string' && displayId.length > 0) {
+                        registerDisplayId(displayId);
+                    } else {
+                        displayId = generateDisplayId();
+                    }
                     const monsterType = raw.monsterType ?? this.currentMonsterType;
                     const defaults = statsForMonsterType(monsterType);
                     const stats: Stats = {
@@ -241,6 +250,7 @@ export const useBoardStore = defineStore('board', {
                     } as Stats;
                     return {
                         ...base,
+                        displayId,
                         monsterType,
                         stats,
                     } as Element;
@@ -525,7 +535,6 @@ export const useBoardStore = defineStore('board', {
             // Remove any existing element on this tile to keep max 1 per tile
             this.removeElementAt(x, y);
             const flags = defaultElementFlags(type);
-
             // Determine default label/name for certain element types
             let resolvedName = name as string | undefined;
             if (!resolvedName) {
@@ -544,9 +553,14 @@ export const useBoardStore = defineStore('board', {
                     resolvedName = String(type);
                 }
             }
-
+            let resolvedDisplayId = '';
+            if (type === ElementType.Monster) {
+                resolvedDisplayId = generateDisplayId();
+            }
+            
             const baseEl: Element = {
                 id: `${type}:${x}:${y}`,
+                displayId: resolvedDisplayId,
                 name: resolvedName,
                 description: description ?? '',
                 type,

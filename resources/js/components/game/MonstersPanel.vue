@@ -47,7 +47,7 @@ function decBody(): void {
             <div class="rounded-md border border-gray-200 bg-gray-50 p-2 dark:border-neutral-800 dark:bg-neutral-900/50">
                 <div class="flex items-center justify-between">
                     <div class="font-medium" :class="{ 'text-gray-500': selectedMonster.stats?.currentBodyPoints === 0 }">
-                        {{ selectedMonster.name }}
+                        {{ selectedMonster.name }} ({{ selectedMonster.displayId }})
                     </div>
                     <div class="mt-3 flex items-center gap-2 text-sm">
                         <Heart class="size-4 text-red-500" />

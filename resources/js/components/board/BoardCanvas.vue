@@ -479,9 +479,10 @@ function handleMouseUp(): void {
                             boardStore.setTileVisible(step.x, step.y, true);
                             toReveal.push({ x: step.x, y: step.y });
                         }
-                        // If this is a pit trap, mark the first encountered pit
+                        // If this is a pit trap, mark the first encountered pit and stop processing further traps
                         if (!pitAt && elAt.trapType === TrapType.Pit) {
                             pitAt = { x: step.x, y: step.y };
+                            break; // Stop revealing traps beyond the first pit trap
                         }
                     }
                 }
@@ -856,10 +857,21 @@ function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
                     <template v-if="el.type === ElementType.Monster">
                         <v-text
                             :config="{
-                                x: el.x * TILE_SIZE + 4,
-                                y: el.y * TILE_SIZE + 4,
+                                x: el.x * TILE_SIZE + 2,
+                                y: el.y * TILE_SIZE + 2,
                                 text: String(el.stats?.currentBodyPoints ?? el.stats?.bodyPoints ?? 0),
                                 fontSize: 16,
+                                fontStyle: 'bold',
+                                fill: Colors.Black,
+                                listening: false,
+                            }"
+                        />
+                        <v-text v-if="el.displayId"
+                            :config="{
+                                x: el.x * TILE_SIZE + (TILE_SIZE - (el.displayId.length * 9)),
+                                y: el.y * TILE_SIZE + (TILE_SIZE - 14),
+                                text: String(el.displayId),
+                                fontSize: 13,
                                 fontStyle: 'bold',
                                 fill: Colors.Black,
                                 listening: false,
@@ -871,12 +883,12 @@ function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
                 <v-rect
                     v-if="selectedMonsterPos"
                     :config="{
-                        x: selectedMonsterPos.x * TILE_SIZE + 1,
-                        y: selectedMonsterPos.y * TILE_SIZE + 1,
-                        width: TILE_SIZE - 2,
-                        height: TILE_SIZE - 2,
+                        x: selectedMonsterPos.x * TILE_SIZE - 1,
+                        y: selectedMonsterPos.y * TILE_SIZE - 1,
+                        width: TILE_SIZE + 2,
+                        height: TILE_SIZE + 2,
                         stroke: Colors500.Blue, // blue-500
-                        strokeWidth: 4,
+                        strokeWidth: 3,
                         listening: false,
                     }"
                 />

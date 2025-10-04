@@ -61,6 +61,7 @@ import type { Stats } from '@/types/gameplay';
 
 export type Element = {
     id: string; // type:x:y or custom (e.g., hero:{playerId})
+    displayId: string;
     name: string;
     description: string;
     type: ElementType;

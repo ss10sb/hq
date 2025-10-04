@@ -777,6 +777,16 @@ function toggleVisibility(elementId: string): void {
     const next = [...list];
     next.splice(idx, 1, el);
     boardStoreRef.elements = next as any;
+    
+    // When revealing a secret door, also reveal the tile it's on
+    if (el.type === ElementType.SecretDoor && !el.hidden) {
+        boardStoreRef.setTileVisible(el.x, el.y, true);
+        try {
+            const ch = channel();
+            broadcastFogOfWarSyncUtil(ch, [{ x: el.x, y: el.y }]);
+        } catch {}
+    }
+    
     try {
         const ch = channel();
         const elements = (next as any[]).map((e) => applyTrapColorByStatus(e));

@@ -8,8 +8,8 @@ export function updateTheme(value: Appearance) {
     }
 
     if (value === 'system') {
-        const mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
-        const systemTheme = mediaQueryList.matches ? 'dark' : 'light';
+        const mediaQueryList = window.matchMedia('(prefers-color-scheme: light)');
+        const systemTheme = mediaQueryList.matches ? 'light' : 'dark';
 
         document.documentElement.classList.toggle('dark', systemTheme === 'dark');
     } else {

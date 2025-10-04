@@ -57,6 +57,12 @@ const activeHeroAttackDice = computed<number>(() => {
     const v = Number(h?.stats?.attackDice ?? 0);
     return Number.isFinite(v) ? v : 0;
 });
+const diceValue = (entry: any) => {
+    if (entry.diceType === 'six_sided') {
+        return ' (' + entry.results.reduce((s: number, r: any) => s + r.value, 0) + ')';
+    }
+    return '';
+}
 </script>
 
 <template>
@@ -118,11 +124,11 @@ const activeHeroAttackDice = computed<number>(() => {
                                 <div>
                                     • {{ (entry as any).actor }} rolled {{ (entry as any).count }}
                                     {{ (entry as any).diceType === 'six_sided' ? 'six-sided' : 'combat' }}
-                                    {{ (entry as any).count === 1 ? 'die' : 'dice' }}:
+                                    {{ (entry as any).count === 1 ? 'die' : 'dice' }}{{ diceValue(entry) }}:
                                 </div>
                                 <div class="flex flex-row flex-wrap items-center gap-2 pl-3">
                                     <span v-for="(r, i) in (entry as any).results" :key="i" class="inline-flex items-center">
-                                        <component :is="(r as any).icon" class="size-5" :style="{ color: (r as any).color || undefined }" />
+                                        <component :is="(r as any).icon" class="size-6" :style="{ color: (r as any).color || undefined }" />
                                     </span>
                                 </div>
                             </div>
