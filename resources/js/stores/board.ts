@@ -441,6 +441,9 @@ export const useBoardStore = defineStore('board', {
                     return true;
                 }
                 // Do not reveal beyond doors (but include non-secret door tile itself)
+                if (this.isDoorAt(cx, cy)) {
+                    return true;
+                }
                 if (this.isSecretDoorAt(cx, cy)) {
                     return true;
                 }
@@ -468,12 +471,17 @@ export const useBoardStore = defineStore('board', {
                         break;
                     }
                     if (isBlocking(nx, ny)) {
-                        // If it is a regular door, reveal the door tile but stop
+                        // If it is a regular door, reveal the door tile and door element but stop
                         if (this.isDoorAt(nx, ny)) {
                             const before = (this.tiles[ny]?.[nx] as any).visible === true;
                             (this.tiles[ny]?.[nx] as any).visible = true;
                             if (!before) {
                                 affected.add(key(nx, ny));
+                            }
+                            // Also reveal the door element
+                            const doorEl = this.elements.find((e: any) => e.x === nx && e.y === ny && e.type === ElementType.Door);
+                            if (doorEl) {
+                                (doorEl as any).hidden = false;
                             }
                         }
                         break;

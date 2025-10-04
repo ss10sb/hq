@@ -7,6 +7,7 @@ namespace Domain\Board\GameSession\Services;
 use Domain\Board\Elements\Heros\Contracts\Actions\SaveHeroAction;
 use Domain\Board\Elements\Heros\DataObjects\Hero;
 use Domain\Board\GameSession\Contracts\Actions\SaveStateAction;
+use Domain\Board\GameSession\Contracts\Models\Game;
 use Domain\Board\GameSession\DataObjects\SaveState;
 
 class SaveStateService implements \Domain\Board\GameSession\Contracts\Services\SaveStateService
@@ -16,17 +17,20 @@ class SaveStateService implements \Domain\Board\GameSession\Contracts\Services\S
         protected SaveHeroAction $saveHeroAction,
     ) {}
 
-    public function __invoke(SaveState $state, bool $updateHeroes = false): bool
+    public function __invoke(SaveState $state, bool $updateHeroes = false): Game
     {
-        ($this->saveStateAction)($state);
+        $game = ($this->saveStateAction)($state);
         if (! $updateHeroes) {
-            return true;
+            return $game;
         }
         /** @var \Domain\Board\GameSession\DataObjects\Hero $hero */
         foreach ($state->heroes->heroes as $hero) {
-            ($this->saveHeroAction)($hero->id, Hero::fromGameHeroData($hero));
+            if ($hero->id === 0) {
+                continue; // Zargon
+            }
+            ($this->saveHeroAction)($hero->id, Hero::fromGameHeroData($hero), false);
         }
 
-        return true;
+        return $game;
     }
 }

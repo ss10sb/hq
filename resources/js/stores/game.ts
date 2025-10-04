@@ -54,5 +54,17 @@ export const useGameStore = defineStore('game', {
             }
             return this.players.find((p) => p.id === hero.playerId) ?? null;
         },
+        clearGameData(): void {
+            this.id = 0;
+            this.joinKey = '';
+            this.status = GameStatus.InProgress;
+            this.gameMasterId = 0;
+            this.maxHeroes = 0;
+            this.elements = [];
+            this.tiles = [];
+            this.heroes = [];
+            this.currentHeroId = 0;
+            this.players = [];
+        },
     },
 });

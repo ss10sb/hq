@@ -17,10 +17,12 @@ import {
     broadcastSelectedTileSync as broadcastSelectedTileSyncUtil,
     broadcastTilesSync as broadcastTilesSyncUtil,
     broadcastTrapTriggered,
+    broadcastTurnEnded,
     type DiceRolledPayload,
     onWhisper,
     type SelectedTilePayload,
     type TrapTriggeredPayload,
+    type TurnEndedPayload,
     WhisperEvents,
 } from '@/lib/game/realtime';
 import type { SearchBadgeScope, SearchBadgeType } from '@/lib/game/searchBadges';
@@ -371,6 +373,14 @@ onMounted(() => {
         gameLog.value.unshift({ kind: 'dice', actor: actorName, diceType, count, results: sorted } as any);
     });
 
+    // Listen for turn ended events from any client
+    onWhisper<TurnEndedPayload>(presenceChannel, WhisperEvents.TurnEnded, (payload) => {
+        if (!payload) {
+            return;
+        }
+        gameLog.value.unshift({ kind: 'text', text: `${payload.heroName} ended their turn` });
+    });
+
     presenceChannel.here((users: PresentUser[]) => {
         usersPresent.value = [...users];
         ensureSelfPresent();
@@ -664,6 +674,19 @@ function endTurn(): void {
     }
     const curId = gameStore.currentHeroId as number;
     const idx = list.findIndex((h: any) => h?.id === curId);
+    const currentHero = idx !== -1 ? list[idx] : null;
+    const heroName = (currentHero as any)?.name || 'Unknown';
+    
+    // Add log entry for turn end
+    gameLog.value.unshift({ kind: 'text', text: `${heroName} ended their turn` });
+    
+    // Broadcast turn ended event to other clients
+    try {
+        const ch = channel();
+        const packet: TurnEndedPayload = { heroName };
+        broadcastTurnEnded(ch, packet);
+    } catch {}
+    
     const nextIdx = idx === -1 ? 0 : (idx + 1) % list.length;
     const nextId = (list[nextIdx] as any)?.id as number | undefined;
     if (typeof nextId !== 'number') {
@@ -747,6 +770,16 @@ function onHeroMoved(payload: { heroes: Hero[]; heroId: number; heroName: string
     if ((payload.steps ?? 0) > 0) {
         const spaces = payload.steps;
         const msg = `${payload.heroName} moved ${spaces} ${spaces === 1 ? 'space' : 'spaces'}`;
+        gameLog.value.unshift({ kind: 'text', text: msg } as any);
+    }
+}
+
+function onMonsterMoved(payload: { monsterName: string; monsterDisplayId: string; steps: number }): void {
+    // Log monster movement in game information panel (only when steps > 0)
+    if ((payload.steps ?? 0) > 0) {
+        const spaces = payload.steps;
+        const displayId = payload.monsterDisplayId ? ` (${payload.monsterDisplayId})` : '';
+        const msg = `${payload.monsterName}${displayId} moved ${spaces} ${spaces === 1 ? 'space' : 'spaces'}`;
         gameLog.value.unshift({ kind: 'text', text: msg } as any);
     }
 }
@@ -856,6 +889,12 @@ function openDoor(elementId: string): void {
     // Opening a secret door reveals it
     if (el.type === ElementType.SecretDoor) {
         el.hidden = false;
+        // Also reveal the tile it's on
+        boardStoreRef.setTileVisible(el.x, el.y, true);
+        try {
+            const ch = channel();
+            broadcastFogOfWarSyncUtil(ch, [{ x: el.x, y: el.y }]);
+        } catch {}
     }
     const next = [...list];
     next.splice(idx, 1, el);
@@ -974,6 +1013,7 @@ async function completeGame(): Promise<void> {
                         @open-door="openDoor"
                         @hero-moving="onHeroMoving"
                         @hero-moved="onHeroMoved"
+                        @monster-moved="onMonsterMoved"
                         @trap-triggered="onTrapTriggered"
                         @tiles-revealed="onTilesRevealed"
                         @elements-changed="onElementsChanged"

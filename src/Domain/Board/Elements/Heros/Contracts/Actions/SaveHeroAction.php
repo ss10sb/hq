@@ -10,5 +10,5 @@ use Smorken\Domain\Actions\Contracts\Action;
 
 interface SaveHeroAction extends Action
 {
-    public function __invoke(int $id, HeroData $heroData): Hero;
+    public function __invoke(int $id, HeroData $heroData, bool $authorize = true): Hero;
 }

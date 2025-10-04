@@ -40,11 +40,14 @@ type HeroMovedPayload = { heroes: Hero[]; heroId: number; heroName: string; step
 
 type HeroMovingPayload = { heroId: number; steps: number };
 
+type MonsterMovedPayload = { monsterName: string; monsterDisplayId: string; steps: number };
+
 const emit = defineEmits<{
     (e: 'toggle-visibility', elementId: string): void;
     (e: 'open-door', elementId: string): void;
     (e: 'hero-moving', payload: HeroMovingPayload): void;
     (e: 'hero-moved', payload: HeroMovedPayload): void;
+    (e: 'monster-moved', payload: MonsterMovedPayload): void;
     (e: 'trap-triggered', payload: { heroId: number; heroName: string; trapId: string; trapName: string }): void;
     (e: 'select-tile', payload: { x: number; y: number }): void;
     (e: 'tiles-revealed', payload: { x: number; y: number }[]): void;
@@ -556,9 +559,20 @@ function handleMouseUp(): void {
         const path = [...monsterMovePath.value];
         const end = path.length > 0 ? path[path.length - 1] : null;
         if (end) {
+            // Get monster details before moving
+            const monsterEl = boardStore.elements.find((e: any) => e.id === movingMonsterId.value) as any;
+            const steps = path.length;
+            
             const ok = boardStore.moveElement(movingMonsterId.value, end.x, end.y);
             if (ok) {
                 emit('elements-changed', { elements: boardStore.elements as any });
+                
+                // Emit monster-moved event for logging (only when steps > 0)
+                if (steps > 0 && monsterEl) {
+                    const monsterName = monsterEl.name || 'Monster';
+                    const monsterDisplayId = monsterEl.displayId || '';
+                    emit('monster-moved', { monsterName, monsterDisplayId, steps });
+                }
             }
         }
         movingMonsterId.value = null;
@@ -732,6 +746,9 @@ onMounted(() => {
     }
     if (props.game) {
         gameStore.hydrateFromGame(props.game);
+    } else {
+        // When editing a board (no active game), clear any persisted game data
+        gameStore.clearGameData();
     }
 
     // Preload all icon images so rendering is stable

@@ -27,10 +27,12 @@ class SaveHeroAction extends ActionWithEloquent implements \Domain\Board\Element
         parent::__construct($model);
     }
 
-    public function __invoke(int $id, HeroData $heroData): Hero
+    public function __invoke(int $id, HeroData $heroData, bool $authorize = true): Hero
     {
         $hero = $this->model->newQuery()->findOrFail($id);
-        $this->authorize($hero, PolicyType::UPDATE);
+        if ($authorize) {
+            $this->authorize($hero, PolicyType::UPDATE);
+        }
         $attributes = $heroData->toModelArray();
         $this->validate($attributes, $this->fromRulesProvider());
         $hero->update($attributes);

@@ -19,6 +19,7 @@ export const WhisperEvents = {
     TrapDisarmed: 'trap.disarmed',
     VisibilitySync: 'visibility.sync',
     DiceRolled: 'dice.rolled',
+    TurnEnded: 'turn.ended',
 } as const;
 
 export type WhisperEventName = (typeof WhisperEvents)[keyof typeof WhisperEvents];
@@ -122,6 +123,16 @@ export type DiceRolledPayload = { actorName: string; diceType: DieType; count: n
 export function broadcastDiceRolled(channel: Echo.Channel, payload: DiceRolledPayload): void {
     try {
         channel.whisper(WhisperEvents.DiceRolled, payload);
+    } catch {
+        // no-op
+    }
+}
+
+export type TurnEndedPayload = { heroName: string };
+
+export function broadcastTurnEnded(channel: Echo.Channel, payload: TurnEndedPayload): void {
+    try {
+        channel.whisper(WhisperEvents.TurnEnded, payload);
     } catch {
         // no-op
     }
