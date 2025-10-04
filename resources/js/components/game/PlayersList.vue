@@ -28,6 +28,7 @@ const emit = defineEmits<{
     (e: 'update-body', payload: { heroId: number | null; value: number }): void;
     (e: 'save-hero', payload: { heroId: number; hero: NewHero }): void;
     (e: 'assign-hero', payload: { heroId: number; playerId: number }): void;
+    (e: 'remove-hero', index: number): void;
 }>();
 
 const editingHeroId = ref<number | null>(null);
@@ -137,6 +138,12 @@ function onAssign(heroId: number, playerIdStr: string): void {
         return;
     }
     emit('assign-hero', { heroId, playerId });
+}
+
+function confirmRemove(idx: number, heroName: string): void {
+    if (window.confirm(`Are you sure you want to remove ${heroName}?`)) {
+        emit('remove-hero', idx);
+    }
 }
 </script>
 
@@ -256,6 +263,14 @@ function onAssign(heroId: number, playerIdStr: string): void {
                             @click="emit('set-active', h.id)"
                         >
                             Set Active
+                        </button>
+                        <button
+                            type="button"
+                            class="rounded bg-red-100 px-2 py-0.5 text-xs text-red-700 disabled:opacity-50 dark:bg-red-900/30 dark:text-red-300"
+                            :disabled="idx === 0"
+                            @click="confirmRemove(idx, h.name)"
+                        >
+                            Remove
                         </button>
                     </div>
                     <div v-if="isHero(h) && canEditHero(h as any)" class="ml-2">

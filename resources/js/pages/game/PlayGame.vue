@@ -502,6 +502,31 @@ function moveDown(index: number): void {
     broadcastGameStateSync();
 }
 
+function removeHero(index: number): void {
+    // Only the Game Master can remove heroes
+    if (!isGameMaster.value) {
+        return;
+    }
+    const list = [...gameStore.heroes];
+    // Cannot remove Zargon (index 0)
+    if (index <= 0 || index >= list.length) {
+        return;
+    }
+    const removedHero = list[index];
+    list.splice(index, 1);
+    gameStore.setHeroes(list as any);
+    
+    // If the removed hero was active, set the first hero as active
+    if (removedHero && (removedHero as any).id === gameStore.currentHeroId) {
+        if (list.length > 0) {
+            gameStore.setCurrentHero((list[0] as any).id);
+        }
+    }
+    
+    // Broadcast the updated hero list and current active hero id
+    broadcastGameStateSync();
+}
+
 function setActive(heroId: number): void {
     // Set the active hero to the selected hero id
     if (typeof heroId !== 'number') {
@@ -1047,6 +1072,7 @@ async function completeGame(): Promise<void> {
                 @toggle-select="toggleSelect"
                 @save-hero="saveHero"
                 @assign-hero="assignHero"
+                @remove-hero="removeHero"
                 @monster-update-body="updateMonsterBody"
                 @monster-close="closeMonster"
             />

@@ -38,6 +38,7 @@ const emit = defineEmits<{
     (e: 'save-hero', payload: { heroId: number; hero: any }): void;
     (e: 'monster-update-body', payload: { elementId: string; value: number }): void;
     (e: 'monster-close'): void;
+    (e: 'remove-hero', index: number): void;
 }>();
 
 const logContainerRef = ref<HTMLElement | null>(null);
@@ -88,6 +89,7 @@ const diceValue = (entry: any) => {
                 @update-body="(payload) => emit('update-body', payload)"
                 @save-hero="(payload) => emit('save-hero', payload)"
                 @assign-hero="(payload) => emit('assign-hero', payload)"
+                @remove-hero="(idx) => emit('remove-hero', idx)"
             />
             <!-- Monsters Panel -->
             <MonstersPanel
