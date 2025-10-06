@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Domain\Board\GameBoard\DataObjects;
 
-use Domain\Board\GameBoard\Constants\BoardGroup;
+use Domain\Board\GameBoard\Constants\GameExpansion;
 use Domain\Board\GameBoard\Models\Eloquent\Board;
 use Domain\Board\GameBoard\Support\TilesGenerator;
 
@@ -30,7 +30,7 @@ it('can create from a model', function () {
     );
     expect($board->id)->toBe(1)
         ->and($board->name)->toBe('Test Board')
-        ->and($board->group)->toBe(BoardGroup::CORE)
+        ->and($board->group)->toBe(GameExpansion::CORE)
         ->and($board->order)->toBe(1)
         ->and($board->height)->toBe(10)
         ->and($board->width)->toBe(10)

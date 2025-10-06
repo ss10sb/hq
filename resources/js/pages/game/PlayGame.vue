@@ -205,9 +205,20 @@ onMounted(() => {
         if (!data || !Array.isArray(data.tiles)) {
             return;
         }
-        // Apply visibility to the local board store
-        for (const t of data.tiles as Array<{ x: number; y: number }>) {
-            boardStoreRef.setTileVisible(t.x, t.y, true);
+        // Apply full tile data including traversable status, not just visibility
+        for (const incomingTile of data.tiles as Array<any>) {
+            if (typeof incomingTile.x !== 'number' || typeof incomingTile.y !== 'number') {
+                continue;
+            }
+            const { x, y } = incomingTile;
+            const existingTile = boardStoreRef.tiles[y]?.[x];
+            if (existingTile) {
+                // Apply all properties from the incoming tile to preserve traversable, interactive, etc.
+                Object.assign(existingTile, incomingTile);
+            } else {
+                // Fallback: just set visibility if tile doesn't exist
+                boardStoreRef.setTileVisible(x, y, true);
+            }
         }
     });
 
@@ -945,7 +956,12 @@ function onElementsChanged(payload: { elements: BoardElement[] }): void {
 function onTilesRevealed(tiles: Array<{ x: number; y: number }>): void {
     try {
         const ch = channel();
-        broadcastFogOfWarSyncUtil(ch, tiles);
+        // Broadcast full tile data including traversable status, not just coordinates
+        const fullTiles = tiles.map((coord) => {
+            const tile = boardStoreRef.tiles[coord.y]?.[coord.x];
+            return tile ? { ...tile } : coord;
+        });
+        broadcastFogOfWarSyncUtil(ch, fullTiles as any);
     } catch {
         // no-op
     }

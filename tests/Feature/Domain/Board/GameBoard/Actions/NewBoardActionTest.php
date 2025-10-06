@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Domain\Board\GameBoard\Actions;
 
 use Domain\Board\Elements\DataObjects\Elements;
-use Domain\Board\GameBoard\Constants\BoardGroup;
+use Domain\Board\GameBoard\Constants\GameExpansion;
 use Domain\Board\GameBoard\Contracts\Actions\NewBoardAction;
 use Domain\Board\GameBoard\DataObjects\Board;
 use Domain\Board\GameBoard\DataObjects\Tiles;
@@ -19,7 +19,7 @@ it('can create a new board', function () {
     $board = $sut(new Board(
         id: 0,
         name: 'Test Board',
-        group: BoardGroup::CORE,
+        group: GameExpansion::CORE,
         order: 1,
         width: 10,
         height: 10,
@@ -34,7 +34,7 @@ it('can create a new board', function () {
     );
     expect($tiles->count())->toBe(10)
         ->and($b->name)->toBe('Test Board')
-        ->and($b->group)->toBe(BoardGroup::CORE)
+        ->and($b->group)->toBe(GameExpansion::CORE)
         ->and($b->order)->toBe(1)
         ->and($b->height)->toBe(10)
         ->and($b->width)->toBe(10)

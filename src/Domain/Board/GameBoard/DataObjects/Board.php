@@ -6,7 +6,7 @@ namespace Domain\Board\GameBoard\DataObjects;
 
 use Domain\Board\Elements\DataObjects\Element;
 use Domain\Board\Elements\DataObjects\Elements;
-use Domain\Board\GameBoard\Constants\BoardGroup;
+use Domain\Board\GameBoard\Constants\GameExpansion;
 use Domain\Board\GameBoard\Constants\Dimensions;
 use Domain\Board\GameBoard\Contracts\Models\Board as BoardModel;
 use Domain\Board\GameSession\Contracts\Models\Game;
@@ -18,7 +18,7 @@ class Board extends DataObject
     public function __construct(
         public readonly int $id,
         public readonly string $name,
-        public readonly BoardGroup $group,
+        public readonly GameExpansion $group,
         public readonly int $order,
         public readonly int $width,
         public readonly int $height,
@@ -47,7 +47,7 @@ class Board extends DataObject
         return new self(
             id: 0,
             name: '',
-            group: BoardGroup::CORE,
+            group: GameExpansion::CORE,
             order: 1,
             width: Dimensions::WIDTH->value,
             height: Dimensions::HEIGHT->value,
@@ -79,7 +79,7 @@ class Board extends DataObject
         return new self(
             id: $request->input('id') ?? 0,
             name: $request->input('name'),
-            group: BoardGroup::from($request->input('group')),
+            group: GameExpansion::from($request->input('group')),
             order: (int) $request->input('order'),
             width: (int) $request->input('width'),
             height: (int) $request->input('height'),

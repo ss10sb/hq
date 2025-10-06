@@ -7,6 +7,7 @@ namespace Domain\Board\Elements\Traps\Support;
 use Domain\Board\Elements\Traps\Constants\TrapStatus;
 use Domain\Board\Elements\Traps\Constants\TrapType;
 use Domain\Board\Elements\Traps\DataObjects\Trap;
+use Domain\Board\GameBoard\Constants\GameExpansion;
 use Illuminate\Support\Collection;
 
 class DefaultTrapsProvider
@@ -31,6 +32,13 @@ class DefaultTrapsProvider
                 TrapType::SPEAR,
                 TrapStatus::ARMED,
                 true
+            ),
+            new Trap(
+                'Giant Stone Boulder',
+                TrapType::STONE_BOULDER,
+                TrapStatus::ARMED,
+                true,
+                GameExpansion::KELLARS_KEEP
             ),
             new Trap(
                 'Custom Trap',

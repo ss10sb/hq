@@ -40,6 +40,9 @@ class SaveStateService implements \Domain\Board\GameSession\Contracts\Services\S
     {
         $heroIds = $state->heroes->heroes->map(fn (Character $hero) => $hero->id)
             ->toArray();
+        if (! in_array(0, $heroIds)) {
+            $heroIds[] = 0;
+        }
         /** @var \Domain\Board\GameSession\Contracts\Models\GameHero $gameHero */
         foreach ($game->gameHeroes as $gameHero) {
             if (! in_array($gameHero->hero_id, $heroIds)) {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Board\GameBoard\Fixtures\Support;
 
 use Domain\Board\GameBoard\Constants\FixtureType;
+use Domain\Board\GameBoard\Constants\GameExpansion;
 use Domain\Board\GameBoard\Fixtures\DataObjects\Fixture;
 use Illuminate\Support\Collection;
 
@@ -39,6 +40,18 @@ class DefaultFixturesProvider
                 false
             ),
             new Fixture(
+                'Cliff',
+                FixtureType::CLIFF,
+                true,
+                GameExpansion::KELLARS_KEEP
+            ),
+            new Fixture(
+                'Cloud of Dread',
+                FixtureType::CLOUD_OF_DREAD,
+                true,
+                GameExpansion::KELLARS_KEEP
+            ),
+            new Fixture(
                 'Cupboard',
                 FixtureType::CUPBOARD,
                 false
@@ -52,6 +65,18 @@ class DefaultFixturesProvider
                 'Sorcerer\'s Table',
                 FixtureType::SORCERERS_TABLE,
                 false
+            ),
+            new Fixture(
+                'Stairway',
+                FixtureType::STAIRWAY,
+                true,
+                GameExpansion::KELLARS_KEEP
+            ),
+            new Fixture(
+                'Statue',
+                FixtureType::STATUE,
+                false,
+                GameExpansion::KELLARS_KEEP
             ),
             new Fixture(
                 'Table',
@@ -72,6 +97,18 @@ class DefaultFixturesProvider
                 'Torture Rack',
                 FixtureType::TORTURE_RACK,
                 false
+            ),
+            new Fixture(
+                'Trapdoor',
+                FixtureType::TRAPDOOR,
+                true,
+                GameExpansion::KELLARS_KEEP
+            ),
+            new Fixture(
+                'Weapon\'s Forge',
+                FixtureType::WEAPONS_FORGE,
+                false,
+                GameExpansion::KELLARS_KEEP
             ),
             new Fixture(
                 'Custom',

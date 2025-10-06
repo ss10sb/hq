@@ -169,15 +169,22 @@ export const useBoardStore = defineStore('board', {
                     if (typeof (t as any).visible === 'undefined' || (t as any).visible === null) {
                         (t as any).visible = false;
                     }
-                    if (typeof (t as any).interactive === 'undefined' || typeof (t as any).traversable === 'undefined') {
+                    // Set defaults only when properties are missing; preserve backend values when provided
+                    if (typeof (t as any).interactive === 'undefined') {
                         if (t.type === TileType.Wall) {
                             (t as any).interactive = false;
-                            (t as any).traversable = false;
                         } else if (t.type === TileType.Floor) {
                             (t as any).interactive = false;
-                            (t as any).traversable = true;
                         } else if (t.type === TileType.Fixture) {
                             (t as any).interactive = true;
+                        }
+                    }
+                    if (typeof (t as any).traversable === 'undefined') {
+                        if (t.type === TileType.Wall) {
+                            (t as any).traversable = false;
+                        } else if (t.type === TileType.Floor) {
+                            (t as any).traversable = true;
+                        } else if (t.type === TileType.Fixture) {
                             (t as any).traversable = false;
                         }
                     }
@@ -304,6 +311,7 @@ export const useBoardStore = defineStore('board', {
                     (tile as any).name = undefined;
                     delete this.fixtureMeta[key];
                 } else if (type === TileType.Fixture) {
+                    console.log('fixture', tile);
                     tile.interactive = true; // fixtures can be interactive
                     // Prefer traversable from catalog if available, else default false
                     const fxFromCatalog = (this.fixturesCatalog ?? []).find((f: any) => f?.type === this.currentFixtureType);
@@ -430,7 +438,7 @@ export const useBoardStore = defineStore('board', {
             });
         },
 
-        revealCorridorFrom(x: number, y: number): { x: number; y: number }[] {
+        revealCorridorFrom(x: number, y: number): { tiles: { x: number; y: number }[]; elementsChanged: boolean } {
             const inBounds = (cx: number, cy: number) => cy >= 0 && cy < this.height && cx >= 0 && cx < this.width;
             const isBlocking = (cx: number, cy: number) => {
                 const t = this.tiles[cy]?.[cx];
@@ -451,7 +459,9 @@ export const useBoardStore = defineStore('board', {
             };
 
             const affected = new Set<string>();
+            const revealedCorridorTiles = new Set<string>();
             const key = (cx: number, cy: number) => `${cx}:${cy}`;
+            let elementsChanged = false;
             const revealRay = (dx: number, dy: number) => {
                 let cx = x,
                     cy = y;
@@ -462,6 +472,7 @@ export const useBoardStore = defineStore('board', {
                     if (!before) {
                         affected.add(key(cx, cy));
                     }
+                    revealedCorridorTiles.add(key(cx, cy));
                 }
                 // March in a straight line until a wall/secret door bounds visibility
                 while (true) {
@@ -482,6 +493,7 @@ export const useBoardStore = defineStore('board', {
                             const doorEl = this.elements.find((e: any) => e.x === nx && e.y === ny && e.type === ElementType.Door);
                             if (doorEl) {
                                 (doorEl as any).hidden = false;
+                                elementsChanged = true;
                             }
                         }
                         break;
@@ -491,6 +503,7 @@ export const useBoardStore = defineStore('board', {
                     if (!before) {
                         affected.add(key(nx, ny));
                     }
+                    revealedCorridorTiles.add(key(nx, ny));
                     cx = nx;
                     cy = ny;
                 }
@@ -501,10 +514,49 @@ export const useBoardStore = defineStore('board', {
             revealRay(-1, 0);
             revealRay(0, 1);
             revealRay(0, -1);
-            return Array.from(affected).map((s) => {
-                const [sx, sy] = s.split(':');
-                return { x: Number(sx), y: Number(sy) };
-            });
+
+            // After revealing the corridor, check all neighbors of revealed tiles for non-secret doors
+            for (const tileKey of revealedCorridorTiles) {
+                const [tx, ty] = tileKey.split(':').map(Number);
+                const neighbors = [
+                    { x: tx + 1, y: ty },
+                    { x: tx - 1, y: ty },
+                    { x: tx, y: ty + 1 },
+                    { x: tx, y: ty - 1 },
+                ];
+                for (const n of neighbors) {
+                    if (!inBounds(n.x, n.y)) {
+                        continue;
+                    }
+                    const k = key(n.x, n.y);
+                    // Skip if already revealed as part of the corridor
+                    if (revealedCorridorTiles.has(k)) {
+                        continue;
+                    }
+                    // If there's a non-secret door here, reveal it
+                    if (this.isDoorAt(n.x, n.y)) {
+                        const before = (this.tiles[n.y]?.[n.x] as any).visible === true;
+                        (this.tiles[n.y]?.[n.x] as any).visible = true;
+                        if (!before) {
+                            affected.add(k);
+                        }
+                        // Also reveal the door element
+                        const doorEl = this.elements.find((e: any) => e.x === n.x && e.y === n.y && e.type === ElementType.Door);
+                        if (doorEl) {
+                            (doorEl as any).hidden = false;
+                            elementsChanged = true;
+                        }
+                    }
+                }
+            }
+
+            return {
+                tiles: Array.from(affected).map((s) => {
+                    const [sx, sy] = s.split(':');
+                    return { x: Number(sx), y: Number(sy) };
+                }),
+                elementsChanged,
+            };
         },
 
         // --- Elements management ---

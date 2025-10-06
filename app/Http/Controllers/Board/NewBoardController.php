@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Board;
 
-use Domain\Board\GameBoard\Constants\BoardGroup;
+use Domain\Board\GameBoard\Constants\GameExpansion;
 use Domain\Board\GameBoard\Contracts\Actions\NewBoardAction;
 use Domain\Board\GameBoard\DataObjects\Board;
 use Illuminate\Http\RedirectResponse;
@@ -22,7 +22,7 @@ class NewBoardController
     {
         return Inertia::render('board/New', [
             'board' => Board::fromDefaults(),
-            'groups' => BoardGroup::toSelectList(),
+            'groups' => GameExpansion::toSelectList(),
         ]);
     }
 

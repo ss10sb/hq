@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Domain\Board\GameBoard\Constants;
 
-enum BoardGroup: string
+enum GameExpansion: string
 {
     case CORE = 'core';
+    case KELLARS_KEEP = 'kellars-keep';
+    
     case CUSTOM = 'custom';
 
     public static function toSelectList(): array

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Board\GameBoard\DataObjects;
 
+use Domain\Board\GameBoard\Constants\FixtureType;
 use Domain\Board\GameBoard\Constants\TileType;
 use Smorken\Domain\DataObjects\DataObject;
 
@@ -15,6 +16,7 @@ class Tile extends DataObject
         public readonly int $y,
         public readonly TileType $type,
         public readonly bool $visible = false,
+        public readonly bool $traversable = false,
         public readonly ?string $name = null,
     ) {}
 
@@ -35,6 +37,7 @@ class Tile extends DataObject
             y: $data['y'],
             type: TileType::from($data['type']),
             visible: (bool) ($data['visible'] ?? false),
+            traversable: (bool) ($data['traversable'] ?? false),
             name: $data['name'] ?? null,
         );
     }
@@ -47,6 +50,7 @@ class Tile extends DataObject
             y: $y,
             type: TileType::WALL,
             visible: false,
+            traversable: false,
         );
     }
 }

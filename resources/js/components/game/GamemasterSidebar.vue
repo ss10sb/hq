@@ -5,8 +5,24 @@ import EditTrapOptions from '@/components/board/EditTrapOptions.vue';
 import type { SearchBadgeType } from '@/lib/game/searchBadges';
 import { useBoardStore } from '@/stores/board';
 import { BoardTool, FixtureType, MonsterType, TrapType } from '@/types/board';
-import { Bomb, DoorClosed, Eye, EyeOff, Flag, Gem, Key, Move, Play, Skull, Trash2 } from 'lucide-vue-next';
+import {
+    Bomb,
+    DoorClosed,
+    Eye,
+    EyeOff,
+    Flag,
+    Gem,
+    Key,
+    Lamp,
+    Layers,
+    Move,
+    Play,
+    Skull,
+    Square,
+    Trash2
+} from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const props = defineProps<{
     isOpen?: boolean;
@@ -21,6 +37,7 @@ const isToggleVisibility = computed(() => boardStore.currentTool === BoardTool.T
 const isOpenDoor = computed(() => boardStore.currentTool === BoardTool.OpenDoor);
 const isRevealRoom = computed(() => boardStore.currentTool === BoardTool.RevealRoom);
 const isRevealCorridor = computed(() => boardStore.currentTool === BoardTool.RevealCorridor);
+const isRevealTile = computed(() => boardStore.currentTool === BoardTool.RevealTile);
 const isRemoveElement = computed(() => boardStore.currentTool === BoardTool.RemoveElement);
 const isMoveMonster = computed(() => boardStore.currentTool === BoardTool.MoveMonster);
 const isMoveElement = computed(() => boardStore.currentTool === BoardTool.MoveElement);
@@ -38,7 +55,7 @@ const monsterType = computed<MonsterType>({
     },
     set(v: MonsterType) {
         boardStore.setCurrentMonsterSelection(v, boardStore.currentMonsterCustomText);
-    },
+    }
 });
 const monsterCustomText = computed<string>({
     get() {
@@ -46,7 +63,7 @@ const monsterCustomText = computed<string>({
     },
     set(v: string) {
         boardStore.setCurrentMonsterSelection(boardStore.currentMonsterType, v, boardStore.currentMonsterStats);
-    },
+    }
 });
 const monsterStats = computed<any>({
     get() {
@@ -54,7 +71,7 @@ const monsterStats = computed<any>({
     },
     set(v: any) {
         boardStore.setCurrentMonsterSelection(boardStore.currentMonsterType, boardStore.currentMonsterCustomText, v);
-    },
+    }
 });
 
 const trapType = computed<TrapType>({
@@ -63,7 +80,7 @@ const trapType = computed<TrapType>({
     },
     set(v: TrapType) {
         boardStore.setCurrentTrapSelection(v, boardStore.currentTrapCustomText);
-    },
+    }
 });
 const trapCustomText = computed<string>({
     get() {
@@ -71,7 +88,7 @@ const trapCustomText = computed<string>({
     },
     set(v: string) {
         boardStore.setCurrentTrapSelection(boardStore.currentTrapType, v);
-    },
+    }
 });
 
 // Fixture selections
@@ -81,7 +98,7 @@ const fixtureType = computed<FixtureType>({
     },
     set(v: FixtureType) {
         boardStore.setCurrentFixtureSelection(v, boardStore.currentFixtureCustomText);
-    },
+    }
 });
 const fixtureCustomText = computed<string>({
     get() {
@@ -89,7 +106,7 @@ const fixtureCustomText = computed<string>({
     },
     set(v: string) {
         boardStore.setCurrentFixtureSelection(boardStore.currentFixtureType, v);
-    },
+    }
 });
 
 function openSidebar(): void {
@@ -113,17 +130,21 @@ function setTool(tool: BoardTool): void {
             BoardTool.AddTrap,
             BoardTool.AddTreasure,
             BoardTool.AddPlayerStart,
-            BoardTool.AddPlayerExit,
+            BoardTool.AddPlayerExit
         ].includes(tool)
     ) {
         isAddMenuOpen.value = true;
     }
 }
 
+function isTool(tool: BoardTool): boolean {
+    return boardStore.currentTool === tool;
+}
+
 const badgeTypes: Array<{ key: SearchBadgeType; label: string }> = [
     { key: 'treasure', label: 'Treasure' },
     { key: 'trap', label: 'Traps' },
-    { key: 'secret', label: 'Hidden Doors' },
+    { key: 'secret', label: 'Hidden Doors' }
 ];
 
 const gmBadgeActive = defineModel<boolean>('badgeActive', { default: false });
@@ -142,21 +163,22 @@ function selectSearchBadge(type: SearchBadgeType): void {
     // Close Add menu if it was open
     isAddMenuOpen.value = false;
 }
+
 const isAnyGMToolActive = computed(() => {
     return boardStore.currentTool !== BoardTool.None || gmBadgeActive.value;
 });
 const isGMToolDestructive = computed(() => {
     return boardStore.currentTool === BoardTool.RemoveElement;
-})
+});
 const openButtonClasses = computed(() => {
     if (isGMToolDestructive.value) {
-        return ['border-2', 'border-red-500']
+        return ['border-2', 'border-red-500'];
     }
     if (isAnyGMToolActive.value) {
-        return ['border-2', 'border-blue-500']
+        return ['border-2', 'border-blue-500'];
     }
-    return ['border-neutral-200', 'dark:border-neutral-800']
-})
+    return ['border-neutral-200', 'dark:border-neutral-800'];
+});
 const emit = defineEmits<{
     (e: 'complete-game'): void;
 }>();
@@ -192,7 +214,8 @@ const confirmComplete = () => {
             :class="isOpen ? 'translate-x-0' : 'translate-x-full'"
         >
             <!-- Header with close button -->
-            <div class="flex items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-neutral-800">
+            <div
+                class="flex items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-neutral-800">
                 <h2 class="text-sm font-semibold text-neutral-700 dark:text-neutral-200">GM Tools</h2>
                 <button
                     type="button"
@@ -221,7 +244,7 @@ const confirmComplete = () => {
                             <button
                                 type="button"
                                 class="rounded border px-3 py-2 text-sm"
-                                :class="isRevealRoom ? toolSelectedClasses : toolDeselectedClasses"
+                                :class="isTool(BoardTool.RevealRoom) ? toolSelectedClasses : toolDeselectedClasses"
                                 @click="setTool(BoardTool.RevealRoom)"
                             >
                                 Room
@@ -229,7 +252,7 @@ const confirmComplete = () => {
                             <button
                                 type="button"
                                 class="rounded border px-3 py-2 text-sm"
-                                :class="isRevealCorridor ? toolSelectedClasses : toolDeselectedClasses"
+                                :class="isTool(BoardTool.RevealCorridor) ? toolSelectedClasses : toolDeselectedClasses"
                                 @click="setTool(BoardTool.RevealCorridor)"
                             >
                                 Corridor
@@ -237,15 +260,23 @@ const confirmComplete = () => {
                             <button
                                 type="button"
                                 class="rounded border px-3 py-2 text-sm"
-                                :class="isOpenDoor ? toolSelectedClasses : toolDeselectedClasses"
+                                :class="isTool(BoardTool.RevealTile) ? toolSelectedClasses : toolDeselectedClasses"
+                                @click="setTool(BoardTool.RevealTile)"
+                            >
+                                Tile
+                            </button>
+                            <button
+                                type="button"
+                                class="rounded border px-3 py-2 text-sm"
+                                :class="isTool(BoardTool.OpenDoor) ? toolSelectedClasses : toolDeselectedClasses"
                                 @click="setTool(BoardTool.OpenDoor)"
                             >
                                 <span>Open Door</span>
                             </button>
                         </div>
                         <p class="mt-1 text-xs text-neutral-500">
-                            Click a room tile to reveal the bounded room and its doors; or click a corridor tile to reveal straight lines until
-                            walls/doors.
+                            Click a room tile to reveal the bounded room and its doors; click a corridor tile to
+                            reveal straight lines until walls/doors; or click individual tiles to reveal them one at a time.
                         </p>
                     </div>
                     <div>
@@ -259,7 +290,8 @@ const confirmComplete = () => {
                                 :class="gmBadgeActive && gmBadgeType === t.key ? toolSelectedClasses : toolDeselectedClasses"
                                 @click="selectSearchBadge(t.key)"
                             >
-                                <component :is="t.key === 'treasure' ? Gem : t.key === 'trap' ? Bomb : Key" class="size-4" />
+                                <component :is="t.key === 'treasure' ? Gem : t.key === 'trap' ? Bomb : Key"
+                                           class="size-4" />
                             </button>
                         </div>
                         <p class="mt-1 text-xs text-neutral-500">Tip: Right-click a badge to remove the nearest one.</p>
@@ -270,7 +302,7 @@ const confirmComplete = () => {
                             <button
                                 type="button"
                                 class="flex items-center gap-2 rounded border px-3 py-2 text-sm text-red-500"
-                                :class="isMoveMonster ? toolSelectedClasses : toolDeselectedClasses"
+                                :class="isTool(BoardTool.MoveMonster) ? toolSelectedClasses : toolDeselectedClasses"
                                 @click="setTool(BoardTool.MoveMonster)"
                             >
                                 <Move class="size-4" />
@@ -279,7 +311,7 @@ const confirmComplete = () => {
                             <button
                                 type="button"
                                 class="flex items-center gap-2 rounded border px-3 py-2 text-sm text-blue-500"
-                                :class="isMoveElement ? toolSelectedClasses : toolDeselectedClasses"
+                                :class="isTool(BoardTool.MoveElement) ? toolSelectedClasses : toolDeselectedClasses"
                                 @click="setTool(BoardTool.MoveElement)"
                             >
                                 <Move class="size-4" />
@@ -287,7 +319,8 @@ const confirmComplete = () => {
                             </button>
                         </div>
                         <p class="mt-1 text-xs text-neutral-500">
-                            Move Monster: click a monster, hover to preview path, click to move. Move Element: click an element, then click a
+                            Move Monster: click a monster, hover to preview path, click to move. Move Element: click an
+                            element, then click a
                             destination tile to relocate it.
                         </p>
                     </div>
@@ -297,7 +330,7 @@ const confirmComplete = () => {
                             <button
                                 type="button"
                                 class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
-                                :class="isToggleVisibility ? toolSelectedClasses : toolDeselectedClasses"
+                                :class="isTool(BoardTool.ToggleVisibility) ? toolSelectedClasses : toolDeselectedClasses"
                                 @click="setTool(BoardTool.ToggleVisibility)"
                             >
                                 <Eye v-if="!isToggleVisibility" class="size-4" />
@@ -307,7 +340,7 @@ const confirmComplete = () => {
                             <button
                                 type="button"
                                 class="flex items-center gap-2 rounded border px-3 py-2 text-sm text-red-500"
-                                :class="isRemoveElement ? toolSelectedClasses : toolDeselectedClasses"
+                                :class="isTool(BoardTool.RemoveElement) ? toolSelectedClasses : toolDeselectedClasses"
                                 @click="setTool(BoardTool.RemoveElement)"
                             >
                                 <Trash2 class="size-4" />
@@ -315,7 +348,8 @@ const confirmComplete = () => {
                             </button>
                         </div>
                         <p class="mt-1 text-xs text-neutral-500">
-                            Toggle Visibility: click an element to hide/show it for players. Hidden elements appear dimmed for you. Remove Element:
+                            Toggle Visibility: click an element to hide/show it for players. Hidden elements appear
+                            dimmed for you. Remove Element:
                             Click any element to delete it from the board.
                         </p>
                     </div>
@@ -336,163 +370,233 @@ const confirmComplete = () => {
                     </div>
                     <div v-if="showEditTools">
                         <!-- Tiles section -->
-                        <div class="mb-2">
-                            <div class="mb-2 text-xs text-gray-500 uppercase">Tiles</div>
-                            <div class="mb-2 flex flex-wrap gap-2">
-                                <button
-                                    type="button"
-                                    class="rounded border px-3 py-2 text-sm"
-                                    :class="isDrawFloor ? toolSelectedClasses : toolDeselectedClasses"
-                                    @click="setTool(BoardTool.DrawFloor)"
-                                >
-                                    Draw Floor
-                                </button>
-                                <button
-                                    type="button"
-                                    class="rounded border px-3 py-2 text-sm"
-                                    :class="isAddFixture ? toolSelectedClasses : toolDeselectedClasses"
-                                    @click="setTool(BoardTool.AddFixture)"
-                                >
-                                    Add Fixture
-                                </button>
-                                <button
-                                    type="button"
-                                    class="rounded border px-3 py-2 text-sm"
-                                    :class="isDrawWalls ? toolSelectedClasses : toolDeselectedClasses"
-                                    @click="setTool(BoardTool.DrawWalls)"
-                                >
-                                    Draw Walls
-                                </button>
+                        <TooltipProvider :delay="0">
+                            <div class="mb-2">
+                                <div class="mb-2 text-xs text-gray-500 uppercase">Tiles</div>
+                                <div class="mb-2 flex flex-wrap gap-2">
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
+                                            <button
+                                                type="button"
+                                                class="rounded border px-3 py-2 text-sm"
+                                                :class="isTool(BoardTool.DrawFloor) ? toolSelectedClasses : toolDeselectedClasses"
+                                                @click="setTool(BoardTool.DrawFloor)"
+                                            >
+                                                <span class="sr-only">Draw Floor</span>
+                                                <Square
+                                                    :class="[
+                                                    'size-5',
+                                                    isTool(BoardTool.DrawFloor) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100',
+                                                ]"
+                                                />
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>Draw Floor</p></TooltipContent>
+                                    </Tooltip>
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
+                                            <button
+                                                type="button"
+                                                class="rounded border px-3 py-2 text-sm"
+                                                :class="isTool(BoardTool.AddFixture) ? toolSelectedClasses : toolDeselectedClasses"
+                                                @click="setTool(BoardTool.AddFixture)"
+                                            >
+                                                <span class="sr-only">Add Fixture</span>
+                                                <Lamp
+                                                    :class="[
+                                                    'size-5',
+                                                    isTool(BoardTool.AddFixture) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100',
+                                                ]"
+                                                />
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>Add Fixture</p></TooltipContent>
+                                    </Tooltip>
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
+                                            <button
+                                                type="button"
+                                                class="rounded border px-3 py-2 text-sm"
+                                                :class="isTool(BoardTool.DrawWalls) ? toolSelectedClasses : toolDeselectedClasses"
+                                                @click="setTool(BoardTool.DrawWalls)"
+                                            >
+                                                <span class="sr-only">Draw Walls</span>
+                                                <Layers
+                                                    :class="[
+                                                    'size-5',
+                                                    isTool(BoardTool.DrawWalls) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100',
+                                                ]"
+                                                />
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>Draw Walls</p></TooltipContent>
+                                    </Tooltip>
+                                </div>
+                                <EditFixtureOptions
+                                    v-if="isTool(BoardTool.AddFixture)"
+                                    :type="fixtureType"
+                                    :customText="fixtureCustomText"
+                                    @update:type="(v) => ((fixtureType as any) = v)"
+                                    @update:customText="(v) => (fixtureCustomText = v)"
+                                />
                             </div>
-                            <EditFixtureOptions
-                                v-if="boardStore.currentTool === BoardTool.AddFixture"
-                                :type="fixtureType"
-                                :customText="fixtureCustomText"
-                                @update:type="(v) => ((fixtureType as any) = v)"
-                                @update:customText="(v) => (fixtureCustomText = v)"
-                            />
-                        </div>
-                        <!-- Add Element section -->
-                        <div>
-                            <div class="mb-2 text-xs text-gray-500 uppercase">Add Element</div>
-                            <div class="mb-2 flex flex-wrap gap-2">
-                                <button
-                                    type="button"
-                                    class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
-                                    :class="boardStore.currentTool === BoardTool.AddMonster ? toolSelectedClasses : toolDeselectedClasses"
-                                    @click="
+                            <!-- Add Element section -->
+                            <div>
+                                <div class="mb-2 text-xs text-gray-500 uppercase">Add Element</div>
+                                <div class="mb-2 flex flex-wrap gap-2">
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
+                                            <button
+                                                type="button"
+                                                class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
+                                                :class="isTool(BoardTool.AddMonster) ? toolSelectedClasses : toolDeselectedClasses"
+                                                @click="
                                         () => {
                                             isAddMenuOpen = true;
                                             setTool(BoardTool.AddMonster);
                                         }
                                     "
-                                >
-                                    <Skull class="size-4" />
-                                    <span>Monster</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
-                                    :class="boardStore.currentTool === BoardTool.AddDoor ? toolSelectedClasses : toolDeselectedClasses"
-                                    @click="
+                                            >
+                                                <Skull class="size-4" />
+                                                <span class="sr-only">Monster</span>
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>Add Monster</p></TooltipContent>
+                                    </Tooltip>
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
+                                            <button
+                                                type="button"
+                                                class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
+                                                :class="isTool(BoardTool.AddDoor) ? toolSelectedClasses : toolDeselectedClasses"
+                                                @click="
                                         () => {
                                             isAddMenuOpen = true;
                                             setTool(BoardTool.AddDoor);
                                         }
                                     "
-                                >
-                                    <DoorClosed class="size-4" />
-                                    <span>Door</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
-                                    :class="boardStore.currentTool === BoardTool.AddSecretDoor ? toolSelectedClasses : toolDeselectedClasses"
-                                    @click="
+                                            >
+                                                <DoorClosed class="size-4" />
+                                                <span class="sr-only">Door</span>
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>Add Door</p></TooltipContent>
+                                    </Tooltip>
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
+                                            <button
+                                                type="button"
+                                                class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
+                                                :class="isTool(BoardTool.AddSecretDoor) ? toolSelectedClasses : toolDeselectedClasses"
+                                                @click="
                                         () => {
                                             isAddMenuOpen = true;
                                             setTool(BoardTool.AddSecretDoor);
                                         }
                                     "
-                                >
-                                    <Key class="size-4" />
-                                    <span>Secret Door</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
-                                    :class="boardStore.currentTool === BoardTool.AddTrap ? toolSelectedClasses : toolDeselectedClasses"
-                                    @click="
+                                            >
+                                                <Key class="size-4" />
+                                                <span class="sr-only">Secret Door</span>
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>Add Secret Door</p></TooltipContent>
+                                    </Tooltip>
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
+                                            <button
+                                                type="button"
+                                                class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
+                                                :class="isTool(BoardTool.AddTrap) ? toolSelectedClasses : toolDeselectedClasses"
+                                                @click="
                                         () => {
                                             isAddMenuOpen = true;
                                             setTool(BoardTool.AddTrap);
                                         }
                                     "
-                                >
-                                    <Bomb class="size-4" />
-                                    <span>Trap</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
-                                    :class="boardStore.currentTool === BoardTool.AddTreasure ? toolSelectedClasses : toolDeselectedClasses"
-                                    @click="
+                                            >
+                                                <Bomb class="size-4" />
+                                                <span class="sr-only">Trap</span>
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>Add Trap</p></TooltipContent>
+                                    </Tooltip>
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
+                                            <button
+                                                type="button"
+                                                class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
+                                                :class="isTool(BoardTool.AddTreasure) ? toolSelectedClasses : toolDeselectedClasses"
+                                                @click="
                                         () => {
                                             isAddMenuOpen = true;
                                             setTool(BoardTool.AddTreasure);
                                         }
                                     "
-                                >
-                                    <Gem class="size-4" />
-                                    <span>Treasure</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
-                                    :class="boardStore.currentTool === BoardTool.AddPlayerStart ? toolSelectedClasses : toolDeselectedClasses"
-                                    @click="
+                                            >
+                                                <Gem class="size-4" />
+                                                <span class="sr-only">Treasure</span>
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>Add Treasure</p></TooltipContent>
+                                    </Tooltip>
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
+                                            <button
+                                                type="button"
+                                                class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
+                                                :class="isTool(BoardTool.AddPlayerStart) ? toolSelectedClasses : toolDeselectedClasses"
+                                                @click="
                                         () => {
                                             isAddMenuOpen = true;
                                             setTool(BoardTool.AddPlayerStart);
                                         }
                                     "
-                                >
-                                    <Play class="size-4" />
-                                    <span>Player Start</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
-                                    :class="boardStore.currentTool === BoardTool.AddPlayerExit ? toolSelectedClasses : toolDeselectedClasses"
-                                    @click="
+                                            >
+                                                <Play class="size-4" />
+                                                <span class="sr-only">Player Start</span>
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>Add Player Start</p></TooltipContent>
+                                    </Tooltip>
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
+                                            <button
+                                                type="button"
+                                                class="flex items-center gap-2 rounded border px-3 py-2 text-sm"
+                                                :class="isTool(BoardTool.AddPlayerExit) ? toolSelectedClasses : toolDeselectedClasses"
+                                                @click="
                                         () => {
                                             isAddMenuOpen = true;
                                             setTool(BoardTool.AddPlayerExit);
                                         }
                                     "
-                                >
-                                    <Flag class="size-4" />
-                                    <span>Player Exit</span>
-                                </button>
+                                            >
+                                                <Flag class="size-4" />
+                                                <span class="sr-only">Player Exit</span>
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>Add Player Exit</p></TooltipContent>
+                                    </Tooltip>
+                                </div>
+                                <!-- Inline options mirroring EditBoardSidebar -->
+                                <EditMonsterOptions
+                                    v-if="isTool(BoardTool.AddMonster)"
+                                    :type="monsterType"
+                                    :customText="monsterCustomText"
+                                    :stats="monsterStats"
+                                    @update:type="(v) => ((monsterType as any) = v)"
+                                    @update:customText="(v) => (monsterCustomText = v)"
+                                    @update:stats="(v) => (monsterStats = v)"
+                                />
+                                <EditTrapOptions
+                                    v-if="isTool(BoardTool.AddTrap)"
+                                    :type="trapType"
+                                    :customText="trapCustomText"
+                                    @update:type="(v) => ((trapType as any) = v)"
+                                    @update:customText="(v) => (trapCustomText = v)"
+                                />
                             </div>
-                            <!-- Inline options mirroring EditBoardSidebar -->
-                            <EditMonsterOptions
-                                v-if="boardStore.currentTool === BoardTool.AddMonster"
-                                :type="monsterType"
-                                :customText="monsterCustomText"
-                                :stats="monsterStats"
-                                @update:type="(v) => ((monsterType as any) = v)"
-                                @update:customText="(v) => (monsterCustomText = v)"
-                                @update:stats="(v) => (monsterStats = v)"
-                            />
-                            <EditTrapOptions
-                                v-if="boardStore.currentTool === BoardTool.AddTrap"
-                                :type="trapType"
-                                :customText="trapCustomText"
-                                @update:type="(v) => ((trapType as any) = v)"
-                                @update:customText="(v) => (trapCustomText = v)"
-                            />
-                        </div>
+                        </TooltipProvider>
                     </div>
                 </div>
             </div>

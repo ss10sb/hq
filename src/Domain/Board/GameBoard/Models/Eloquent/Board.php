@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Domain\Board\GameBoard\Models\Eloquent;
 
 use Database\Factories\Board\BoardFactory;
-use Domain\Board\GameBoard\Constants\BoardGroup;
+use Domain\Board\GameBoard\Constants\GameExpansion;
 use Domain\Board\GameBoard\Models\Builders\BoardBuilder;
 use Domain\Board\GameBoard\Models\Eloquent\Casts\CastAsElements;
 use Domain\Board\GameBoard\Models\Eloquent\Casts\CastAsTiles;
@@ -41,7 +41,7 @@ class Board extends Eloquent implements \Domain\Board\GameBoard\Contracts\Models
 
     public function games(): HasMany
     {
-        return $this->hasMany(Game::class);
+        return $this->hasMany(GameExpansion::class);
     }
 
     protected function casts(): array
@@ -52,7 +52,7 @@ class Board extends Eloquent implements \Domain\Board\GameBoard\Contracts\Models
             'tiles' => CastAsTiles::class,
             'elements' => CastAsElements::class,
             'is_public' => 'boolean',
-            'group' => BoardGroup::class,
+            'group' => GameExpansion::class,
             'order' => 'integer',
         ];
     }

@@ -9,7 +9,7 @@ use Smorken\Model\Contracts\Model;
 /**
  * @property int $id
  * @property string $name
- * @property \Domain\Board\GameBoard\Constants\BoardGroup $group
+ * @property \Domain\Board\GameBoard\Constants\GameExpansion $group
  * @property int $order
  * @property int $creator_id
  * @property int $width

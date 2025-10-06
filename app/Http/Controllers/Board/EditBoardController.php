@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Board;
 
 use Domain\Board\Elements\Factories\DefaultsRepositoryFactory;
-use Domain\Board\GameBoard\Constants\BoardGroup;
+use Domain\Board\GameBoard\Constants\GameExpansion;
 use Domain\Board\GameBoard\Contracts\Actions\SaveBoardAction;
 use Domain\Board\GameBoard\Contracts\Repositories\FindBoardRepository;
 use Domain\Board\GameBoard\DataObjects\Board;
@@ -31,7 +31,7 @@ class EditBoardController
         return Inertia::render('board/Edit', [
             'board' => $boardData,
             'canEdit' => $board->creator_id === (int) $request->user()->getAuthIdentifier(),
-            'groups' => BoardGroup::toSelectList(),
+            'groups' => GameExpansion::toSelectList(),
             'monsters' => $this->defaultsRepositoryFactory->monsters(),
             'traps' => $this->defaultsRepositoryFactory->traps(),
             'fixtures' => $this->defaultsRepositoryFactory->fixtures(),

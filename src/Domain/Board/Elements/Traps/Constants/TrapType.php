@@ -8,6 +8,7 @@ enum TrapType: string
 {
     case PIT = 'pit';
     case SPEAR = 'spear';
+    case STONE_BOULDER = 'stone-boulder'; // kk
     case BLOCK = 'block';
     case CUSTOM = 'custom';
 }

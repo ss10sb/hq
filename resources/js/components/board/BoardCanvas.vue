@@ -106,6 +106,7 @@ const isToggleVisibility = computed(() => boardStore.currentTool === BoardTool.T
 const isOpenDoor = computed(() => boardStore.currentTool === BoardTool.OpenDoor);
 const isRevealRoom = computed(() => boardStore.currentTool === BoardTool.RevealRoom);
 const isRevealCorridor = computed(() => boardStore.currentTool === BoardTool.RevealCorridor);
+const isRevealTile = computed(() => boardStore.currentTool === BoardTool.RevealTile);
 const isRemoveElement = computed(() => boardStore.currentTool === BoardTool.RemoveElement);
 const isMoveMonster = computed(() => boardStore.currentTool === BoardTool.MoveMonster);
 const isMoveElement = computed(() => boardStore.currentTool === BoardTool.MoveElement);
@@ -236,9 +237,21 @@ function handleMouseDown(evt: any): void {
             return;
         }
         if (isRevealCorridor.value) {
-            const affected = boardStore.revealCorridorFrom(x, y);
-            if (affected && affected.length) {
-                emit('tiles-revealed', affected);
+            const result = boardStore.revealCorridorFrom(x, y);
+            if (result.tiles && result.tiles.length) {
+                emit('tiles-revealed', result.tiles);
+            }
+            if (result.elementsChanged) {
+                emit('elements-changed', { elements: boardStore.elements as any });
+            }
+            return;
+        }
+        if (isRevealTile.value) {
+            // Reveal a single tile without revealing any hidden elements on it
+            const tile = boardStore.tiles[y]?.[x];
+            if (tile && (tile as any).visible !== true) {
+                boardStore.setTileVisible(x, y, true);
+                emit('tiles-revealed', [{ x, y }]);
             }
             return;
         }
@@ -812,6 +825,20 @@ const hiddenSecretDoorCoordSet = computed<Set<string>>(() => {
     return coords;
 });
 
+// For players, tiles containing visible doors should be rendered as Floor
+const visibleDoorCoordSet = computed<Set<string>>(() => {
+    if (isGameMaster.value) {
+        return new Set<string>();
+    }
+    const coords = new Set<string>();
+    for (const el of boardStore.elements as any) {
+        if (el.type === ElementType.Door && !el.hidden) {
+            coords.add(`${el.x}:${el.y}`);
+        }
+    }
+    return coords;
+});
+
 function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
     if (!isGameMaster.value) {
         // If this tile has a hidden secret door, render as a wall for players
@@ -821,6 +848,10 @@ function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
         // Fog of war: if tile not visible to players, render as wall
         if ((tile as any).visible !== true) {
             return getTileConfig({ ...tile, type: TileType.Wall } as Tile, tileSize);
+        }
+        // If this tile has a visible door, render as Floor regardless of underlying tile type
+        if (visibleDoorCoordSet.value.has(`${tile.x}:${tile.y}`)) {
+            return getTileConfig({ ...tile, type: TileType.Floor } as Tile, tileSize);
         }
     }
     // For the Game Master, show all tiles but visually differentiate unrevealed floors

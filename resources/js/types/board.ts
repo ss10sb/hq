@@ -33,6 +33,7 @@ export enum BoardTool {
     SelectTile = 'select-tile',
     RevealRoom = 'reveal-room',
     RevealCorridor = 'reveal-corridor',
+    RevealTile = 'reveal-tile',
     RemoveElement = 'remove-element',
     MoveMonster = 'move-monster',
     MoveElement = 'move-element',

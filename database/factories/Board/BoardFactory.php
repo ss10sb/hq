@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories\Board;
 
-use Domain\Board\GameBoard\Constants\BoardGroup;
+use Domain\Board\GameBoard\Constants\GameExpansion;
 use Domain\Board\GameBoard\Models\Eloquent\Board;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -19,7 +19,7 @@ class BoardFactory extends Factory
     {
         return [
             'name' => $this->faker->name(),
-            'group' => BoardGroup::CORE,
+            'group' => GameExpansion::CORE,
             'order' => $this->faker->numberBetween(1, 10),
             'width' => $this->faker->numberBetween(10, 50),
             'height' => $this->faker->numberBetween(10, 50),
