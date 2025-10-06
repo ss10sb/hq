@@ -33,18 +33,6 @@ const toolSelectedClasses = 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-bl
 const toolDeselectedClasses = 'bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800';
 const boardStore = useBoardStore();
 
-const isToggleVisibility = computed(() => boardStore.currentTool === BoardTool.ToggleVisibility);
-const isOpenDoor = computed(() => boardStore.currentTool === BoardTool.OpenDoor);
-const isRevealRoom = computed(() => boardStore.currentTool === BoardTool.RevealRoom);
-const isRevealCorridor = computed(() => boardStore.currentTool === BoardTool.RevealCorridor);
-const isRevealTile = computed(() => boardStore.currentTool === BoardTool.RevealTile);
-const isRemoveElement = computed(() => boardStore.currentTool === BoardTool.RemoveElement);
-const isMoveMonster = computed(() => boardStore.currentTool === BoardTool.MoveMonster);
-const isMoveElement = computed(() => boardStore.currentTool === BoardTool.MoveElement);
-const isDrawFloor = computed(() => boardStore.currentTool === BoardTool.DrawFloor);
-const isAddFixture = computed(() => boardStore.currentTool === BoardTool.AddFixture);
-const isDrawWalls = computed(() => boardStore.currentTool === BoardTool.DrawWalls);
-
 // Add Element menu toggle; open when any Add* tool is active
 const isAddMenuOpen = ref(false);
 
@@ -333,7 +321,7 @@ const confirmComplete = () => {
                                 :class="isTool(BoardTool.ToggleVisibility) ? toolSelectedClasses : toolDeselectedClasses"
                                 @click="setTool(BoardTool.ToggleVisibility)"
                             >
-                                <Eye v-if="!isToggleVisibility" class="size-4" />
+                                <Eye v-if="!isTool(BoardTool.ToggleVisibility)" class="size-4" />
                                 <EyeOff v-else class="size-4" />
                                 <span>Visibility</span>
                             </button>

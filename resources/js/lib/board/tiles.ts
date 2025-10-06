@@ -1,7 +1,6 @@
-import { Fixture, FixtureType, Tile, TileType } from '@/types/board';
+import { Tile, TileType } from '@/types/board';
 import type { RectConfig } from 'konva/lib/shapes/Rect';
 import { TILE_SIZE } from './grid';
-import { labelForFixtureType } from '@/lib/board/elements';
 
 export function getTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
     return {
