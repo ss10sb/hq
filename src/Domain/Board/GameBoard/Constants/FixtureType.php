@@ -18,6 +18,7 @@ enum FixtureType: string
     case TOMB = 'tomb';
     case TORTURE_RACK = 'torture-rack';
     case TREASURE_CHEST = 'treasure-chest';
+    case WEAPON_RACK = 'weapon-rack';
     case STAIRWAY = 'stairway'; // kk
     case CLIFF = 'cliff'; // kk
     case TRAPDOOR = 'trapdoor'; // kk

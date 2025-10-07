@@ -145,7 +145,8 @@ export interface BoardState extends Board {
 
 export enum BoardGroup {
     Core = 'core',
-    Custom = 'custom',
+    Kellars_Keep = 'kellars-keep',
+    Custom = 'custom'
 }
 
 export type BoardGroups = {

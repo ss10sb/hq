@@ -111,6 +111,11 @@ class DefaultFixturesProvider
                 GameExpansion::KELLARS_KEEP
             ),
             new Fixture(
+                'Weapon Rack',
+                FixtureType::WEAPON_RACK,
+                false,
+            ),
+            new Fixture(
                 'Custom',
                 FixtureType::CUSTOM,
                 false
