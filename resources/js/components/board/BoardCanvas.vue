@@ -179,8 +179,18 @@ function isTileTraversableForMonster(x: number, y: number): boolean {
         // respect traversable flag for other elements (e.g., open doors, player start)
         return el.traversable === true;
     }
-    // No element: use base tile traversability
-    return !!t.traversable;
+    
+    // Check if the tile itself is a traversable fixture
+    if (t.type === TileType.Fixture && t.traversable === true) {
+        return true;
+    }
+    
+    // Floor tiles: GM can move monsters on any floor tile (hidden or revealed)
+    if (t.type === TileType.Floor) {
+        return true;
+    }
+    
+    return false;
 }
 
 function handleMouseDown(evt: any): void {
@@ -386,7 +396,8 @@ function handleMouseMove(evt: any): void {
                 if (isAdjacent) {
                     // Only allow stepping onto traversable tiles and not occupied by another hero
                     // Allow traversing through other heroes, but not stopping on them (enforced on commit)
-                    if (boardStore.isTileTraversable(next.x, next.y)) {
+                    // Players use player rules: only revealed floor tiles are traversable
+                    if (boardStore.isTileTraversable(next.x, next.y, false)) {
                         movePath.value.push({ x: next.x, y: next.y });
                     }
                 }

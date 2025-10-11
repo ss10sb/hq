@@ -569,9 +569,10 @@ export const useBoardStore = defineStore('board', {
          * Whether a tile can be moved onto or through.
          * A tile is traversable if the base tile is traversable OR there is an element on it that is traversable.
          * Heroes/monsters are not traversable by default.
+         * @param isGameMaster - If true, all floor tiles are traversable (GM can move in hidden areas)
          */
-        isTileTraversable(x: number, y: number): boolean {
-            return isBoardTileTraversable(x, y, this);
+        isTileTraversable(x: number, y: number, isGameMaster: boolean = false): boolean {
+            return isBoardTileTraversable(x, y, this, isGameMaster);
         },
 
         /**

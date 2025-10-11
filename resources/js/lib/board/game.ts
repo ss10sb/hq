@@ -12,7 +12,8 @@ export function moveGameHero(id: number, toX: number, toY: number, game: Game, b
         return false;
     }
     // Destination must be traversable (floor or traversable element) and not blocked by non-traversable element
-    if (!isBoardTileTraversable(toX, toY, board)) {
+    // Heroes use player rules: only revealed floor tiles are traversable
+    if (!isBoardTileTraversable(toX, toY, board, false)) {
         return false;
     }
     const elAtDest = getBoardElementAt(toX, toY, board);
