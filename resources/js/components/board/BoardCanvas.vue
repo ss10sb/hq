@@ -806,6 +806,36 @@ const selectedMonsterPos = computed<{ x: number; y: number } | null>(() => {
     return { x: el.x, y: el.y };
 });
 
+// Movement indicator positions (emerald/green to distinguish from detail selection)
+const movingHeroPos = computed<{ x: number; y: number } | null>(() => {
+    if (!movingHeroId.value || !moveStart.value) {
+        return null;
+    }
+    return moveStart.value;
+});
+
+const movingMonsterPos = computed<{ x: number; y: number } | null>(() => {
+    if (!movingMonsterId.value || !monsterMoveStart.value) {
+        return null;
+    }
+    return monsterMoveStart.value;
+});
+
+const selectedElementForMovePos = computed<{ x: number; y: number } | null>(() => {
+    // GM Move Element tool: show indicator on selected element
+    if (selectedElementId.value) {
+        const el = boardStore.elements.find((e: any) => e.id === selectedElementId.value) as any;
+        if (el) {
+            return { x: el.x, y: el.y };
+        }
+    }
+    // GM Move Element tool: show indicator on selected hero
+    if (selectedHeroId.value != null && selectedHeroStart.value) {
+        return selectedHeroStart.value;
+    }
+    return null;
+});
+
 // Heroes to render on canvas (exclude Zargon)
 const heroesVisible = computed(() => {
     return (gameStore.heroes as Array<Hero | Zargon>).filter((h) => isHero(h)) as Hero[];
@@ -936,6 +966,43 @@ function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
                         width: TILE_SIZE + 2,
                         height: TILE_SIZE + 2,
                         stroke: Colors500.Blue, // blue-500
+                        strokeWidth: 3,
+                        listening: false,
+                    }"
+                />
+                <!-- Movement indicators (emerald-500 for movement selection) -->
+                <v-rect
+                    v-if="movingHeroPos"
+                    :config="{
+                        x: movingHeroPos.x * TILE_SIZE - 1,
+                        y: movingHeroPos.y * TILE_SIZE - 1,
+                        width: TILE_SIZE + 2,
+                        height: TILE_SIZE + 2,
+                        stroke: '#10b981', // emerald-500
+                        strokeWidth: 3,
+                        listening: false,
+                    }"
+                />
+                <v-rect
+                    v-if="movingMonsterPos"
+                    :config="{
+                        x: movingMonsterPos.x * TILE_SIZE - 1,
+                        y: movingMonsterPos.y * TILE_SIZE - 1,
+                        width: TILE_SIZE + 2,
+                        height: TILE_SIZE + 2,
+                        stroke: '#10b981', // emerald-500
+                        strokeWidth: 3,
+                        listening: false,
+                    }"
+                />
+                <v-rect
+                    v-if="selectedElementForMovePos"
+                    :config="{
+                        x: selectedElementForMovePos.x * TILE_SIZE - 1,
+                        y: selectedElementForMovePos.y * TILE_SIZE - 1,
+                        width: TILE_SIZE + 2,
+                        height: TILE_SIZE + 2,
+                        stroke: '#10b981', // emerald-500
                         strokeWidth: 3,
                         listening: false,
                     }"
