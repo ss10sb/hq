@@ -852,7 +852,10 @@ function toggleVisibility(elementId: string): void {
         boardStoreRef.setTileVisible(el.x, el.y, true);
         try {
             const ch = channel();
-            broadcastFogOfWarSyncUtil(ch, [{ x: el.x, y: el.y }]);
+            // Broadcast full tile data including traversable status, not just coordinates
+            const tile = boardStoreRef.tiles[el.y]?.[el.x];
+            const fullTile = tile ? { ...tile } : { x: el.x, y: el.y };
+            broadcastFogOfWarSyncUtil(ch, [fullTile]);
         } catch {}
     }
     
