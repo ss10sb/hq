@@ -68,7 +68,7 @@ const diceValue = (entry: any) => {
 
 <template>
     <aside
-        class="flex h-[80vh] flex-1 flex-col overflow-hidden rounded border border-gray-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900"
+        class="flex flex-1 flex-col overflow-hidden rounded border border-gray-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900"
     >
         <h3 class="mb-2 font-semibold">Game Panel</h3>
         <!-- Top tools stack -->

@@ -1041,9 +1041,9 @@ async function completeGame(): Promise<void> {
         </div>
 
         <!-- Main layout: left+ (board), right (game tools) -->
-        <div class="flex flex-col gap-4 md:flex-row">
+        <div class="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row">
             <!-- Board Canvas -->
-            <section class="">
+            <section class="flex min-h-0 flex-col">
                 <div class="overflow-auto rounded border border-gray-200 bg-white p-2 dark:border-neutral-800 dark:bg-neutral-900">
                     <BoardCanvas
                         :board="board"

@@ -56,7 +56,8 @@ function toNewHero(h: Hero): NewHero {
         type: h.type,
         stats: { ...h.stats },
         inventory: (h.inventory || []).map((it: any) => ({ ...it })),
-        equipment: (h.equipment || []).map((it: any) => ({ ...it }))
+        equipment: (h.equipment || []).map((it: any) => ({ ...it })),
+        gold: h.gold ?? 0,
     } as NewHero;
 }
 
@@ -285,20 +286,6 @@ function confirmRemove(idx: number, heroName: string): void {
                 </div>
 
                 <div
-                    v-if="isHero(h) && editingHeroId === h.id"
-                    class="mt-2 rounded-md border border-gray-200 bg-gray-50 p-2 dark:border-neutral-800 dark:bg-neutral-900/50 max-h-[50vh] overflow-y-auto"
-                >
-                    <HeroForm
-                        :model-value="editModel as any"
-                        mode="edit"
-                        :archetypes="Object.values(HeroArchetype) as any"
-                        @update:modelValue="(v: any) => (editModel = v)"
-                        @submit="saveEdit((h as any).id)"
-                        @cancel="cancelEdit"
-                    />
-                </div>
-
-                <div
                     v-if="isHero(h) && h.id === activeHeroId"
                     class="mt-2 flex flex-row flex-wrap items-center justify-between gap-3 px-2 text-sm text-neutral-500"
                 >
@@ -322,6 +309,20 @@ function confirmRemove(idx: number, heroName: string): void {
                             <div>{{ h.stats.defenseDice }}</div>
                         </div>
                     </div>
+                </div>
+                
+                <div
+                    v-if="isHero(h) && editingHeroId === h.id"
+                    class="mt-2 rounded-md border border-gray-200 bg-gray-50 p-2 dark:border-neutral-800 dark:bg-neutral-900/50 max-h-[50vh] overflow-y-auto"
+                >
+                    <HeroForm
+                        :model-value="editModel as any"
+                        mode="edit"
+                        :archetypes="Object.values(HeroArchetype) as any"
+                        @update:modelValue="(v: any) => (editModel = v)"
+                        @submit="saveEdit((h as any).id)"
+                        @cancel="cancelEdit"
+                    />
                 </div>
             </li>
         </ul>
