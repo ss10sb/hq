@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { NumberField, NumberFieldContent, NumberFieldDecrement, NumberFieldIncrement, NumberFieldInput } from '@/components/ui/number-field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { EquipmentItem, HeroArchetype, InventoryItem, NewHero } from '@/types/hero';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps<{
     modelValue: NewHero;
@@ -21,6 +21,9 @@ const emit = defineEmits<{
     (e: 'type-change', value: HeroArchetype): void;
 }>();
 
+const addRemoveGoldAmount = ref<number>(0);
+const dirty = ref<boolean>(false);
+
 // Proxy for Select v-model to properly reflect current archetype and notify parent on change
 const typeProxy = computed<string>({
     get() {
@@ -32,10 +35,12 @@ const typeProxy = computed<string>({
 });
 
 function update<K extends keyof NewHero>(key: K, value: NewHero[K]) {
+    dirty.value = true;
     emit('update:modelValue', { ...props.modelValue, [key]: value } as NewHero);
 }
 
 function updateStat(key: keyof NewHero['stats'], value: number) {
+    dirty.value = true;
     emit('update:modelValue', {
         ...props.modelValue,
         stats: {
@@ -43,6 +48,10 @@ function updateStat(key: keyof NewHero['stats'], value: number) {
             [key]: value,
         },
     });
+}
+
+function addRemoveGold(amount: number) {
+    update('gold', props.modelValue.gold + amount);
 }
 
 function addInventoryItem(): void {
@@ -85,7 +94,18 @@ function updateEquipmentItem<K extends keyof EquipmentItem>(index: number, key: 
             <div class="text-sm text-muted-foreground">Mode: {{ mode }}</div>
         </div>
 
-        <form @submit.prevent="emit('submit')" class="space-y-6">
+        <form @submit.prevent="emit('submit')" class="space-y-4">
+            <div v-if="dirty" class="text-sm text-purple-500">
+                Don't forget to save your changes!
+            </div>
+            <div v-if="mode === 'edit'" class="">
+                <label class="text-sm font-medium">Add/Remove Gold (current amount: {{ modelValue.gold }})</label>
+                <NumberField :model-value="addRemoveGoldAmount" :min="-1000" :max="1000"  @update:model-value="(v) => addRemoveGold(Number(v))">
+                    <NumberFieldContent>
+                        <NumberFieldInput />
+                    </NumberFieldContent>
+                </NumberField>
+            </div>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div class="space-y-2">
                     <label class="text-sm font-medium">Name</label>
