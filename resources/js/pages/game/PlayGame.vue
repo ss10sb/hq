@@ -10,7 +10,6 @@ import { applyTrapColorByStatus } from '@/lib/game/elements';
 import { applyElementsPatch, diffElements } from '@/lib/game/elementsPatch';
 import {
     broadcastDiceRolled,
-    broadcastElementsSync as broadcastElementsSyncUtil,
     broadcastElementsPatchSync as broadcastElementsPatchSyncUtil,
     broadcastFogOfWarSync as broadcastFogOfWarSyncUtil,
     broadcastGameStateSync as broadcastGameStateSyncUtil,
@@ -221,10 +220,10 @@ onMounted(() => {
         if (!payload) {
             return;
         }
-        const changes = Array.isArray((payload as any).changes) ? (payload as any).changes : [];
-        const beforeCount = (boardStoreRef.elements as any[]).length;
+        // const changes = Array.isArray((payload as any).changes) ? (payload as any).changes : [];
+        // const beforeCount = (boardStoreRef.elements as any[]).length;
         const next = applyElementsPatch(boardStoreRef.elements as any, payload as any);
-        const afterCount = (next as any[]).length;
+        // const afterCount = (next as any[]).length;
         boardStoreRef.elements = next as any;
         // Update snapshot to mirror the applied state so future diffs are accurate
         try {
