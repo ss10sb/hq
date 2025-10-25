@@ -924,17 +924,16 @@ function openDoor(elementId: string): void {
     if (el.type !== ElementType.Door && el.type !== ElementType.SecretDoor) {
         return;
     }
+    // Opening any door should make it traversable and visible to players
     el.traversable = true;
-    // Opening a secret door reveals it
-    if (el.type === ElementType.SecretDoor) {
-        el.hidden = false;
-        // Also reveal the tile it's on
-        boardStoreRef.setTileVisible(el.x, el.y, true);
-        try {
-            const ch = channel();
-            broadcastFogOfWarSyncUtil(ch, [{ x: el.x, y: el.y }]);
-        } catch {}
-    }
+    el.hidden = false;
+    // Reveal the tile the door sits on so players can see and traverse it immediately
+    boardStoreRef.setTileVisible(el.x, el.y, true);
+    try {
+        const ch = channel();
+        broadcastFogOfWarSyncUtil(ch, [{ x: el.x, y: el.y }]);
+    } catch {}
+
     const next = [...list];
     next.splice(idx, 1, el);
     boardStoreRef.elements = next as any;
