@@ -298,6 +298,7 @@ function handleMouseDown(evt: any): void {
         if (selectedElementId.value) {
             const ok = boardStore.moveElement(selectedElementId.value, x, y);
             if (ok) {
+                console.debug('[EMIT] elements-changed (GM Move Element)', { count: (boardStore.elements as any[]).length });
                 emit('elements-changed', { elements: boardStore.elements as any });
             }
             selectedElementId.value = null;
@@ -635,6 +636,7 @@ function handleMouseUp(): void {
         const el = boardStore.getElementAt(start.x, start.y);
         if (el) {
             boardStore.removeElementAt(start.x, start.y);
+            console.debug('[EMIT] elements-changed (GM Remove Element)', { count: (boardStore.elements as any[]).length });
             emit('elements-changed', { elements: boardStore.elements as any });
         }
     }

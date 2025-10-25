@@ -7,9 +7,11 @@ import GamemasterSidebar from '@/components/game/GamemasterSidebar.vue';
 import GamePanel from '@/components/game/GamePanel.vue';
 import AppHeaderLayout from '@/layouts/app/AppHeaderLayout.vue';
 import { applyTrapColorByStatus } from '@/lib/game/elements';
+import { applyElementsPatch, diffElements } from '@/lib/game/elementsPatch';
 import {
     broadcastDiceRolled,
     broadcastElementsSync as broadcastElementsSyncUtil,
+    broadcastElementsPatchSync as broadcastElementsPatchSyncUtil,
     broadcastFogOfWarSync as broadcastFogOfWarSyncUtil,
     broadcastGameStateSync as broadcastGameStateSyncUtil,
     broadcastHeroMoved as broadcastHeroMovedUtil,
@@ -24,6 +26,8 @@ import {
     type TrapTriggeredPayload,
     type TurnEndedPayload,
     WhisperEvents,
+    broadcastMonsterMoved,
+    type MonsterMovedPayload,
 } from '@/lib/game/realtime';
 import type { SearchBadgeScope, SearchBadgeType } from '@/lib/game/searchBadges';
 import { useBoardStore } from '@/stores/board';
@@ -86,6 +90,10 @@ const selectedMonster = computed<Element | null>(() => {
     }
     return el as Element;
 });
+
+// Snapshot of the last known elements state (used to compute diffs reliably even when
+// child components mutate the Pinia store before emitting events)
+const lastElementsSnapshot = ref<Element[]>([] as any);
 
 // Selected tiles per-hero
 const selectedByHero = ref<Record<number, { x: number; y: number } | null>>({});
@@ -153,6 +161,11 @@ onMounted(() => {
     // Refresh current monster defaults from catalog if available
     boardStoreRef.setCurrentMonsterSelection(boardStoreRef.currentMonsterType, boardStoreRef.currentMonsterCustomText);
 
+    // Initialize last elements snapshot after hydration
+    try {
+        lastElementsSnapshot.value = [...(boardStoreRef.elements as any[])];
+    } catch {}
+
     const presenceChannel = channel();
 
     // Server broadcasts when heroes change (e.g., a player adds a new hero)
@@ -190,14 +203,33 @@ onMounted(() => {
         gameStore.setCurrentHero(incomingCurrent);
     });
 
-    // Listen for board elements syncs from any client (players or GM)
+    // Listen for board elements syncs from any client (players or GM) — legacy full-sync fallback
     onWhisper(presenceChannel, WhisperEvents.BoardElementsSync, (data: any) => {
         if (!data || !Array.isArray(data.elements)) {
             return;
         }
-        // Apply incoming elements to board store (source of truth) and mirror to game store
         const incoming = (data.elements as any[]).map((e) => applyTrapColorByStatus(e));
         boardStoreRef.elements = [...incoming] as any;
+        // Update snapshot to mirror the applied state
+        try {
+            lastElementsSnapshot.value = [...(boardStoreRef.elements as any[])];
+        } catch {}
+    });
+
+    // Listen for compact elements patches (preferred)
+    onWhisper(presenceChannel, WhisperEvents.BoardElementsPatchSync, (payload: any) => {
+        if (!payload) {
+            return;
+        }
+        const changes = Array.isArray((payload as any).changes) ? (payload as any).changes : [];
+        const beforeCount = (boardStoreRef.elements as any[]).length;
+        const next = applyElementsPatch(boardStoreRef.elements as any, payload as any);
+        const afterCount = (next as any[]).length;
+        boardStoreRef.elements = next as any;
+        // Update snapshot to mirror the applied state so future diffs are accurate
+        try {
+            lastElementsSnapshot.value = [...(boardStoreRef.elements as any[])];
+        } catch {}
     });
 
     // Listen for fog-of-war tile reveals from GM
@@ -340,6 +372,19 @@ onMounted(() => {
             previewStepsByHero.value = rest;
         }
         // sync the hero position
+    });
+
+    // Listen for monster moved events from GM/any client (log only)
+    onWhisper<MonsterMovedPayload>(presenceChannel, WhisperEvents.MonsterMoved, (payload) => {
+        if (!payload) {
+            return;
+        }
+        const steps = (payload as any).steps as number | undefined;
+        if (typeof steps === 'number' && steps > 0) {
+            const displayId = (payload as any).monsterDisplayId ? ` (${(payload as any).monsterDisplayId})` : '';
+            const msg = `${(payload as any).monsterName}${displayId} moved ${steps} ${steps === 1 ? 'space' : 'spaces'}`;
+            gameLog.value.unshift({ kind: 'text', text: msg } as any);
+        }
     });
 
     // Listen for hero updated events (stats/inventory/equipment) from any client
@@ -817,6 +862,12 @@ function onMonsterMoved(payload: { monsterName: string; monsterDisplayId: string
         const displayId = payload.monsterDisplayId ? ` (${payload.monsterDisplayId})` : '';
         const msg = `${payload.monsterName}${displayId} moved ${spaces} ${spaces === 1 ? 'space' : 'spaces'}`;
         gameLog.value.unshift({ kind: 'text', text: msg } as any);
+        // Broadcast to other clients so their logs are updated
+        try {
+            const ch = channel();
+            const packet: MonsterMovedPayload = { monsterName: payload.monsterName, monsterDisplayId: payload.monsterDisplayId, steps: payload.steps } as any;
+            broadcastMonsterMoved(ch, packet);
+        } catch {}
     }
 }
 
@@ -846,6 +897,11 @@ function toggleVisibility(elementId: string): void {
     const next = [...list];
     next.splice(idx, 1, el);
     boardStoreRef.elements = next as any;
+    // Keep snapshot in sync with local mutation
+    try {
+        lastElementsSnapshot.value = [...(boardStoreRef.elements as any[])];
+        console.debug('[SNAPSHOT] local visibility', { size: lastElementsSnapshot.value.length });
+    } catch {}
     
     // When revealing a secret door, also reveal the tile it's on
     if (el.type === ElementType.SecretDoor && !el.hidden) {
@@ -861,8 +917,11 @@ function toggleVisibility(elementId: string): void {
     
     try {
         const ch = channel();
-        const elements = (next as any[]).map((e) => applyTrapColorByStatus(e));
-        broadcastElementsSyncUtil(ch, elements as any);
+        // Compact: broadcast only visibility change
+        broadcastElementsPatchSyncUtil(ch, { v: 1, changes: [{ op: 'visibility', id: el.id as string, hidden: !!el.hidden }] } as any);
+        // Legacy fallback (temporary)
+        // const elements = (next as any[]).map((e) => applyTrapColorByStatus(e));
+        // broadcastElementsSyncUtil(ch, elements as any);
     } catch {}
 }
 
@@ -903,10 +962,18 @@ function updateMonsterBody(payload: { elementId: string; value: number }): void 
     const next = [...list];
     next.splice(idx, 1, el);
     boardStoreRef.elements = next as any;
+    // Keep snapshot in sync with local mutation
+    try {
+        lastElementsSnapshot.value = [...(boardStoreRef.elements as any[])];
+        console.debug('[SNAPSHOT] local hp', { size: lastElementsSnapshot.value.length });
+    } catch {}
     try {
         const ch = channel();
-        const elements = (next as any[]).map((e) => applyTrapColorByStatus(e));
-        broadcastElementsSyncUtil(ch, elements as any);
+        // Compact patch: HP only
+        broadcastElementsPatchSyncUtil(ch, { v: 1, changes: [{ op: 'hp', id, currentBodyPoints: nextVal }] } as any);
+        // Legacy fallback (temporary)
+        // const elements = (next as any[]).map((e) => applyTrapColorByStatus(e));
+        // broadcastElementsSyncUtil(ch, elements as any);
     } catch {}
 }
 
@@ -937,21 +1004,41 @@ function openDoor(elementId: string): void {
     const next = [...list];
     next.splice(idx, 1, el);
     boardStoreRef.elements = next as any;
+    // Keep snapshot in sync with local mutation
+    try {
+        lastElementsSnapshot.value = [...(boardStoreRef.elements as any[])];
+        console.debug('[SNAPSHOT] local door', { size: lastElementsSnapshot.value.length });
+    } catch {}
     try {
         const ch = channel();
-        const elements = (next as any[]).map((e) => applyTrapColorByStatus(e));
-        broadcastElementsSyncUtil(ch, elements as any);
+        // Compact patch: door becomes traversable and visible
+        broadcastElementsPatchSyncUtil(ch, { v: 1, changes: [{ op: 'update', id: el.id as string, patch: { traversable: true, hidden: false } }] } as any);
+        // Legacy fallback (temporary)
+        // const elements = (next as any[]).map((e) => applyTrapColorByStatus(e));
+        // broadcastElementsSyncUtil(ch, elements as any);
     } catch {}
 }
 
 function onElementsChanged(payload: { elements: BoardElement[] }): void {
-    // Sync updated elements into board store (source of truth) and mirror to game store, then broadcast
-    const list = [...(payload.elements as any[])];
-    boardStoreRef.elements = list as any;
+    // Compute minimal diff between last known snapshot and incoming payload.
+    // This remains correct even if the store was mutated before emitting.
+    const prev = [...(lastElementsSnapshot.value as any[])];
+    const next = [...(payload.elements as any[])];
+    const patch = diffElements(prev as any, next as any);
+    // Apply locally
+    boardStoreRef.elements = next as any;
+    // Refresh snapshot to the newly applied state
+    try {
+        lastElementsSnapshot.value = [...(next as any[])];
+    } catch {}
     try {
         const ch = channel();
-        const elements = (list as any[]).map((e) => applyTrapColorByStatus(e));
-        broadcastElementsSyncUtil(ch, elements as any);
+        if (patch.changes.length > 0) {
+            // Primary: compact patch-based sync
+            broadcastElementsPatchSyncUtil(ch, patch as any);
+
+            // Temporary compatibility: if patch contains add/remove, also send legacy full sync
+        }
     } catch {}
 }
 
@@ -963,7 +1050,27 @@ function onTilesRevealed(tiles: Array<{ x: number; y: number }>): void {
             const tile = boardStoreRef.tiles[coord.y]?.[coord.x];
             return tile ? { ...tile } : coord;
         });
+        console.debug('[TX] FogOfWarSync', { tiles: fullTiles.length });
         broadcastFogOfWarSyncUtil(ch, fullTiles as any);
+
+        // Also broadcast any non-hidden elements that sit on the newly revealed tiles (e.g., monsters)
+        const revealedCoordSet = new Set(tiles.map((t) => `${t.x}:${t.y}`));
+        const elementsToAnnounce = (boardStoreRef.elements as any[]).filter((e: any) => {
+            if (!e || !e.id) { return false; }
+            if (e.hidden === true) { return false; } // do not reveal hidden traps/treasure/secret doors here
+            return revealedCoordSet.has(`${e.x}:${e.y}`);
+        });
+        if (elementsToAnnounce.length > 0) {
+            const patch = {
+                v: 1,
+                changes: elementsToAnnounce.map((el: any) => ({ op: 'add', element: el })) as any[],
+            } as any;
+            broadcastElementsPatchSyncUtil(ch, patch);
+
+            // Temporary compatibility: also send legacy full sync when adds are present (mixed clients safety)
+            // const elements = (boardStoreRef.elements as any[]).map((e) => applyTrapColorByStatus(e));
+            // broadcastElementsSyncUtil(ch, elements as any);
+        }
     } catch {
         // no-op
     }

@@ -5,6 +5,7 @@ import type Echo from 'laravel-echo';
 export const WhisperEvents = {
     GameStateSync: 'gameState.sync',
     BoardElementsSync: 'board.elements.sync',
+    BoardElementsPatchSync: 'board.elements.patch',
     BoardTilesSync: 'board.tiles.sync',
     SelectedTileSync: 'board.selected.sync',
     // Future expansion (placeholders)
@@ -38,6 +39,27 @@ export function broadcastGameStateSync(channel: Echo.Channel, currentHero: numbe
 export function broadcastElementsSync(channel: Echo.Channel, elements: Element[]): void {
     try {
         channel.whisper(WhisperEvents.BoardElementsSync, { elements });
+    } catch {
+        // no-op
+    }
+}
+
+// --- Element Patch Sync (compact updates) ---
+export type ElementsPatchV1 = {
+    v: 1;
+    changes: Array<
+        | { op: 'add'; element: Element }
+        | { op: 'remove'; id: string }
+        | { op: 'update'; id: string; patch: Partial<Element> }
+        | { op: 'move'; id: string; x: number; y: number }
+        | { op: 'visibility'; id: string; hidden: boolean }
+        | { op: 'hp'; id: string; currentBodyPoints: number }
+    >;
+};
+
+export function broadcastElementsPatchSync(channel: Echo.Channel, payload: ElementsPatchV1): void {
+    try {
+        channel.whisper(WhisperEvents.BoardElementsPatchSync, payload);
     } catch {
         // no-op
     }
@@ -101,6 +123,17 @@ export type HeroUpdatedPayload = { heroId: number; hero: any };
 export function broadcastHeroUpdated(channel: Echo.Channel, payload: HeroUpdatedPayload): void {
     try {
         channel.whisper(WhisperEvents.HeroUpdated, payload);
+    } catch {
+        // no-op
+    }
+}
+
+// --- Monster movement logging ---
+export type MonsterMovedPayload = { monsterName: string; monsterDisplayId?: string; steps: number };
+
+export function broadcastMonsterMoved(channel: Echo.Channel, payload: MonsterMovedPayload): void {
+    try {
+        channel.whisper(WhisperEvents.MonsterMoved, payload);
     } catch {
         // no-op
     }
