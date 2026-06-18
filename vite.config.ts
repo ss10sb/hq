@@ -6,7 +6,7 @@ import vueDevTools from 'vite-plugin-vue-devtools';
 import { defineConfig } from 'vite';
 import fs from 'fs';
 
-export default defineConfig((command) => {
+export default defineConfig(({command}) => {
     const baseConfig = {
         build: {
             chunkSizeWarningLimit: 1000

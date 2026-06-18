@@ -1,10 +1,16 @@
 <script setup lang="ts">
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useBoardStore } from '@/stores/board';
-import { FixtureType } from '@/types/board';
-import { computed } from 'vue';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { useBoardStore } from "@/stores/board";
+import { FixtureType } from "@/types/board";
+import { computed } from "vue";
 
 const props = defineProps<{
     type: FixtureType;
@@ -12,8 +18,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    (e: 'update:type', value: FixtureType): void;
-    (e: 'update:customText', value: string): void;
+    (e: "update:type", value: FixtureType): void;
+    (e: "update:customText", value: string): void;
 }>();
 
 const modelType = computed<FixtureType>({
@@ -21,7 +27,7 @@ const modelType = computed<FixtureType>({
         return props.type;
     },
     set(val: FixtureType) {
-        emit('update:type', val);
+        emit("update:type", val);
     },
 });
 
@@ -30,7 +36,7 @@ const modelCustomText = computed<string>({
         return props.customText;
     },
     set(val: string) {
-        emit('update:customText', val);
+        emit("update:customText", val);
     },
 });
 
@@ -51,13 +57,20 @@ const fixtureOptions = computed(() => {
                     <SelectValue placeholder="Select a fixture type" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem v-for="fx in fixtureOptions" :key="fx.type" :value="fx.type">{{ fx.name }}</SelectItem>
+                    <SelectItem v-for="fx in fixtureOptions" :key="fx.type" :value="fx.type">{{
+                        fx.name
+                    }}</SelectItem>
                 </SelectContent>
             </Select>
 
             <div v-if="modelType === FixtureType.Custom" class="mt-3 grid gap-2">
                 <Label for="fixture-custom">Custom label</Label>
-                <Input id="fixture-custom" type="text" v-model="modelCustomText" placeholder="e.g. Door" />
+                <Input
+                    id="fixture-custom"
+                    type="text"
+                    v-model="modelCustomText"
+                    placeholder="e.g. Door"
+                />
             </div>
 
             <p class="text-xs text-neutral-500">Fixtures can only be placed on Floor tiles.</p>

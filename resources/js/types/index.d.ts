@@ -1,5 +1,5 @@
-import { InertiaLinkProps } from '@inertiajs/vue3';
-import type { LucideIcon } from 'lucide-vue-next';
+import { InertiaLinkProps } from "@inertiajs/vue3";
+import type { LucideIcon } from "lucide-vue-next";
 
 export interface Auth {
     user: User;
@@ -12,7 +12,7 @@ export interface BreadcrumbItem {
 
 export interface NavItem {
     title: string;
-    href: NonNullable<InertiaLinkProps['href']>;
+    href: NonNullable<InertiaLinkProps["href"]>;
     icon?: LucideIcon;
     isActive?: boolean;
 }
@@ -39,8 +39,8 @@ export interface User {
 }
 
 export enum UserType {
-    Player = 'player',
-    GM = 'gm',
+    Player = "player",
+    GM = "gm",
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;

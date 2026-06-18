@@ -1,8 +1,8 @@
-import { badgeColorForType, Colors } from '@/lib/game/colors';
-import Konva from 'konva';
+import { badgeColorForType, Colors } from "@/lib/game/colors";
+import Konva from "konva";
 
-export type SearchBadgeType = 'treasure' | 'trap' | 'secret';
-export type SearchBadgeScope = 'tile' | 'corridor' | 'room';
+export type SearchBadgeType = "treasure" | "trap" | "secret";
+export type SearchBadgeScope = "tile" | "corridor" | "room";
 
 export interface SearchBadge {
     id: string;
@@ -13,14 +13,14 @@ export interface SearchBadge {
 
 export function badgeLetterForType(type: SearchBadgeType): string {
     switch (type) {
-        case 'treasure':
-            return 'T';
-        case 'trap':
-            return '!';
-        case 'secret':
-            return 'D';
+        case "treasure":
+            return "T";
+        case "trap":
+            return "!";
+        case "secret":
+            return "D";
         default:
-            return '?';
+            return "?";
     }
 }
 
@@ -48,7 +48,7 @@ export function badgeCircleConfig(badge: SearchBadge): any {
         y: 0,
         radius: 8,
         fill: badgeColorForType(badge.type),
-        stroke: '#111827',
+        stroke: "#111827",
         strokeWidth: 1,
         opacity: 1,
         listening: false,
@@ -61,11 +61,11 @@ export function badgeTextConfig(badge: SearchBadge): any {
         y: 0,
         text: badgeLetterForType(badge.type),
         fontSize: 10,
-        fontStyle: 'bold',
+        fontStyle: "bold",
         fill: Colors.White,
         listening: false,
-        align: 'center',
-        verticalAlign: 'middle',
+        align: "center",
+        verticalAlign: "middle",
     });
     const offsetX = tempText.width() / 2;
     const offsetY = tempText.height() / 2;
@@ -74,11 +74,11 @@ export function badgeTextConfig(badge: SearchBadge): any {
         y: 0,
         text: badgeLetterForType(badge.type),
         fontSize: 10,
-        fontStyle: 'bold',
+        fontStyle: "bold",
         fill: Colors.White,
         listening: false,
-        align: 'center',
-        verticalAlign: 'middle',
+        align: "center",
+        verticalAlign: "middle",
         offsetX: offsetX,
         offsetY: offsetY,
     };

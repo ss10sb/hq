@@ -1,7 +1,12 @@
-import type { Board, Element } from '@/types/board';
-import { TileType } from '@/types/board';
+import type { Board, Element } from "@/types/board";
+import { TileType } from "@/types/board";
 
-export function isBoardTileTraversable(x: number, y: number, board: Board, isGameMaster: boolean = false) {
+export function isBoardTileTraversable(
+    x: number,
+    y: number,
+    board: Board,
+    isGameMaster: boolean = false,
+) {
     if (y < 0 || y >= board.height || x < 0 || x >= board.width) {
         return false;
     }
@@ -14,17 +19,17 @@ export function isBoardTileTraversable(x: number, y: number, board: Board, isGam
     if (el && el.traversable !== true) {
         return false;
     }
-    
+
     // Check if there's a traversable element present
     if (el && el.traversable === true) {
         return true;
     }
-    
+
     // Check if the tile itself is a traversable fixture
     if (t.type === TileType.Fixture && t.traversable === true) {
         return true;
     }
-    
+
     // Floor tiles are traversable based on role and visibility:
     // - GM can move on any floor tile (hidden or revealed)
     // - Players can only move on revealed floor tiles
@@ -35,7 +40,7 @@ export function isBoardTileTraversable(x: number, y: number, board: Board, isGam
         // Players can only move on revealed floor tiles
         return (t as any).visible === true;
     }
-    
+
     return false;
 }
 
@@ -69,7 +74,7 @@ export function moveBoardElement(id: string, toX: number, toY: number, board: Bo
     const current = { ...(board.elements[idx] as Element) } as Element;
     current.x = toX;
     current.y = toY;
-    
+
     // Sync element visibility with destination tile visibility
     // If moving to a hidden tile, hide the element; if moving to visible tile, reveal it
     const destTile = board.tiles[toY]?.[toX];
@@ -78,7 +83,7 @@ export function moveBoardElement(id: string, toX: number, toY: number, board: Bo
         // Update element visibility to match tile visibility
         current.hidden = !tileVisible;
     }
-    
+
     const next = [...board.elements];
     next.splice(idx, 1, current);
     board.elements = next;

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { AppPageProps } from '@/types';
-import { usePage } from '@inertiajs/vue3';
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { AppPageProps } from "@/types";
+import { usePage } from "@inertiajs/vue3";
+import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 
 const page = usePage<AppPageProps>();
 

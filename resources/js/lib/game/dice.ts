@@ -1,4 +1,4 @@
-import { Dice1, Dice2, Dice3, Dice4, Dice5, Dice6, OctagonX, Shield, Skull } from 'lucide-vue-next';
+import { Dice1, Dice2, Dice3, Dice4, Dice5, Dice6, OctagonX, Shield, Skull } from "lucide-vue-next";
 
 export type DieValue = {
     value: number | string;
@@ -7,8 +7,8 @@ export type DieValue = {
 };
 
 export enum DieType {
-    SIX_SIDED = 'six_sided',
-    COMBAT = 'combat',
+    SIX_SIDED = "six_sided",
+    COMBAT = "combat",
 }
 
 export const sixSidedDie: DieValue[] = [
@@ -21,27 +21,27 @@ export const sixSidedDie: DieValue[] = [
 ];
 
 export enum CombatDieSide {
-    SKULL = 'skull',
-    DEFEND = 'defend',
-    MONSTER_DEFEND = 'monster_defend',
+    SKULL = "skull",
+    DEFEND = "defend",
+    MONSTER_DEFEND = "monster_defend",
 }
 
 export const combatDie: DieValue[] = [
-    { value: CombatDieSide.SKULL, icon: Skull, color: '#FF0000' },
-    { value: CombatDieSide.DEFEND, icon: Shield, color: '#00FF00' },
-    { value: CombatDieSide.SKULL, icon: Skull, color: '#FF0000' },
-    { value: CombatDieSide.DEFEND, icon: Shield, color: '#00FF00' },
-    { value: CombatDieSide.SKULL, icon: Skull, color: '#FF0000' },
-    { value: CombatDieSide.MONSTER_DEFEND, icon: OctagonX, color: '#0000FF' },
+    { value: CombatDieSide.SKULL, icon: Skull, color: "#FF0000" },
+    { value: CombatDieSide.DEFEND, icon: Shield, color: "#00FF00" },
+    { value: CombatDieSide.SKULL, icon: Skull, color: "#FF0000" },
+    { value: CombatDieSide.DEFEND, icon: Shield, color: "#00FF00" },
+    { value: CombatDieSide.SKULL, icon: Skull, color: "#FF0000" },
+    { value: CombatDieSide.MONSTER_DEFEND, icon: OctagonX, color: "#0000FF" },
 ];
 
 function randomIndex(len: number): number {
-    if (typeof len !== 'number' || len <= 0) {
+    if (typeof len !== "number" || len <= 0) {
         return 0;
     }
-    const g: any = (typeof globalThis !== 'undefined' ? globalThis : window) as any;
+    const g: any = (typeof globalThis !== "undefined" ? globalThis : window) as any;
     const cryptoObj: Crypto | undefined = g?.crypto;
-    if (cryptoObj && typeof cryptoObj.getRandomValues === 'function') {
+    if (cryptoObj && typeof cryptoObj.getRandomValues === "function") {
         const maxUint32 = 0x100000000; // 2^32
         const limit = Math.floor(maxUint32 / len) * len;
         const arr = new Uint32Array(1);
@@ -71,7 +71,7 @@ export function rollDice(type: DieType, count: number): DieValue[] {
  * Returns a numeric score for a die face so results can be sorted consistently.
  */
 export function scoreDieFace(value: number | string): number {
-    if (typeof value === 'number') {
+    if (typeof value === "number") {
         return value; // numeric face value
     }
     switch (value as any) {
@@ -89,8 +89,11 @@ export function scoreDieFace(value: number | string): number {
 /**
  * Expands primitive results (numbers/strings) to DieValue entries including icons/colors.
  */
-export function expandPrimitiveResults(diceType: DieType, results: Array<number | string>): DieValue[] {
-    const lib = diceType === ('six_sided' as any) ? sixSidedDie : combatDie;
+export function expandPrimitiveResults(
+    diceType: DieType,
+    results: Array<number | string>,
+): DieValue[] {
+    const lib = diceType === ("six_sided" as any) ? sixSidedDie : combatDie;
     return results.map((v) => {
         const face = lib.find((d) => d.value === v);
         return face ? { ...face } : { ...(lib[0] as any) };

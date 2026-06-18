@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import NewPasswordController from '@/actions/App/Http/Controllers/Auth/NewPasswordController';
-import InputError from '@/components/InputError.vue';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import AuthLayout from '@/layouts/AuthLayout.vue';
-import { Form, Head } from '@inertiajs/vue3';
-import { LoaderCircle } from 'lucide-vue-next';
-import { ref } from 'vue';
+import NewPasswordController from "@/actions/App/Http/Controllers/Auth/NewPasswordController";
+import InputError from "@/components/InputError.vue";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import AuthLayout from "@/layouts/AuthLayout.vue";
+import { Form, Head } from "@inertiajs/vue3";
+import { LoaderCircle } from "lucide-vue-next";
+import { ref } from "vue";
 
 const props = defineProps<{
     token: string;
@@ -30,7 +30,15 @@ const inputEmail = ref(props.email);
             <div class="grid gap-6">
                 <div class="grid gap-2">
                     <Label for="email">Email</Label>
-                    <Input id="email" type="email" name="email" autocomplete="email" v-model="inputEmail" class="mt-1 block w-full" readonly />
+                    <Input
+                        id="email"
+                        type="email"
+                        name="email"
+                        autocomplete="email"
+                        v-model="inputEmail"
+                        class="mt-1 block w-full"
+                        readonly
+                    />
                     <InputError :message="errors.email" class="mt-2" />
                 </div>
 

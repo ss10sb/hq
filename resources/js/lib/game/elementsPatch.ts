@@ -1,6 +1,6 @@
-import { applyTrapColorByStatus } from '@/lib/game/elements';
-import type { ElementsPatchV1 } from '@/lib/game/realtime';
-import type { Element } from '@/types/board';
+import { applyTrapColorByStatus } from "@/lib/game/elements";
+import type { ElementsPatchV1 } from "@/lib/game/realtime";
+import type { Element } from "@/types/board";
 
 /**
  * Apply a compact elements patch to an elements array, returning a new array instance.
@@ -12,14 +12,15 @@ export function applyElementsPatch(current: Element[], payload: ElementsPatchV1)
     }
     let next = [...(current as any[])];
 
-    const indexOf = (id: string): number => next.findIndex((e: any) => String(e?.id) === String(id));
+    const indexOf = (id: string): number =>
+        next.findIndex((e: any) => String(e?.id) === String(id));
 
     for (const change of payload.changes as any[]) {
-        if (!change || typeof change.op !== 'string') {
+        if (!change || typeof change.op !== "string") {
             continue;
         }
         switch (change.op) {
-            case 'add': {
+            case "add": {
                 if (change.element && change.element.id) {
                     // Avoid duplicates: replace if already exists
                     const idx = indexOf(change.element.id);
@@ -34,14 +35,18 @@ export function applyElementsPatch(current: Element[], payload: ElementsPatchV1)
                 }
                 break;
             }
-            case 'remove': {
-                if (typeof change.id === 'string') {
+            case "remove": {
+                if (typeof change.id === "string") {
                     next = next.filter((e: any) => e?.id !== change.id) as any;
                 }
                 break;
             }
-            case 'move': {
-                if (typeof change.id === 'string' && typeof change.x === 'number' && typeof change.y === 'number') {
+            case "move": {
+                if (
+                    typeof change.id === "string" &&
+                    typeof change.x === "number" &&
+                    typeof change.y === "number"
+                ) {
                     const idx = indexOf(change.id);
                     if (idx !== -1) {
                         const cur = next[idx] as any;
@@ -53,8 +58,8 @@ export function applyElementsPatch(current: Element[], payload: ElementsPatchV1)
                 }
                 break;
             }
-            case 'visibility': {
-                if (typeof change.id === 'string' && typeof change.hidden === 'boolean') {
+            case "visibility": {
+                if (typeof change.id === "string" && typeof change.hidden === "boolean") {
                     const idx = indexOf(change.id);
                     if (idx !== -1) {
                         const cur = next[idx] as any;
@@ -66,12 +71,15 @@ export function applyElementsPatch(current: Element[], payload: ElementsPatchV1)
                 }
                 break;
             }
-            case 'hp': {
-                if (typeof change.id === 'string' && typeof change.currentBodyPoints === 'number') {
+            case "hp": {
+                if (typeof change.id === "string" && typeof change.currentBodyPoints === "number") {
                     const idx = indexOf(change.id);
                     if (idx !== -1) {
                         const cur = next[idx] as any;
-                        const stats = { ...(cur.stats || {}), currentBodyPoints: change.currentBodyPoints } as any;
+                        const stats = {
+                            ...cur.stats,
+                            currentBodyPoints: change.currentBodyPoints,
+                        } as any;
                         const updated = { ...cur, stats } as any;
                         const cloned = [...next];
                         cloned.splice(idx, 1, applyTrapColorByStatus(updated));
@@ -80,8 +88,12 @@ export function applyElementsPatch(current: Element[], payload: ElementsPatchV1)
                 }
                 break;
             }
-            case 'update': {
-                if (typeof change.id === 'string' && change.patch && typeof change.patch === 'object') {
+            case "update": {
+                if (
+                    typeof change.id === "string" &&
+                    change.patch &&
+                    typeof change.patch === "object"
+                ) {
                     const idx = indexOf(change.id);
                     if (idx !== -1) {
                         const cur = next[idx] as any;
@@ -106,16 +118,16 @@ export function applyElementsPatch(current: Element[], payload: ElementsPatchV1)
  * Currently detects add/remove and shallow updates of selected fields, including position/visibility/hp.
  */
 export function diffElements(prev: Element[], next: Element[]): ElementsPatchV1 {
-    const changes: ElementsPatchV1['changes'] = [];
+    const changes: ElementsPatchV1["changes"] = [];
     const prevById = new Map<string, any>();
     for (const e of prev as any[]) {
-        if (e && typeof e.id === 'string') {
+        if (e && typeof e.id === "string") {
             prevById.set(e.id, e);
         }
     }
     const nextById = new Map<string, any>();
     for (const e of next as any[]) {
-        if (e && typeof e.id === 'string') {
+        if (e && typeof e.id === "string") {
             nextById.set(e.id, e);
         }
     }
@@ -123,28 +135,28 @@ export function diffElements(prev: Element[], next: Element[]): ElementsPatchV1 
     // removals
     for (const id of prevById.keys()) {
         if (!nextById.has(id)) {
-            changes.push({ op: 'remove', id } as any);
+            changes.push({ op: "remove", id } as any);
         }
     }
 
     // additions and updates
     const fieldsToTrack = new Set<string>([
-        'x',
-        'y',
-        'hidden',
-        'traversable',
-        'type',
-        'name',
-        'color',
-        'displayId',
-        'trapStatus',
-        'trapType',
+        "x",
+        "y",
+        "hidden",
+        "traversable",
+        "type",
+        "name",
+        "color",
+        "displayId",
+        "trapStatus",
+        "trapType",
     ]);
 
     for (const [id, nextEl] of nextById.entries()) {
         const prevEl = prevById.get(id);
         if (!prevEl) {
-            changes.push({ op: 'add', element: nextEl } as any);
+            changes.push({ op: "add", element: nextEl } as any);
             continue;
         }
         const patch: Record<string, any> = {};
@@ -156,18 +168,26 @@ export function diffElements(prev: Element[], next: Element[]): ElementsPatchV1 
         // stats.currentBodyPoints as special-case
         const prevHP = (prevEl as any)?.stats?.currentBodyPoints;
         const nextHP = (nextEl as any)?.stats?.currentBodyPoints;
-        if (prevHP !== nextHP && typeof nextHP === 'number') {
-            patch.stats = { ...((nextEl as any).stats || {}), currentBodyPoints: nextHP } as any;
+        if (prevHP !== nextHP && typeof nextHP === "number") {
+            patch.stats = { ...(nextEl as any).stats, currentBodyPoints: nextHP } as any;
         }
         if (Object.keys(patch).length > 0) {
             // If only x/y changed, prefer the compact 'move' op
             const keys = Object.keys(patch);
-            if (keys.length === 2 && 'x' in patch && 'y' in patch) {
-                changes.push({ op: 'move', id, x: patch.x as number, y: patch.y as number } as any);
-            } else if (keys.length === 1 && 'hidden' in patch) {
-                changes.push({ op: 'visibility', id, hidden: !!patch.hidden } as any);
-            } else if (keys.length === 1 && patch.stats && typeof patch.stats.currentBodyPoints === 'number') {
-                changes.push({ op: 'hp', id, currentBodyPoints: patch.stats.currentBodyPoints } as any);
+            if (keys.length === 2 && "x" in patch && "y" in patch) {
+                changes.push({ op: "move", id, x: patch.x as number, y: patch.y as number } as any);
+            } else if (keys.length === 1 && "hidden" in patch) {
+                changes.push({ op: "visibility", id, hidden: !!patch.hidden } as any);
+            } else if (
+                keys.length === 1 &&
+                patch.stats &&
+                typeof patch.stats.currentBodyPoints === "number"
+            ) {
+                changes.push({
+                    op: "hp",
+                    id,
+                    currentBodyPoints: patch.stats.currentBodyPoints,
+                } as any);
             } else {
                 // generic update with shallow fields
                 const shallow = { ...patch } as any;
@@ -175,7 +195,7 @@ export function diffElements(prev: Element[], next: Element[]): ElementsPatchV1 
                     // keep only currentBodyPoints in stats to reduce payload
                     shallow.stats = { currentBodyPoints: shallow.stats.currentBodyPoints } as any;
                 }
-                changes.push({ op: 'update', id, patch: shallow } as any);
+                changes.push({ op: "update", id, patch: shallow } as any);
             }
         }
     }

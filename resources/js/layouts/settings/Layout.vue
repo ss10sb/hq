@@ -1,30 +1,30 @@
 <script setup lang="ts">
-import Heading from '@/components/Heading.vue';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { toUrl, urlIsActive } from '@/lib/utils';
-import { appearance } from '@/routes';
-import { edit as editPassword } from '@/routes/password';
-import { edit } from '@/routes/profile';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/vue3';
+import Heading from "@/components/Heading.vue";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { toUrl, urlIsActive } from "@/lib/utils";
+import { appearance } from "@/routes";
+import { edit as editPassword } from "@/routes/password";
+import { edit } from "@/routes/profile";
+import { type NavItem } from "@/types";
+import { Link } from "@inertiajs/vue3";
 
 const sidebarNavItems: NavItem[] = [
     {
-        title: 'Profile',
+        title: "Profile",
         href: edit(),
     },
     {
-        title: 'Password',
+        title: "Password",
         href: editPassword(),
     },
     {
-        title: 'Appearance',
+        title: "Appearance",
         href: appearance(),
     },
 ];
 
-const currentPath = typeof window !== undefined ? window.location.pathname : '';
+const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
 </script>
 
 <template>
@@ -38,7 +38,10 @@ const currentPath = typeof window !== undefined ? window.location.pathname : '';
                         v-for="item in sidebarNavItems"
                         :key="toUrl(item.href)"
                         variant="ghost"
-                        :class="['w-full justify-start', { 'bg-muted': urlIsActive(item.href, currentPath) }]"
+                        :class="[
+                            'w-full justify-start',
+                            { 'bg-muted': urlIsActive(item.href, currentPath) },
+                        ]"
                         as-child
                     >
                         <Link :href="item.href">

@@ -1,12 +1,24 @@
 <script setup lang="ts">
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { NumberField, NumberFieldContent, NumberFieldDecrement, NumberFieldIncrement, NumberFieldInput } from '@/components/ui/number-field';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useBoardStore } from '@/stores/board';
-import { MonsterType } from '@/types/board';
-import type { Stats } from '@/types/gameplay';
-import { computed } from 'vue';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+    NumberField,
+    NumberFieldContent,
+    NumberFieldDecrement,
+    NumberFieldIncrement,
+    NumberFieldInput,
+} from "@/components/ui/number-field";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { useBoardStore } from "@/stores/board";
+import { MonsterType } from "@/types/board";
+import type { Stats } from "@/types/gameplay";
+import { computed } from "vue";
 
 const props = defineProps<{
     type: MonsterType;
@@ -15,15 +27,17 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    (e: 'update:type', value: MonsterType): void;
-    (e: 'update:customText', value: string): void;
-    (e: 'update:stats', value: Stats): void;
+    (e: "update:type", value: MonsterType): void;
+    (e: "update:customText", value: string): void;
+    (e: "update:stats", value: Stats): void;
 }>();
 
 const boardStore = useBoardStore();
 const monsterOptions = computed(() => boardStore.monstersCatalog ?? []);
 
-const selectedMonster = computed(() => (monsterOptions.value || []).find((m: any) => m?.type === props.type));
+const selectedMonster = computed(() =>
+    (monsterOptions.value || []).find((m: any) => m?.type === props.type),
+);
 const isCustomSelected = computed<boolean>(() => {
     const sel = selectedMonster.value as any;
     return !!(sel && sel.custom === true) || props.type === MonsterType.Custom;
@@ -34,7 +48,7 @@ const modelType = computed<MonsterType>({
         return props.type;
     },
     set(val: MonsterType) {
-        emit('update:type', val);
+        emit("update:type", val);
     },
 });
 
@@ -43,14 +57,14 @@ const modelCustomText = computed<string>({
         return props.customText;
     },
     set(val: string) {
-        emit('update:customText', val);
+        emit("update:customText", val);
     },
 });
 
 // For stats, emit a full object when any field changes
 function updateStat<K extends keyof Stats>(key: K, value: number): void {
     const next: Stats = { ...props.stats, [key]: value } as Stats;
-    emit('update:stats', next);
+    emit("update:stats", next);
 }
 
 // Computed proxies for v-model on Input component
@@ -59,7 +73,7 @@ const bodyPoints = computed<number>({
         return props.stats?.bodyPoints ?? 0;
     },
     set(val: number) {
-        updateStat('bodyPoints', Number(val));
+        updateStat("bodyPoints", Number(val));
     },
 });
 
@@ -68,7 +82,7 @@ const mindPoints = computed<number>({
         return props.stats?.mindPoints ?? 0;
     },
     set(val: number) {
-        updateStat('mindPoints', Number(val));
+        updateStat("mindPoints", Number(val));
     },
 });
 
@@ -77,7 +91,7 @@ const attackDice = computed<number>({
         return props.stats?.attackDice ?? 0;
     },
     set(val: number) {
-        updateStat('attackDice', Number(val));
+        updateStat("attackDice", Number(val));
     },
 });
 
@@ -86,7 +100,7 @@ const defenseDice = computed<number>({
         return props.stats?.defenseDice ?? 0;
     },
     set(val: number) {
-        updateStat('defenseDice', Number(val));
+        updateStat("defenseDice", Number(val));
     },
 });
 
@@ -95,7 +109,7 @@ const currentBodyPoints = computed<number>({
         return props.stats?.currentBodyPoints ?? 0;
     },
     set(val: number) {
-        updateStat('currentBodyPoints', Number(val));
+        updateStat("currentBodyPoints", Number(val));
     },
 });
 </script>
@@ -110,13 +124,20 @@ const currentBodyPoints = computed<number>({
                     <SelectValue placeholder="Select a monster type" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem v-for="m in monsterOptions" :key="m.type" :value="m.type as any">{{ m.name }}</SelectItem>
+                    <SelectItem v-for="m in monsterOptions" :key="m.type" :value="m.type as any">{{
+                        m.name
+                    }}</SelectItem>
                 </SelectContent>
             </Select>
 
             <div v-if="isCustomSelected" class="mt-3 grid gap-2">
                 <Label for="monster-custom">Custom name</Label>
-                <Input id="monster-custom" type="text" v-model="modelCustomText" placeholder="e.g. Chaos Warrior" />
+                <Input
+                    id="monster-custom"
+                    type="text"
+                    v-model="modelCustomText"
+                    placeholder="e.g. Chaos Warrior"
+                />
             </div>
 
             <div class="mt-4 grid gap-2">
@@ -164,7 +185,11 @@ const currentBodyPoints = computed<number>({
                     </div>
                     <div class="col-span-2">
                         <Label for="cbp">Current Body Points</Label>
-                        <NumberField v-model="currentBodyPoints as any" :min="0" :max="props.stats?.bodyPoints ?? 0">
+                        <NumberField
+                            v-model="currentBodyPoints as any"
+                            :min="0"
+                            :max="props.stats?.bodyPoints ?? 0"
+                        >
                             <NumberFieldContent>
                                 <NumberFieldDecrement />
                                 <NumberFieldInput />
@@ -175,7 +200,9 @@ const currentBodyPoints = computed<number>({
                 </div>
             </div>
 
-            <p class="text-xs text-neutral-500">Monsters can be placed on Floor or Fixture tiles and start hidden.</p>
+            <p class="text-xs text-neutral-500">
+                Monsters can be placed on Floor or Fixture tiles and start hidden.
+            </p>
         </div>
     </div>
 </template>

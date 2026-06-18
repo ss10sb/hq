@@ -1,6 +1,6 @@
-import { Tile, TileType } from '@/types/board';
-import type { RectConfig } from 'konva/lib/shapes/Rect';
-import { TILE_SIZE } from './grid';
+import { Tile, TileType } from "@/types/board";
+import type { RectConfig } from "konva/lib/shapes/Rect";
+import { TILE_SIZE } from "./grid";
 
 export function getTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
     return {
@@ -16,20 +16,20 @@ export function getTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectCon
 
 function tileFillColor(tile: Tile): string {
     if (tile.type === TileType.Wall) {
-        return '#222';
+        return "#222";
     }
     if (tile.type === TileType.Fixture) {
-        return tile.traversable ? '#90cdf4' : '#5b21b6';
+        return tile.traversable ? "#90cdf4" : "#5b21b6";
     }
-    return '#888';
+    return "#888";
 }
 
 function tileStrokeColor(tile: Tile): string {
     if (tile.type === TileType.Wall) {
-        return '#333';
+        return "#333";
     }
     if (tile.type === TileType.Fixture) {
-        return tile.traversable ? '#63b3ed' : '#6d28d9';
+        return tile.traversable ? "#63b3ed" : "#6d28d9";
     }
-    return '#666';
+    return "#666";
 }

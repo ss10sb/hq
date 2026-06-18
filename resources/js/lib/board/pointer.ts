@@ -1,4 +1,4 @@
-import { TILE_SIZE } from './grid';
+import { TILE_SIZE } from "./grid";
 
 export function tileFromPointer(evt: any, tileSize: number = TILE_SIZE): { x: number; y: number } {
     const stage = evt.target?.getStage?.();

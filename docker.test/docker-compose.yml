@@ -4,14 +4,23 @@ services:
     ports:
       - "127.0.0.1:5430:5432"
     healthcheck:
-      test: [ "CMD", "pg_isready", "-q", "-d", "${DB_DATABASE:-testing}", "-U", "${DB_USERNAME:-testing}" ]
+      test:
+        [
+          "CMD",
+          "pg_isready",
+          "-q",
+          "-d",
+          "${DB_DATABASE:-testing}",
+          "-U",
+          "${DB_USERNAME:-testing}",
+        ]
       retries: 3
       timeout: 5s
     environment:
-      PGPASSWORD: '${DB_PASSWORD:-testing}'
-      POSTGRES_DB: '${DB_DATABASE:-testing}'
-      POSTGRES_USER: '${DB_USERNAME:-testing}'
-      POSTGRES_PASSWORD: '${DB_PASSWORD:-testing}'
+      PGPASSWORD: "${DB_PASSWORD:-testing}"
+      POSTGRES_DB: "${DB_DATABASE:-testing}"
+      POSTGRES_USER: "${DB_USERNAME:-testing}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:-testing}"
     tmpfs:
       - /var/lib/postgresql
   phpunit:

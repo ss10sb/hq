@@ -1,6 +1,10 @@
-import { BoardTool, ElementType, FixtureType, MonsterType, TrapType } from '@/types/board';
+import { BoardTool, ElementType, FixtureType, MonsterType, TrapType } from "@/types/board";
 
-export function defaultElementFlags(type: ElementType): { interactive: boolean; hidden: boolean; traversable: boolean } {
+export function defaultElementFlags(type: ElementType): {
+    interactive: boolean;
+    hidden: boolean;
+    traversable: boolean;
+} {
     switch (type) {
         case ElementType.Door:
             return { interactive: true, hidden: false, traversable: false };
@@ -46,48 +50,48 @@ export function toolToElementType(tool: BoardTool): ElementType | null {
 
 export function labelForFixtureType(type: FixtureType, customText?: string): string {
     if (type === FixtureType.Custom) {
-        return (customText ?? '').trim() || 'Custom fixture';
+        return (customText ?? "").trim() || "Custom fixture";
     }
     switch (type) {
         case FixtureType.TreasureChest:
-            return 'Treasure chest';
+            return "Treasure chest";
         case FixtureType.Chair:
-            return 'Chair';
+            return "Chair";
         case FixtureType.Table:
-            return 'Table';
+            return "Table";
         default:
-            return 'Fixture';
+            return "Fixture";
     }
 }
 
 export function labelForTrapType(type: TrapType, customText?: string): string {
     if (type === TrapType.Custom) {
-        return (customText ?? '').trim() || 'Custom trap';
+        return (customText ?? "").trim() || "Custom trap";
     }
     switch (type) {
         case TrapType.Pit:
-            return 'Pit trap';
+            return "Pit trap";
         case TrapType.Spear:
-            return 'Spear trap';
+            return "Spear trap";
         case TrapType.Block:
-            return 'Falling block';
+            return "Falling block";
         default:
-            return 'Trap';
+            return "Trap";
     }
 }
 
 export function labelForMonsterType(type: MonsterType, customText?: string): string {
     if (type === MonsterType.Custom) {
-        return (customText ?? '').trim() || 'Custom monster';
+        return (customText ?? "").trim() || "Custom monster";
     }
     switch (type) {
         case MonsterType.Goblin:
-            return 'Goblin';
+            return "Goblin";
         case MonsterType.Orc:
-            return 'Orc';
+            return "Orc";
         case MonsterType.Skeleton:
-            return 'Skeleton';
+            return "Skeleton";
         default:
-            return 'Monster';
+            return "Monster";
     }
 }

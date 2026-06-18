@@ -6,9 +6,9 @@ import {
     labelForTrapType,
     rectBounds,
     statsForMonsterType,
-    toolToElementType
-} from '@/lib/board';
-import { getBoardElementAt, isBoardTileTraversable, moveBoardElement } from '@/lib/board/board.lib';
+    toolToElementType,
+} from "@/lib/board";
+import { getBoardElementAt, isBoardTileTraversable, moveBoardElement } from "@/lib/board/board.lib";
 import {
     Board,
     BoardGroup,
@@ -25,16 +25,16 @@ import {
     TileType,
     Trap,
     TrapStatus,
-    TrapType
-} from '@/types/board';
-import type { Stats } from '@/types/gameplay';
-import { defineStore } from 'pinia';
-import { generateDisplayId, registerDisplayId } from '@/lib/game/elements';
+    TrapType,
+} from "@/types/board";
+import type { Stats } from "@/types/gameplay";
+import { defineStore } from "pinia";
+import { generateDisplayId, registerDisplayId } from "@/lib/game/elements";
 
-export const useBoardStore = defineStore('board', {
+export const useBoardStore = defineStore("board", {
     state: (): BoardState => ({
         id: 0,
-        name: 'New Board',
+        name: "New Board",
         group: BoardGroup.Core,
         order: 1,
         width: BoardDimension.Width, // Default width
@@ -48,17 +48,17 @@ export const useBoardStore = defineStore('board', {
         fixturesCatalog: [] as unknown as Fixture[],
         // Fixture selection & metadata
         currentFixtureType: FixtureType.TreasureChest,
-        currentFixtureCustomText: '',
+        currentFixtureCustomText: "",
         fixtureMeta: {},
         // Trap selection
         currentTrapType: TrapType.Pit,
-        currentTrapCustomText: '',
+        currentTrapCustomText: "",
         // Monster selection & stats
         currentMonsterType: MonsterType.Goblin,
-        currentMonsterCustomText: '',
+        currentMonsterCustomText: "",
         currentMonsterStats: statsForMonsterType(MonsterType.Goblin) as Stats,
         canEdit: false,
-        savedSignature: '',
+        savedSignature: "",
     }),
 
     getters: {
@@ -102,14 +102,18 @@ export const useBoardStore = defineStore('board', {
         },
 
         // --- Monster subtype selection & stats ---
-        setCurrentMonsterSelection(type: MonsterType, customText?: string, statsOverride?: Partial<Stats>): void {
+        setCurrentMonsterSelection(
+            type: MonsterType,
+            customText?: string,
+            statsOverride?: Partial<Stats>,
+        ): void {
             this.currentMonsterType = type;
             this.currentMonsterCustomText = customText ?? this.currentMonsterCustomText;
             const fromCatalog = (this.monstersCatalog ?? []).find((m: any) => m?.type === type);
             const defaults = (fromCatalog?.stats as Stats | undefined) ?? statsForMonsterType(type);
             this.currentMonsterStats = {
                 ...defaults,
-                ...(statsOverride ?? {}),
+                ...statsOverride,
                 currentBodyPoints: statsOverride?.currentBodyPoints ?? defaults.currentBodyPoints,
             } as Stats;
         },
@@ -166,11 +170,11 @@ export const useBoardStore = defineStore('board', {
                 row.map((tile) => {
                     const t = { ...tile } as Tile;
                     // Default visibility: players see nothing unless revealed; keep as provided if present
-                    if (typeof (t as any).visible === 'undefined' || (t as any).visible === null) {
+                    if (typeof (t as any).visible === "undefined" || (t as any).visible === null) {
                         (t as any).visible = false;
                     }
                     // Set defaults only when properties are missing; preserve backend values when provided
-                    if (typeof (t as any).interactive === 'undefined') {
+                    if (typeof (t as any).interactive === "undefined") {
                         if (t.type === TileType.Wall) {
                             (t as any).interactive = false;
                         } else if (t.type === TileType.Floor) {
@@ -179,7 +183,7 @@ export const useBoardStore = defineStore('board', {
                             (t as any).interactive = true;
                         }
                     }
-                    if (typeof (t as any).traversable === 'undefined') {
+                    if (typeof (t as any).traversable === "undefined") {
                         if (t.type === TileType.Wall) {
                             (t as any).traversable = false;
                         } else if (t.type === TileType.Floor) {
@@ -201,17 +205,30 @@ export const useBoardStore = defineStore('board', {
                 let resolvedName = raw.name as string | undefined;
                 if (!resolvedName) {
                     if (type === ElementType.Trap) {
-                        resolvedName = labelForTrapType(raw.trapType ?? this.currentTrapType, raw.customText ?? this.currentTrapCustomText);
+                        resolvedName = labelForTrapType(
+                            raw.trapType ?? this.currentTrapType,
+                            raw.customText ?? this.currentTrapCustomText,
+                        );
                     } else if (type === ElementType.Monster) {
                         const mType = (raw.monsterType ?? this.currentMonsterType) as MonsterType;
-                        const fromCatalog = (this.monstersCatalog ?? []).find((m: any) => m?.type === mType);
-                        const isCustom = !!(fromCatalog && fromCatalog.custom === true) || mType === MonsterType.Custom;
+                        const fromCatalog = (this.monstersCatalog ?? []).find(
+                            (m: any) => m?.type === mType,
+                        );
+                        const isCustom =
+                            !!(fromCatalog && fromCatalog.custom === true) ||
+                            mType === MonsterType.Custom;
                         if (isCustom) {
-                            resolvedName = labelForMonsterType(mType, raw.customText ?? this.currentMonsterCustomText);
+                            resolvedName = labelForMonsterType(
+                                mType,
+                                raw.customText ?? this.currentMonsterCustomText,
+                            );
                         } else {
                             resolvedName =
                                 (fromCatalog?.name as string | undefined) ??
-                                labelForMonsterType(mType, raw.customText ?? this.currentMonsterCustomText);
+                                labelForMonsterType(
+                                    mType,
+                                    raw.customText ?? this.currentMonsterCustomText,
+                                );
                         }
                     } else {
                         resolvedName = String(type);
@@ -220,16 +237,18 @@ export const useBoardStore = defineStore('board', {
 
                 const base: Element = {
                     id: raw.id ?? `${type}:${raw.x}:${raw.y}`,
-                    displayId: raw.displayId ?? '', 
+                    displayId: raw.displayId ?? "",
                     name: resolvedName,
-                    description: raw.description ?? '',
+                    description: raw.description ?? "",
                     type,
                     x: Number(raw.x ?? 0),
                     y: Number(raw.y ?? 0),
-                    interactive: typeof raw.interactive === 'boolean' ? raw.interactive : flags.interactive,
-                    hidden: typeof raw.hidden === 'boolean' ? raw.hidden : flags.hidden,
-                    traversable: typeof raw.traversable === 'boolean' ? raw.traversable : flags.traversable,
-                    color: typeof raw.color === 'string' ? raw.color : undefined,
+                    interactive:
+                        typeof raw.interactive === "boolean" ? raw.interactive : flags.interactive,
+                    hidden: typeof raw.hidden === "boolean" ? raw.hidden : flags.hidden,
+                    traversable:
+                        typeof raw.traversable === "boolean" ? raw.traversable : flags.traversable,
+                    color: typeof raw.color === "string" ? raw.color : undefined,
                 };
 
                 if (type === ElementType.Trap) {
@@ -243,7 +262,7 @@ export const useBoardStore = defineStore('board', {
                 if (type === ElementType.Monster) {
                     // Preserve existing displayId if present, otherwise generate new one
                     let displayId = raw.displayId as string | undefined;
-                    if (displayId && typeof displayId === 'string' && displayId.length > 0) {
+                    if (displayId && typeof displayId === "string" && displayId.length > 0) {
                         registerDisplayId(displayId);
                     } else {
                         displayId = generateDisplayId();
@@ -252,8 +271,9 @@ export const useBoardStore = defineStore('board', {
                     const defaults = statsForMonsterType(monsterType);
                     const stats: Stats = {
                         ...defaults,
-                        ...(raw.stats ?? {}),
-                        currentBodyPoints: raw.stats?.currentBodyPoints ?? defaults.currentBodyPoints,
+                        ...raw.stats,
+                        currentBodyPoints:
+                            raw.stats?.currentBodyPoints ?? defaults.currentBodyPoints,
                     } as Stats;
                     return {
                         ...base,
@@ -291,7 +311,11 @@ export const useBoardStore = defineStore('board', {
             const tile = this.tiles[y][x];
             if (tile) {
                 // Limit fixture placement to floor tiles (or leave as fixture)
-                if (type === TileType.Fixture && tile.type !== TileType.Floor && tile.type !== TileType.Fixture) {
+                if (
+                    type === TileType.Fixture &&
+                    tile.type !== TileType.Floor &&
+                    tile.type !== TileType.Fixture
+                ) {
                     return;
                 }
 
@@ -311,19 +335,32 @@ export const useBoardStore = defineStore('board', {
                     (tile as any).name = undefined;
                     delete this.fixtureMeta[key];
                 } else if (type === TileType.Fixture) {
-                    console.log('fixture', tile);
+                    console.log("fixture", tile);
                     tile.interactive = true; // fixtures can be interactive
                     // Prefer traversable from catalog if available, else default false
-                    const fxFromCatalog = (this.fixturesCatalog ?? []).find((f: any) => f?.type === this.currentFixtureType);
-                    tile.traversable = typeof fxFromCatalog?.traversable === 'boolean' ? fxFromCatalog.traversable : false;
+                    const fxFromCatalog = (this.fixturesCatalog ?? []).find(
+                        (f: any) => f?.type === this.currentFixtureType,
+                    );
+                    tile.traversable =
+                        typeof fxFromCatalog?.traversable === "boolean"
+                            ? fxFromCatalog.traversable
+                            : false;
                     // set/update fixture label based on current selection and catalog and store on the tile
                     let label: string;
                     if (this.currentFixtureType === FixtureType.Custom) {
-                        label = this.currentFixtureCustomText || labelForFixtureType(this.currentFixtureType, this.currentFixtureCustomText);
+                        label =
+                            this.currentFixtureCustomText ||
+                            labelForFixtureType(
+                                this.currentFixtureType,
+                                this.currentFixtureCustomText,
+                            );
                     } else {
                         label =
                             (fxFromCatalog?.name as string | undefined) ??
-                            labelForFixtureType(this.currentFixtureType, this.currentFixtureCustomText);
+                            labelForFixtureType(
+                                this.currentFixtureType,
+                                this.currentFixtureCustomText,
+                            );
                     }
                     (tile as any).name = label;
                     // legacy cleanup: fixtureMeta no longer used for tooltips
@@ -333,7 +370,12 @@ export const useBoardStore = defineStore('board', {
         },
 
         setTilesInRect(x1: number, y1: number, x2: number, y2: number, type: TileType): void {
-            const { minX, maxX, minY, maxY } = rectBounds({ x: x1, y: y1 }, { x: x2, y: y2 }, this.width, this.height);
+            const { minX, maxX, minY, maxY } = rectBounds(
+                { x: x1, y: y1 },
+                { x: x2, y: y2 },
+                this.width,
+                this.height,
+            );
 
             for (let y = minY; y <= maxY; y++) {
                 for (let x = minX; x <= maxX; x++) {
@@ -363,15 +405,20 @@ export const useBoardStore = defineStore('board', {
         },
 
         isDoorAt(x: number, y: number): boolean {
-            return this.elements.some((e: any) => e.x === x && e.y === y && e.type === ElementType.Door);
+            return this.elements.some(
+                (e: any) => e.x === x && e.y === y && e.type === ElementType.Door,
+            );
         },
         isSecretDoorAt(x: number, y: number): boolean {
-            return this.elements.some((e: any) => e.x === x && e.y === y && e.type === ElementType.SecretDoor);
+            return this.elements.some(
+                (e: any) => e.x === x && e.y === y && e.type === ElementType.SecretDoor,
+            );
         },
 
         revealRoomAt(x: number, y: number): { x: number; y: number }[] {
             // Flood fill over floor/fixture tiles bounded by walls; do not cross any doors, but include non-secret doors bordering the room
-            const inBounds = (cx: number, cy: number) => cy >= 0 && cy < this.height && cx >= 0 && cx < this.width;
+            const inBounds = (cx: number, cy: number) =>
+                cy >= 0 && cy < this.height && cx >= 0 && cx < this.width;
             const key = (cx: number, cy: number) => `${cx}:${cy}`;
             const start = this.tiles[y]?.[x];
             if (!start || start.type === TileType.Wall) {
@@ -433,13 +480,17 @@ export const useBoardStore = defineStore('board', {
                 }
             }
             return Array.from(affected).map((s) => {
-                const [sx, sy] = s.split(':');
+                const [sx, sy] = s.split(":");
                 return { x: Number(sx), y: Number(sy) };
             });
         },
 
-        revealCorridorFrom(x: number, y: number): { tiles: { x: number; y: number }[]; elementsChanged: boolean } {
-            const inBounds = (cx: number, cy: number) => cy >= 0 && cy < this.height && cx >= 0 && cx < this.width;
+        revealCorridorFrom(
+            x: number,
+            y: number,
+        ): { tiles: { x: number; y: number }[]; elementsChanged: boolean } {
+            const inBounds = (cx: number, cy: number) =>
+                cy >= 0 && cy < this.height && cx >= 0 && cx < this.width;
             const isBlocking = (cx: number, cy: number) => {
                 const t = this.tiles[cy]?.[cx];
                 if (!t) {
@@ -490,7 +541,9 @@ export const useBoardStore = defineStore('board', {
                                 affected.add(key(nx, ny));
                             }
                             // Also reveal the door element
-                            const doorEl = this.elements.find((e: any) => e.x === nx && e.y === ny && e.type === ElementType.Door);
+                            const doorEl = this.elements.find(
+                                (e: any) => e.x === nx && e.y === ny && e.type === ElementType.Door,
+                            );
                             if (doorEl) {
                                 (doorEl as any).hidden = false;
                                 elementsChanged = true;
@@ -517,7 +570,7 @@ export const useBoardStore = defineStore('board', {
 
             // After revealing the corridor, check all neighbors of revealed tiles for non-secret doors
             for (const tileKey of revealedCorridorTiles) {
-                const [tx, ty] = tileKey.split(':').map(Number);
+                const [tx, ty] = tileKey.split(":").map(Number);
                 const neighbors = [
                     { x: tx + 1, y: ty },
                     { x: tx - 1, y: ty },
@@ -541,7 +594,9 @@ export const useBoardStore = defineStore('board', {
                             affected.add(k);
                         }
                         // Also reveal the door element
-                        const doorEl = this.elements.find((e: any) => e.x === n.x && e.y === n.y && e.type === ElementType.Door);
+                        const doorEl = this.elements.find(
+                            (e: any) => e.x === n.x && e.y === n.y && e.type === ElementType.Door,
+                        );
                         if (doorEl) {
                             (doorEl as any).hidden = false;
                             elementsChanged = true;
@@ -552,7 +607,7 @@ export const useBoardStore = defineStore('board', {
 
             return {
                 tiles: Array.from(affected).map((s) => {
-                    const [sx, sy] = s.split(':');
+                    const [sx, sy] = s.split(":");
                     return { x: Number(sx), y: Number(sy) };
                 }),
                 elementsChanged,
@@ -586,7 +641,13 @@ export const useBoardStore = defineStore('board', {
             this.elements = this.elements.filter((e) => !(e.x === x && e.y === y));
         },
 
-        addOrReplaceElementAt(x: number, y: number, type: ElementType, name?: string, description?: string): void {
+        addOrReplaceElementAt(
+            x: number,
+            y: number,
+            type: ElementType,
+            name?: string,
+            description?: string,
+        ): void {
             // Placement guard: elements may only be placed on Floor or Fixture tiles
             const tile = this.tiles[y]?.[x];
             if (!tile || (tile.type !== TileType.Floor && tile.type !== TileType.Fixture)) {
@@ -600,30 +661,44 @@ export const useBoardStore = defineStore('board', {
             let resolvedName = name as string | undefined;
             if (!resolvedName) {
                 if (type === ElementType.Trap) {
-                    resolvedName = labelForTrapType(this.currentTrapType, this.currentTrapCustomText);
+                    resolvedName = labelForTrapType(
+                        this.currentTrapType,
+                        this.currentTrapCustomText,
+                    );
                 } else if (type === ElementType.Monster) {
-                    const fromCatalog = (this.monstersCatalog ?? []).find((m: any) => m?.type === this.currentMonsterType);
-                    const isCustom = !!(fromCatalog && fromCatalog.custom === true) || this.currentMonsterType === MonsterType.Custom;
+                    const fromCatalog = (this.monstersCatalog ?? []).find(
+                        (m: any) => m?.type === this.currentMonsterType,
+                    );
+                    const isCustom =
+                        !!(fromCatalog && fromCatalog.custom === true) ||
+                        this.currentMonsterType === MonsterType.Custom;
                     if (isCustom) {
-                        resolvedName = labelForMonsterType(this.currentMonsterType, this.currentMonsterCustomText);
+                        resolvedName = labelForMonsterType(
+                            this.currentMonsterType,
+                            this.currentMonsterCustomText,
+                        );
                     } else {
                         resolvedName =
-                            (fromCatalog?.name as string | undefined) ?? labelForMonsterType(this.currentMonsterType, this.currentMonsterCustomText);
+                            (fromCatalog?.name as string | undefined) ??
+                            labelForMonsterType(
+                                this.currentMonsterType,
+                                this.currentMonsterCustomText,
+                            );
                     }
                 } else {
                     resolvedName = String(type);
                 }
             }
-            let resolvedDisplayId = '';
+            let resolvedDisplayId = "";
             if (type === ElementType.Monster) {
                 resolvedDisplayId = generateDisplayId();
             }
-            
+
             const baseEl: Element = {
                 id: `${type}:${x}:${y}`,
                 displayId: resolvedDisplayId,
                 name: resolvedName,
-                description: description ?? '',
+                description: description ?? "",
                 type,
                 x,
                 y,
@@ -635,9 +710,17 @@ export const useBoardStore = defineStore('board', {
             // Attach trap/monster-specific metadata
             let el: Element = baseEl;
             if (type === ElementType.Trap) {
-                el = { ...baseEl, trapType: this.currentTrapType, trapStatus: TrapStatus.Armed } as Element;
+                el = {
+                    ...baseEl,
+                    trapType: this.currentTrapType,
+                    trapStatus: TrapStatus.Armed,
+                } as Element;
             } else if (type === ElementType.Monster) {
-                el = { ...baseEl, monsterType: this.currentMonsterType, stats: { ...this.currentMonsterStats } } as Element;
+                el = {
+                    ...baseEl,
+                    monsterType: this.currentMonsterType,
+                    stats: { ...this.currentMonsterStats },
+                } as Element;
             }
 
             this.elements.push(el);
@@ -685,16 +768,16 @@ export const useBoardStore = defineStore('board', {
         getFixtureLabel(x: number, y: number): string {
             const t = this.tiles[y]?.[x] as any;
             if (!t) {
-                return '';
+                return "";
             }
             // Prefer persisted tile name for fixtures (customizable and saved)
-            if (typeof t.name === 'string' && t.name.length > 0) {
+            if (typeof t.name === "string" && t.name.length > 0) {
                 return t.name as string;
             }
             if (t.type === TileType.Fixture) {
-                return 'Fixture';
+                return "Fixture";
             }
-            return '';
+            return "";
         },
     },
 });

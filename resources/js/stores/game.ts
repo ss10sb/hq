@@ -1,13 +1,13 @@
-import { moveGameHero } from '@/lib/board/game';
-import { Board } from '@/types/board';
-import { Game, GameStatus, Player } from '@/types/game';
-import type { Hero, Zargon } from '@/types/hero';
-import { defineStore } from 'pinia';
+import { moveGameHero } from "@/lib/board/game";
+import { Board } from "@/types/board";
+import { Game, GameStatus, Player } from "@/types/game";
+import type { Hero, Zargon } from "@/types/hero";
+import { defineStore } from "pinia";
 
-export const useGameStore = defineStore('game', {
+export const useGameStore = defineStore("game", {
     state: (): Game => ({
         id: 0,
-        joinKey: '',
+        joinKey: "",
         gameMasterId: 0,
         status: GameStatus.InProgress,
         maxHeroes: 0,
@@ -56,7 +56,7 @@ export const useGameStore = defineStore('game', {
         },
         clearGameData(): void {
             this.id = 0;
-            this.joinKey = '';
+            this.joinKey = "";
             this.status = GameStatus.InProgress;
             this.gameMasterId = 0;
             this.maxHeroes = 0;

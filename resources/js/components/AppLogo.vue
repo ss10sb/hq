@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import AppLogoImage from '@/components/AppLogoImage.vue';
+import AppLogoImage from "@/components/AppLogoImage.vue";
 </script>
 
 <template>
-    <div class="flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
+    <div
+        class="flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground"
+    >
         <AppLogoImage class="size-5 fill-current text-white dark:text-black" />
     </div>
     <div class="ml-1 grid flex-1 text-left text-sm">

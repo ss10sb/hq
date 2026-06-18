@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { isHero } from '@/lib/board/game';
-import { heroColorById } from '@/lib/game/colors';
-import type { Player } from '@/types/game';
-import type { NewHero } from '@/types/hero';
-import { Hero, HeroArchetype, Zargon } from '@/types/hero';
-import { Brain, Footprints, Heart, Shield, SwordIcon } from 'lucide-vue-next';
+import { isHero } from "@/lib/board/game";
+import { heroColorById } from "@/lib/game/colors";
+import type { Player } from "@/types/game";
+import type { NewHero } from "@/types/hero";
+import { Hero, HeroArchetype, Zargon } from "@/types/hero";
+import { Brain, Footprints, Heart, Shield, SwordIcon } from "lucide-vue-next";
 
-import HeroForm from '@/components/hero/HeroForm.vue';
-import { computed, ref } from 'vue';
-import { CardTitle } from '@/components/ui/card';
+import HeroForm from "@/components/hero/HeroForm.vue";
+import { computed, ref } from "vue";
+import { CardTitle } from "@/components/ui/card";
 
 const props = defineProps<{
     heroes: (Hero | Zargon)[];
@@ -22,13 +22,13 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    (e: 'move-up', index: number): void;
-    (e: 'move-down', index: number): void;
-    (e: 'set-active', heroId: number): void;
-    (e: 'update-body', payload: { heroId: number | null; value: number }): void;
-    (e: 'save-hero', payload: { heroId: number; hero: NewHero }): void;
-    (e: 'assign-hero', payload: { heroId: number; playerId: number }): void;
-    (e: 'remove-hero', index: number): void;
+    (e: "move-up", index: number): void;
+    (e: "move-down", index: number): void;
+    (e: "set-active", heroId: number): void;
+    (e: "update-body", payload: { heroId: number | null; value: number }): void;
+    (e: "save-hero", payload: { heroId: number; hero: NewHero }): void;
+    (e: "assign-hero", payload: { heroId: number; playerId: number }): void;
+    (e: "remove-hero", index: number): void;
 }>();
 
 const editingHeroId = ref<number | null>(null);
@@ -78,7 +78,7 @@ function saveEdit(heroId: number): void {
     if (editModel.value == null) {
         return;
     }
-    emit('save-hero', { heroId, hero: editModel.value });
+    emit("save-hero", { heroId, hero: editModel.value });
     editingHeroId.value = null;
     editModel.value = null;
 }
@@ -108,21 +108,21 @@ function bodyDisplay(h: Hero): { current: number | null; max: number | null; ove
 
 function incBody(h: Hero): void {
     const current = h.stats?.currentBodyPoints ?? 0;
-    emit('update-body', { heroId: h.id ?? null, value: current + 1 });
+    emit("update-body", { heroId: h.id ?? null, value: current + 1 });
 }
 
 function decBody(h: Hero): void {
     const current = h.stats?.currentBodyPoints ?? 0;
-    emit('update-body', { heroId: h.id ?? null, value: Math.max(0, current - 1) });
+    emit("update-body", { heroId: h.id ?? null, value: Math.max(0, current - 1) });
 }
 
 function stepsFor(h: Hero | Zargon): number {
     const id = (h as any)?.id as number | undefined;
-    if (typeof id !== 'number') {
+    if (typeof id !== "number") {
         return 0;
     }
     const preview = (props.previewStepsByHero || {})[id];
-    if (typeof preview === 'number') {
+    if (typeof preview === "number") {
         return Math.max(0, preview);
     }
     const committed = (props.stepsByHero || {})[id];
@@ -138,12 +138,12 @@ function onAssign(heroId: number, playerIdStr: string): void {
     if (!Number.isFinite(playerId)) {
         return;
     }
-    emit('assign-hero', { heroId, playerId });
+    emit("assign-hero", { heroId, playerId });
 }
 
 function confirmRemove(idx: number, heroName: string): void {
     if (window.confirm(`Are you sure you want to remove ${heroName}?`)) {
-        emit('remove-hero', idx);
+        emit("remove-hero", idx);
     }
 }
 </script>
@@ -160,9 +160,12 @@ function confirmRemove(idx: number, heroName: string): void {
                 >
                     Actions
                 </button>
-                <button type="button" class="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-neutral-800"
-                        @click="showReassign = !showReassign">
-                    {{ showReassign ? 'Hide' : 'Reassign' }}
+                <button
+                    type="button"
+                    class="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-neutral-800"
+                    @click="showReassign = !showReassign"
+                >
+                    {{ showReassign ? "Hide" : "Reassign" }}
                 </button>
             </div>
         </div>
@@ -173,25 +176,39 @@ function confirmRemove(idx: number, heroName: string): void {
             class="mb-2 rounded-md border border-gray-200 bg-gray-50 p-2 dark:border-neutral-800 dark:bg-neutral-900/50"
         >
             <div class="flex flex-col gap-2">
-                <div v-for="h in heroListOnly()" :key="(h as any).id" class="flex items-center gap-2">
+                <div
+                    v-for="h in heroListOnly()"
+                    :key="(h as any).id"
+                    class="flex items-center gap-2"
+                >
                     <div class="flex-1 text-sm">{{ (h as any).name }}</div>
                     <select
                         class="rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
                         :value="(h as any).playerId"
-                        @change="onAssign((h as any).id, ($event.target as HTMLSelectElement).value)"
+                        @change="
+                            onAssign((h as any).id, ($event.target as HTMLSelectElement).value)
+                        "
                     >
-                        <option v-for="p in props.players" :key="p.id" :value="p.id">{{ p.name }}</option>
+                        <option v-for="p in props.players" :key="p.id" :value="p.id">
+                            {{ p.name }}
+                        </option>
                     </select>
                 </div>
             </div>
         </div>
 
         <ul class="flex flex-col gap-1">
-            <li v-for="(h, idx) in heroes" :key="h.id" class="gap-2 p-1"
-                :class="h.id === activeHeroId ? 'rounded-md border border-blue-500' : ''">
+            <li
+                v-for="(h, idx) in heroes"
+                :key="h.id"
+                class="gap-2 p-1"
+                :class="h.id === activeHeroId ? 'rounded-md border border-blue-500' : ''"
+            >
                 <div class="flex items-center gap-1">
-                    <span class="inline-block h-3 w-3 rounded-full"
-                          :class="playerIsPresent(h.playerId) ? 'bg-green-500' : 'bg-gray-400'" />
+                    <span
+                        class="inline-block h-3 w-3 rounded-full"
+                        :class="playerIsPresent(h.playerId) ? 'bg-green-500' : 'bg-gray-400'"
+                    />
                     <template v-if="!isHero(h)">
                         <span class="flex-1">{{ h.name }}</span>
                     </template>
@@ -219,18 +236,28 @@ function confirmRemove(idx: number, heroName: string): void {
                                 >
                                     −
                                 </button>
-                                <span class="min-w-6 text-center">{{ h.stats?.currentBodyPoints ?? 0 }}</span>
-                                <span class="text-xs text-neutral-500">/ {{ h.stats?.bodyPoints ?? 0 }}</span>
-                                <button type="button"
-                                        class="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-neutral-800"
-                                        @click="incBody(h as any)">
+                                <span class="min-w-6 text-center">{{
+                                    h.stats?.currentBodyPoints ?? 0
+                                }}</span>
+                                <span class="text-xs text-neutral-500"
+                                    >/ {{ h.stats?.bodyPoints ?? 0 }}</span
+                                >
+                                <button
+                                    type="button"
+                                    class="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-neutral-800"
+                                    @click="incBody(h as any)"
+                                >
                                     +
                                 </button>
                             </div>
                         </template>
                         <template v-else>
-                            <span class="min-w-6 text-center">{{ h.stats?.currentBodyPoints ?? 0 }}</span>
-                            <span class="text-xs text-neutral-500">/ {{ h.stats?.bodyPoints ?? 0 }}</span>
+                            <span class="min-w-6 text-center">{{
+                                h.stats?.currentBodyPoints ?? 0
+                            }}</span>
+                            <span class="text-xs text-neutral-500"
+                                >/ {{ h.stats?.bodyPoints ?? 0 }}</span
+                            >
                         </template>
                         <span
                             v-if="bodyDisplay(h as any).over"
@@ -240,7 +267,10 @@ function confirmRemove(idx: number, heroName: string): void {
                         </span>
                     </div>
 
-                    <div v-if="isGameMaster && gmPlayerActionsActive" class="flex items-center gap-1">
+                    <div
+                        v-if="isGameMaster && gmPlayerActionsActive"
+                        class="flex items-center gap-1"
+                    >
                         <button
                             type="button"
                             class="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-neutral-800"
@@ -310,7 +340,7 @@ function confirmRemove(idx: number, heroName: string): void {
                         </div>
                     </div>
                 </div>
-                
+
                 <div
                     v-if="isHero(h) && editingHeroId === h.id"
                     class="mt-2 rounded-md border border-gray-200 bg-gray-50 p-2 dark:border-neutral-800 dark:bg-neutral-900/50 max-h-[50vh] overflow-y-auto"
@@ -337,12 +367,18 @@ function confirmRemove(idx: number, heroName: string): void {
             >
                 <div class="mb-2 flex items-start justify-between">
                     <h3 class="text-lg font-semibold">{{ (viewHero as any).name }}</h3>
-                    <button type="button" class="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-neutral-800"
-                            @click="closeView">Close
+                    <button
+                        type="button"
+                        class="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-neutral-800"
+                        @click="closeView"
+                    >
+                        Close
                     </button>
                 </div>
                 <div class="mb-3 text-sm text-neutral-500">{{ (viewHero as any).type }}</div>
-                <div class="flex flex-row flex-wrap items-center gap-5 text-gray-800 dark:text-white">
+                <div
+                    class="flex flex-row flex-wrap items-center gap-5 text-gray-800 dark:text-white"
+                >
                     <div class="flex items-center gap-2">
                         <Brain :size="18" class="text-blue-500" />
                         <div>{{ (viewHero as any).stats.mindPoints }}</div>
@@ -359,12 +395,16 @@ function confirmRemove(idx: number, heroName: string): void {
                         <Heart :size="18" class="text-red-500" />
                         <div>
                             {{ (viewHero as any).stats.currentBodyPoints }}
-                            <span class="text-xs text-neutral-500">/ {{ (viewHero as any).stats.bodyPoints }}</span>
+                            <span class="text-xs text-neutral-500"
+                                >/ {{ (viewHero as any).stats.bodyPoints }}</span
+                            >
                         </div>
                     </div>
                 </div>
-                <div v-if="(viewHero as any).equipment.length"
-                     class="mt-3 flex flex-col text-sm text-gray-800 dark:text-white">
+                <div
+                    v-if="(viewHero as any).equipment.length"
+                    class="mt-3 flex flex-col text-sm text-gray-800 dark:text-white"
+                >
                     <CardTitle class="text-base text-neutral-500">Equipment</CardTitle>
                     <template v-for="(item, idx) in (viewHero as any).equipment" :key="idx">
                         <div class="flex flex-row justify-between items-center flex-wrap gap-2">
@@ -378,18 +418,24 @@ function confirmRemove(idx: number, heroName: string): void {
                                 <div>{{ item.defenseDice }}</div>
                             </div>
                         </div>
-                        <div v-if="item.description" class="text-neutral-500 ml-2">{{ item.description }}</div>
+                        <div v-if="item.description" class="text-neutral-500 ml-2">
+                            {{ item.description }}
+                        </div>
                     </template>
                 </div>
-                <div v-if="(viewHero as any).inventory.length"
-                     class="mt-3 flex flex-col text-sm text-gray-800 dark:text-white">
+                <div
+                    v-if="(viewHero as any).inventory.length"
+                    class="mt-3 flex flex-col text-sm text-gray-800 dark:text-white"
+                >
                     <CardTitle class="text-base text-neutral-500">Inventory</CardTitle>
                     <template v-for="(item, idx) in (viewHero as any).inventory" :key="idx">
                         <div class="flex flex-row justify-between items-center flex-wrap gap-2">
                             <div>{{ item.name }}</div>
                             <div>{{ item.quantity }}</div>
                         </div>
-                        <div v-if="item.description" class="text-neutral-500 ml-2">{{ item.description }}</div>
+                        <div v-if="item.description" class="text-neutral-500 ml-2">
+                            {{ item.description }}
+                        </div>
                     </template>
                 </div>
             </div>

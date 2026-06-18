@@ -1,7 +1,7 @@
-import { AppPageProps } from '@/types/index';
+import { AppPageProps } from "@/types/index";
 
 // Extend ImportMeta interface for Vite...
-declare module 'vite/client' {
+declare module "vite-plus/client" {
     interface ImportMetaEnv {
         readonly VITE_APP_NAME: string;
         [key: string]: string | boolean | undefined;
@@ -13,11 +13,11 @@ declare module 'vite/client' {
     }
 }
 
-declare module '@inertiajs/core' {
+declare module "@inertiajs/core" {
     interface PageProps extends InertiaPageProps, AppPageProps {}
 }
 
-declare module 'vue' {
+declare module "vue" {
     interface ComponentCustomProperties {
         $inertia: typeof Router;
         $page: Page;

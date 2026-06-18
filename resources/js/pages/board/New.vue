@@ -1,25 +1,31 @@
 <script setup lang="ts">
-import NewBoardController from '@/actions/App/Http/Controllers/Board/NewBoardController';
-import SelectBoardController from '@/actions/App/Http/Controllers/Board/SelectBoardController';
-import InputError from '@/components/InputError.vue';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import AppLayout from '@/layouts/AppLayout.vue';
-import type { BreadcrumbItem } from '@/types';
-import { BoardGroups, NewBoard } from '@/types/board';
-import { Head, useForm } from '@inertiajs/vue3';
-import { LoaderCircle } from 'lucide-vue-next';
+import NewBoardController from "@/actions/App/Http/Controllers/Board/NewBoardController";
+import SelectBoardController from "@/actions/App/Http/Controllers/Board/SelectBoardController";
+import InputError from "@/components/InputError.vue";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import AppLayout from "@/layouts/AppLayout.vue";
+import type { BreadcrumbItem } from "@/types";
+import { BoardGroups, NewBoard } from "@/types/board";
+import { Head, useForm } from "@inertiajs/vue3";
+import { LoaderCircle } from "lucide-vue-next";
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Select Board',
+        title: "Select Board",
         href: SelectBoardController().url,
     },
     {
-        title: 'New Board',
+        title: "New Board",
         href: NewBoardController().url,
     },
 ];
@@ -82,22 +88,51 @@ const submitForm = () => {
                 </div>
                 <div class="grid gap-2">
                     <Label for="order">Quest Number (in group)</Label>
-                    <Input id="order" type="number" v-model="form.order" required :tabindex="3" autocomplete="order" name="order" />
+                    <Input
+                        id="order"
+                        type="number"
+                        v-model="form.order"
+                        required
+                        :tabindex="3"
+                        autocomplete="order"
+                        name="order"
+                    />
                     <InputError :message="form.errors.order" />
                 </div>
                 <div class="grid gap-2">
                     <Label for="height">Rows (height)</Label>
-                    <Input id="height" type="number" v-model="form.height" required :tabindex="5" autocomplete="height" name="height" />
+                    <Input
+                        id="height"
+                        type="number"
+                        v-model="form.height"
+                        required
+                        :tabindex="5"
+                        autocomplete="height"
+                        name="height"
+                    />
                     <InputError :message="form.errors.height" />
                 </div>
                 <div class="grid gap-2">
                     <Label for="width">Columns (width)</Label>
-                    <Input id="width" type="number" v-model="form.width" required :tabindex="4" autocomplete="width" name="width" />
+                    <Input
+                        id="width"
+                        type="number"
+                        v-model="form.width"
+                        required
+                        :tabindex="4"
+                        autocomplete="width"
+                        name="width"
+                    />
                     <InputError :message="form.errors.width" />
                 </div>
                 <div class="grid gap-2">
                     <Label for="is-public">
-                        <Checkbox v-model="form.is_public" :tabindex="5" name="is_public" id="is-public" />
+                        <Checkbox
+                            v-model="form.is_public"
+                            :tabindex="5"
+                            name="is_public"
+                            id="is-public"
+                        />
                         Public?
                     </Label>
                     <InputError :message="form.errors.is_public" />

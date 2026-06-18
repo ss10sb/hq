@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
-import CompleteGameController from '@/actions/App/Http/Controllers/Game/CompleteGameController';
-import SaveGameController from '@/actions/App/Http/Controllers/Game/SaveGameController';
-import BoardCanvas from '@/components/board/BoardCanvas.vue';
-import GamemasterSidebar from '@/components/game/GamemasterSidebar.vue';
-import GamePanel from '@/components/game/GamePanel.vue';
-import AppHeaderLayout from '@/layouts/app/AppHeaderLayout.vue';
-import { applyTrapColorByStatus } from '@/lib/game/elements';
-import { applyElementsPatch, diffElements } from '@/lib/game/elementsPatch';
+import DashboardController from "@/actions/App/Http/Controllers/DashboardController";
+import CompleteGameController from "@/actions/App/Http/Controllers/Game/CompleteGameController";
+import SaveGameController from "@/actions/App/Http/Controllers/Game/SaveGameController";
+import BoardCanvas from "@/components/board/BoardCanvas.vue";
+import GamemasterSidebar from "@/components/game/GamemasterSidebar.vue";
+import GamePanel from "@/components/game/GamePanel.vue";
+import AppHeaderLayout from "@/layouts/app/AppHeaderLayout.vue";
+import { applyTrapColorByStatus } from "@/lib/game/elements";
+import { applyElementsPatch, diffElements } from "@/lib/game/elementsPatch";
 import {
     broadcastDiceRolled,
     broadcastElementsPatchSync as broadcastElementsPatchSyncUtil,
@@ -27,29 +27,40 @@ import {
     WhisperEvents,
     broadcastMonsterMoved,
     type MonsterMovedPayload,
-} from '@/lib/game/realtime';
-import type { SearchBadgeScope, SearchBadgeType } from '@/lib/game/searchBadges';
-import { useBoardStore } from '@/stores/board';
-import { useGameStore } from '@/stores/game';
-import { AppPageProps } from '@/types';
-import type { Board, Element as BoardElement, Element, Fixture, Monster, Trap } from '@/types/board';
-import { BoardTool, ElementType } from '@/types/board';
-import type { Game, Player } from '@/types/game';
-import { Hero } from '@/types/hero';
-import { Head, usePage } from '@inertiajs/vue3';
-import { useEchoPresence } from '@laravel/echo-vue';
-import axios from 'axios';
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+} from "@/lib/game/realtime";
+import type { SearchBadgeScope, SearchBadgeType } from "@/lib/game/searchBadges";
+import { useBoardStore } from "@/stores/board";
+import { useGameStore } from "@/stores/game";
+import { AppPageProps } from "@/types";
+import type {
+    Board,
+    Element as BoardElement,
+    Element,
+    Fixture,
+    Monster,
+    Trap,
+} from "@/types/board";
+import { BoardTool, ElementType } from "@/types/board";
+import type { Game, Player } from "@/types/game";
+import { Hero } from "@/types/hero";
+import { Head, usePage } from "@inertiajs/vue3";
+import { useEchoPresence } from "@laravel/echo-vue";
+import axios from "axios";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 // GM search badges state (local only; not persisted/broadcasted)
 const gmBadgeActive = ref<boolean>(false);
-const gmBadgeType = ref<SearchBadgeType>('treasure');
-const gmBadgeScope = ref<SearchBadgeScope>('tile');
+const gmBadgeType = ref<SearchBadgeType>("treasure");
+const gmBadgeScope = ref<SearchBadgeScope>("tile");
 
 // Scrolling game information panel (log)
-import SelectHeroController from '@/actions/App/Http/Controllers/Hero/SelectHeroController';
-import type { DieType, DieValue } from '@/lib/game/dice';
-import { expandPrimitiveResults, rollDice as performRoll, sortDieValues } from '@/lib/game/dice';
-import { buildSelectedTilePacket, chooseSelectionHeroId as chooseSelectionHeroIdUtil, toSelectedTilesDisplay } from '@/lib/game/selection';
+import SelectHeroController from "@/actions/App/Http/Controllers/Hero/SelectHeroController";
+import type { DieType, DieValue } from "@/lib/game/dice";
+import { expandPrimitiveResults, rollDice as performRoll, sortDieValues } from "@/lib/game/dice";
+import {
+    buildSelectedTilePacket,
+    chooseSelectionHeroId as chooseSelectionHeroIdUtil,
+    toSelectedTilesDisplay,
+} from "@/lib/game/selection";
 
 const page = usePage<AppPageProps>();
 const props = defineProps<{
@@ -61,9 +72,9 @@ const props = defineProps<{
 }>();
 
 type LogEntry =
-    | { kind: 'text'; text: string }
+    | { kind: "text"; text: string }
     | {
-          kind: 'dice';
+          kind: "dice";
           actor: string;
           diceType: DieType;
           count: number;
@@ -131,18 +142,20 @@ type PresentUser = { id: number; name: string };
 const usersPresent = ref<PresentUser[]>([]);
 
 // Auto-save UI state
-const autoSave = ref<{ status: 'idle' | 'saving' | 'saved' | 'error'; message?: string }>({ status: 'idle' });
+const autoSave = ref<{ status: "idle" | "saving" | "saved" | "error"; message?: string }>({
+    status: "idle",
+});
 let autoSaveHideHandle: number | null = null;
 
-function showAutoSave(status: 'saving' | 'saved' | 'error', message?: string): void {
+function showAutoSave(status: "saving" | "saved" | "error", message?: string): void {
     autoSave.value = { status, message };
     if (autoSaveHideHandle != null) {
         window.clearTimeout(autoSaveHideHandle);
         autoSaveHideHandle = null;
     }
-    if (status === 'saved' || status === 'error') {
+    if (status === "saved" || status === "error") {
         autoSaveHideHandle = window.setTimeout(() => {
-            autoSave.value = { status: 'idle' };
+            autoSave.value = { status: "idle" };
             autoSaveHideHandle = null;
         }, 2000);
     }
@@ -158,7 +171,10 @@ onMounted(() => {
     // Provide catalogs from backend to the board store (used by GM tools for options)
     boardStoreRef.setCatalogs(props.monsters as any, props.traps as any, props.fixtures as any);
     // Refresh current monster defaults from catalog if available
-    boardStoreRef.setCurrentMonsterSelection(boardStoreRef.currentMonsterType, boardStoreRef.currentMonsterCustomText);
+    boardStoreRef.setCurrentMonsterSelection(
+        boardStoreRef.currentMonsterType,
+        boardStoreRef.currentMonsterCustomText,
+    );
 
     // Initialize last elements snapshot after hydration
     try {
@@ -169,7 +185,7 @@ onMounted(() => {
 
     // Server broadcasts when heroes change (e.g., a player adds a new hero)
     try {
-        presenceChannel.listen('.game.heroes.updated', (e: any) => {
+        presenceChannel.listen(".game.heroes.updated", (e: any) => {
             const heroes = Array.isArray(e?.heroes) ? e.heroes : null;
             if (heroes) {
                 gameStore.setHeroes(heroes as any);
@@ -183,7 +199,7 @@ onMounted(() => {
             return;
         }
         if (!usersPresent.value.some((u) => u.id === myId)) {
-            const selfName = (page.props.auth.user?.name as string | undefined) ?? 'You';
+            const selfName = (page.props.auth.user?.name as string | undefined) ?? "You";
             usersPresent.value.push({ id: myId, name: selfName });
         }
     };
@@ -194,7 +210,7 @@ onMounted(() => {
             return;
         }
         const incomingHeroes = Array.isArray(data.heroes) ? data.heroes : null;
-        const incomingCurrent = typeof data.currentHero === 'number' ? data.currentHero : null;
+        const incomingCurrent = typeof data.currentHero === "number" ? data.currentHero : null;
         if (!incomingHeroes || incomingCurrent === null) {
             return;
         }
@@ -238,7 +254,7 @@ onMounted(() => {
         }
         // Apply full tile data including traversable status, not just visibility
         for (const incomingTile of data.tiles as Array<any>) {
-            if (typeof incomingTile.x !== 'number' || typeof incomingTile.y !== 'number') {
+            if (typeof incomingTile.x !== "number" || typeof incomingTile.y !== "number") {
                 continue;
             }
             const { x, y } = incomingTile;
@@ -268,8 +284,10 @@ onMounted(() => {
                 // no-op
             }
             // Apply full fixtureMeta if provided
-            const fmFull = (data as any).fixtureMeta as Record<string, { type: any; label: string } | null> | undefined;
-            if (fmFull && typeof fmFull === 'object') {
+            const fmFull = (data as any).fixtureMeta as
+                | Record<string, { type: any; label: string } | null>
+                | undefined;
+            if (fmFull && typeof fmFull === "object") {
                 const meta = {} as Record<string, { type: any; label: string }>;
                 for (const [k, v] of Object.entries(fmFull)) {
                     if (v != null) {
@@ -281,11 +299,15 @@ onMounted(() => {
             return;
         }
         // Case 2: sparse patch of changes
-        const changes = (data as any).changes as Array<{ x: number; y: number; tile: any }> | undefined;
+        const changes = (data as any).changes as
+            | Array<{ x: number; y: number; tile: any }>
+            | undefined;
         if (!Array.isArray(changes) || changes.length === 0) {
             // Even if no changes, we might have a pure fixtureMeta patch
-            const fmOnly = (data as any).fixtureMeta as Record<string, { type: any; label: string } | null> | undefined;
-            if (fmOnly && typeof fmOnly === 'object') {
+            const fmOnly = (data as any).fixtureMeta as
+                | Record<string, { type: any; label: string } | null>
+                | undefined;
+            if (fmOnly && typeof fmOnly === "object") {
                 const meta = { ...(boardStoreRef as any).fixtureMeta } as any;
                 for (const [k, v] of Object.entries(fmOnly)) {
                     if (v == null) {
@@ -302,7 +324,7 @@ onMounted(() => {
         const next = (boardStoreRef.tiles as any[]).map((row) => row);
         const touchedRows = new Set<number>();
         for (const c of changes) {
-            if (typeof c.x !== 'number' || typeof c.y !== 'number' || !c.tile) {
+            if (typeof c.x !== "number" || typeof c.y !== "number" || !c.tile) {
                 continue;
             }
             if (!touchedRows.has(c.y)) {
@@ -313,8 +335,10 @@ onMounted(() => {
         }
         boardStoreRef.tiles = next as any;
         // Apply fixtureMeta patch if provided
-        const fmPatch = (data as any).fixtureMeta as Record<string, { type: any; label: string } | null> | undefined;
-        if (fmPatch && typeof fmPatch === 'object') {
+        const fmPatch = (data as any).fixtureMeta as
+            | Record<string, { type: any; label: string } | null>
+            | undefined;
+        if (fmPatch && typeof fmPatch === "object") {
             const meta2 = { ...(boardStoreRef as any).fixtureMeta } as any;
             for (const [k, v] of Object.entries(fmPatch)) {
                 if (v == null) {
@@ -329,13 +353,13 @@ onMounted(() => {
 
     // Listen for selected tile syncs from any client (per-hero selection)
     onWhisper<SelectedTilePayload>(presenceChannel, WhisperEvents.SelectedTileSync, (payload) => {
-        if (!payload || typeof payload.heroId !== 'number') {
+        if (!payload || typeof payload.heroId !== "number") {
             return;
         }
         // sync the selected tile for this hero
         const heroId = payload.heroId;
         const tile =
-            payload.tile && typeof payload.tile.x === 'number' && typeof payload.tile.y === 'number'
+            payload.tile && typeof payload.tile.x === "number" && typeof payload.tile.y === "number"
                 ? { x: payload.tile.x, y: payload.tile.y }
                 : null;
         selectedByHero.value = { ...selectedByHero.value, [heroId]: tile };
@@ -351,27 +375,36 @@ onMounted(() => {
     }
 
     // Listen for hero moved events from any client
-    onWhisper(presenceChannel, WhisperEvents.HeroMoved, (payload: { heroId: number; x: number; y: number; steps?: number }) => {
-        if (!payload || typeof payload.heroId !== 'number') {
-            return;
-        }
-        gameStore.moveHero(payload.heroId, payload.x, payload.y, boardStoreRef);
-        // Append to game log if steps provided and update step counters
-        if (typeof payload.steps === 'number' && payload.steps > 0) {
-            const hero = (gameStore.heroes as any[]).find((h: any) => h.id === payload.heroId) as any;
-            const name = hero?.name ?? 'Hero';
-            const s = payload.steps;
-            gameLog.value.unshift({ kind: 'text', text: `${name} moved ${s} ${s === 1 ? 'space' : 'spaces'}` });
-            stepsByHero.value = { ...stepsByHero.value, [payload.heroId]: s };
-            // Clear any stale preview for this hero
-            const {
-                [payload.heroId]: _omit, // eslint-disable-line @typescript-eslint/no-unused-vars
-                ...rest
-            } = previewStepsByHero.value;
-            previewStepsByHero.value = rest;
-        }
-        // sync the hero position
-    });
+    onWhisper(
+        presenceChannel,
+        WhisperEvents.HeroMoved,
+        (payload: { heroId: number; x: number; y: number; steps?: number }) => {
+            if (!payload || typeof payload.heroId !== "number") {
+                return;
+            }
+            gameStore.moveHero(payload.heroId, payload.x, payload.y, boardStoreRef);
+            // Append to game log if steps provided and update step counters
+            if (typeof payload.steps === "number" && payload.steps > 0) {
+                const hero = (gameStore.heroes as any[]).find(
+                    (h: any) => h.id === payload.heroId,
+                ) as any;
+                const name = hero?.name ?? "Hero";
+                const s = payload.steps;
+                gameLog.value.unshift({
+                    kind: "text",
+                    text: `${name} moved ${s} ${s === 1 ? "space" : "spaces"}`,
+                });
+                stepsByHero.value = { ...stepsByHero.value, [payload.heroId]: s };
+                // Clear any stale preview for this hero
+                const {
+                    [payload.heroId]: _omit, // oxlint-disable-line @typescript-eslint/no-unused-vars
+                    ...rest
+                } = previewStepsByHero.value;
+                previewStepsByHero.value = rest;
+            }
+            // sync the hero position
+        },
+    );
 
     // Listen for monster moved events from GM/any client (log only)
     onWhisper<MonsterMovedPayload>(presenceChannel, WhisperEvents.MonsterMoved, (payload) => {
@@ -379,42 +412,51 @@ onMounted(() => {
             return;
         }
         const steps = (payload as any).steps as number | undefined;
-        if (typeof steps === 'number' && steps > 0) {
-            const displayId = (payload as any).monsterDisplayId ? ` (${(payload as any).monsterDisplayId})` : '';
-            const msg = `${(payload as any).monsterName}${displayId} moved ${steps} ${steps === 1 ? 'space' : 'spaces'}`;
-            gameLog.value.unshift({ kind: 'text', text: msg } as any);
+        if (typeof steps === "number" && steps > 0) {
+            const displayId = (payload as any).monsterDisplayId
+                ? ` (${(payload as any).monsterDisplayId})`
+                : "";
+            const msg = `${(payload as any).monsterName}${displayId} moved ${steps} ${steps === 1 ? "space" : "spaces"}`;
+            gameLog.value.unshift({ kind: "text", text: msg } as any);
         }
     });
 
     // Listen for hero updated events (stats/inventory/equipment) from any client
-    onWhisper(presenceChannel, WhisperEvents.HeroUpdated, (payload: { heroId: number; hero: any }) => {
-        if (!payload || typeof payload.heroId !== 'number' || !payload.hero) {
-            return;
-        }
-        const idx = (gameStore.heroes as any[]).findIndex((h: any) => h.id === payload.heroId);
-        if (idx === -1) {
-            return;
-        }
-        const existing = (gameStore.heroes as any[])[idx] as any;
-        const merged = {
-            ...existing,
-            ...(payload.hero as any),
-            id: existing.id,
-            playerId: existing.playerId,
-            x: existing.x,
-            y: existing.y,
-        } as any;
-        const next = [...(gameStore.heroes as any[])];
-        next.splice(idx, 1, merged);
-        gameStore.setHeroes(next as any);
-    });
+    onWhisper(
+        presenceChannel,
+        WhisperEvents.HeroUpdated,
+        (payload: { heroId: number; hero: any }) => {
+            if (!payload || typeof payload.heroId !== "number" || !payload.hero) {
+                return;
+            }
+            const idx = (gameStore.heroes as any[]).findIndex((h: any) => h.id === payload.heroId);
+            if (idx === -1) {
+                return;
+            }
+            const existing = (gameStore.heroes as any[])[idx] as any;
+            const merged = {
+                ...existing,
+                ...(payload.hero as any),
+                id: existing.id,
+                playerId: existing.playerId,
+                x: existing.x,
+                y: existing.y,
+            } as any;
+            const next = [...(gameStore.heroes as any[])];
+            next.splice(idx, 1, merged);
+            gameStore.setHeroes(next as any);
+        },
+    );
 
     // Listen for trap triggered events from any client
     onWhisper<TrapTriggeredPayload>(presenceChannel, WhisperEvents.TrapTriggered, (payload) => {
         if (!payload) {
             return;
         }
-        gameLog.value.unshift({ kind: 'text', text: `${payload.heroName} triggered a ${payload.trapName}` });
+        gameLog.value.unshift({
+            kind: "text",
+            text: `${payload.heroName} triggered a ${payload.trapName}`,
+        });
     });
 
     // Listen for dice rolls from any client
@@ -425,7 +467,13 @@ onMounted(() => {
         const { actorName, diceType, count, results } = payload as any;
         const expanded = expandPrimitiveResults(diceType as any, results as Array<number | string>);
         const sorted = sortDieValues(expanded as any);
-        gameLog.value.unshift({ kind: 'dice', actor: actorName, diceType, count, results: sorted } as any);
+        gameLog.value.unshift({
+            kind: "dice",
+            actor: actorName,
+            diceType,
+            count,
+            results: sorted,
+        } as any);
     });
 
     // Listen for turn ended events from any client
@@ -433,7 +481,7 @@ onMounted(() => {
         if (!payload) {
             return;
         }
-        gameLog.value.unshift({ kind: 'text', text: `${payload.heroName} ended their turn` });
+        gameLog.value.unshift({ kind: "text", text: `${payload.heroName} ended their turn` });
     });
 
     presenceChannel.here((users: PresentUser[]) => {
@@ -468,7 +516,7 @@ onMounted(() => {
         // Store on window scoped symbol to allow teardown below
         (window as any).__hqSaveInterval = window.setInterval(async () => {
             try {
-                showAutoSave('saving');
+                showAutoSave("saving");
                 const payload = {
                     elements: boardStoreRef.elements,
                     heroes: gameStore.heroes,
@@ -477,11 +525,11 @@ onMounted(() => {
                 } as any;
                 const url = SaveGameController(props.game.id).url;
                 await axios.put(url, payload, { withCredentials: true });
-                showAutoSave('saved');
+                showAutoSave("saved");
                 // console.debug('[auto-save] game saved');
             } catch (e) {
-                console.warn('[auto-save] failed', e);
-                showAutoSave('error');
+                console.warn("[auto-save] failed", e);
+                showAutoSave("error");
             }
         }, intervalMs);
     }
@@ -570,21 +618,21 @@ function removeHero(index: number): void {
     const removedHero = list[index];
     list.splice(index, 1);
     gameStore.setHeroes(list as any);
-    
+
     // If the removed hero was active, set the first hero as active
     if (removedHero && (removedHero as any).id === gameStore.currentHeroId) {
         if (list.length > 0) {
             gameStore.setCurrentHero((list[0] as any).id);
         }
     }
-    
+
     // Broadcast the updated hero list and current active hero id
     broadcastGameStateSync();
 }
 
 function setActive(heroId: number): void {
     // Set the active hero to the selected hero id
-    if (typeof heroId !== 'number') {
+    if (typeof heroId !== "number") {
         return;
     }
     gameStore.setCurrentHero(heroId);
@@ -596,7 +644,7 @@ function setActive(heroId: number): void {
 function updateBody(payload: { heroId: number | null; value: number }): void {
     const heroId = payload?.heroId ?? null;
     const value = payload?.value;
-    if (heroId == null || typeof value !== 'number') {
+    if (heroId == null || typeof value !== "number") {
         return;
     }
     const hero = (gameStore.heroes as any[]).find((h) => h.id === heroId);
@@ -618,7 +666,7 @@ function updateBody(payload: { heroId: number | null; value: number }): void {
     }
     const updated = {
         ...(gameStore.heroes[idx] as any),
-        stats: { ...(hero.stats || {}), currentBodyPoints: nextVal },
+        stats: { ...hero.stats, currentBodyPoints: nextVal },
     } as any;
     const next = [...(gameStore.heroes as any[])];
     next.splice(idx, 1, updated);
@@ -632,7 +680,7 @@ function updateBody(payload: { heroId: number | null; value: number }): void {
 }
 
 function assignHero(payload: { heroId: number; playerId: number }): void {
-    if (!payload || typeof payload.heroId !== 'number' || typeof payload.playerId !== 'number') {
+    if (!payload || typeof payload.heroId !== "number" || typeof payload.playerId !== "number") {
         return;
     }
     if (!isGameMaster.value) {
@@ -656,7 +704,7 @@ function assignHero(payload: { heroId: number; playerId: number }): void {
 }
 
 async function saveHero(payload: { heroId: number; hero: any }): Promise<void> {
-    if (!payload || typeof payload.heroId !== 'number' || !payload.hero) {
+    if (!payload || typeof payload.heroId !== "number" || !payload.hero) {
         return;
     }
     const heroId = payload.heroId;
@@ -676,17 +724,21 @@ async function saveHero(payload: { heroId: number; hero: any }): Promise<void> {
     const cleaned = {
         ...incoming,
         inventory: Array.isArray(incoming.inventory)
-            ? incoming.inventory.filter((it: any) => it && it.name && String(it.name).trim().length > 0)
+            ? incoming.inventory.filter(
+                  (it: any) => it && it.name && String(it.name).trim().length > 0,
+              )
             : [],
         equipment: Array.isArray(incoming.equipment)
-            ? incoming.equipment.filter((eq: any) => eq && eq.name && String(eq.name).trim().length > 0)
+            ? incoming.equipment.filter(
+                  (eq: any) => eq && eq.name && String(eq.name).trim().length > 0,
+              )
             : [],
     } as any;
     try {
         const url = (SelectHeroController as any).update(heroId).url as string;
         await axios.put(url, cleaned, { withCredentials: true });
     } catch (e) {
-        console.error('Failed to update hero:', e);
+        console.error("Failed to update hero:", e);
         // Even if the response redirects, the update likely succeeded; proceed with local/broadcast updates.
     }
     // Merge into existing hero (preserve id, player, position)
@@ -710,7 +762,7 @@ async function saveHero(payload: { heroId: number; hero: any }): Promise<void> {
 
 // --- Actions (dice + turn) ---
 function rollDice(payload: { type: DieType; count: number }): void {
-    if (!payload || (payload.type !== ('six_sided' as any) && payload.type !== ('combat' as any))) {
+    if (!payload || (payload.type !== ("six_sided" as any) && payload.type !== ("combat" as any))) {
         return;
     }
     const type = payload.type as DieType;
@@ -726,22 +778,34 @@ function rollDice(payload: { type: DieType; count: number }): void {
     const meId = currentUserId.value;
     let actor: string;
     if (isGameMaster.value) {
-        actor = 'Zargon';
+        actor = "Zargon";
     } else {
-        const active = (gameStore.heroes as any[]).find((h: any) => h.id === (gameStore as any).currentHeroId) as any;
-        if (active && typeof active.playerId === 'number' && meId != null && active.playerId === meId) {
-            actor = (active.name as string) ?? 'Hero';
+        const active = (gameStore.heroes as any[]).find(
+            (h: any) => h.id === (gameStore as any).currentHeroId,
+        ) as any;
+        if (
+            active &&
+            typeof active.playerId === "number" &&
+            meId != null &&
+            active.playerId === meId
+        ) {
+            actor = (active.name as string) ?? "Hero";
         } else {
-            actor = (page.props.auth.user?.name as string | undefined) ?? 'Someone';
+            actor = (page.props.auth.user?.name as string | undefined) ?? "Someone";
         }
     }
     // Log locally with icons/colors
-    gameLog.value.unshift({ kind: 'dice', actor, diceType: type, count, results: sorted });
+    gameLog.value.unshift({ kind: "dice", actor, diceType: type, count, results: sorted });
     // Broadcast to other clients with primitive values
     try {
         const ch = channel();
         const primitive = sorted.map((r) => r.value);
-        const packet: DiceRolledPayload = { actorName: actor, diceType: type, count, results: primitive } as any;
+        const packet: DiceRolledPayload = {
+            actorName: actor,
+            diceType: type,
+            count,
+            results: primitive,
+        } as any;
         broadcastDiceRolled(ch, packet);
     } catch {}
 }
@@ -755,21 +819,21 @@ function endTurn(): void {
     const curId = gameStore.currentHeroId as number;
     const idx = list.findIndex((h: any) => h?.id === curId);
     const currentHero = idx !== -1 ? list[idx] : null;
-    const heroName = (currentHero as any)?.name || 'Unknown';
-    
+    const heroName = (currentHero as any)?.name || "Unknown";
+
     // Add log entry for turn end
-    gameLog.value.unshift({ kind: 'text', text: `${heroName} ended their turn` });
-    
+    gameLog.value.unshift({ kind: "text", text: `${heroName} ended their turn` });
+
     // Broadcast turn ended event to other clients
     try {
         const ch = channel();
         const packet: TurnEndedPayload = { heroName };
         broadcastTurnEnded(ch, packet);
     } catch {}
-    
+
     const nextIdx = idx === -1 ? 0 : (idx + 1) % list.length;
     const nextId = (list[nextIdx] as any)?.id as number | undefined;
-    if (typeof nextId !== 'number') {
+    if (typeof nextId !== "number") {
         return;
     }
     gameStore.setCurrentHero(nextId);
@@ -793,7 +857,12 @@ function toggleSelect(): void {
 }
 
 function clearMySelection(): void {
-    const heroId = chooseSelectionHeroIdUtil(isGameMaster.value, currentUserId.value, gameStore.currentHeroId, gameStore.heroes as any);
+    const heroId = chooseSelectionHeroIdUtil(
+        isGameMaster.value,
+        currentUserId.value,
+        gameStore.currentHeroId,
+        gameStore.heroes as any,
+    );
     if (heroId == null) {
         return;
     }
@@ -807,7 +876,12 @@ function clearMySelection(): void {
 
 function onSelectTile(payload: { x: number; y: number }): void {
     // when a hero/player selects a tile, mark it as selected and broadcast the selection to all clients
-    const heroId = chooseSelectionHeroIdUtil(isGameMaster.value, currentUserId.value, gameStore.currentHeroId, gameStore.heroes as any);
+    const heroId = chooseSelectionHeroIdUtil(
+        isGameMaster.value,
+        currentUserId.value,
+        gameStore.currentHeroId,
+        gameStore.heroes as any,
+    );
     if (heroId == null) {
         return;
     }
@@ -823,58 +897,82 @@ function onSelectTile(payload: { x: number; y: number }): void {
 }
 
 function onHeroMoving(payload: { heroId: number; steps: number }): void {
-    if (!payload || typeof payload.heroId !== 'number') {
+    if (!payload || typeof payload.heroId !== "number") {
         return;
     }
     // Update live preview steps for the local mover
-    previewStepsByHero.value = { ...previewStepsByHero.value, [payload.heroId]: Math.max(0, payload.steps) };
+    previewStepsByHero.value = {
+        ...previewStepsByHero.value,
+        [payload.heroId]: Math.max(0, payload.steps),
+    };
 }
 
-function onHeroMoved(payload: { heroes: Hero[]; heroId: number; heroName: string; steps: number }): void {
+function onHeroMoved(payload: {
+    heroes: Hero[];
+    heroId: number;
+    heroName: string;
+    steps: number;
+}): void {
     // Extract hero numeric id and new position from payload
     const heroId = payload.heroId;
     const movedEl = payload.heroes.find((e: any) => e.id === heroId) as any;
     gameStore.moveHero(heroId, movedEl.x, movedEl.y, boardStoreRef);
     try {
         const ch = channel();
-        broadcastHeroMovedUtil(ch, { heroId: heroId, x: movedEl.x, y: movedEl.y, steps: payload.steps });
+        broadcastHeroMovedUtil(ch, {
+            heroId: heroId,
+            x: movedEl.x,
+            y: movedEl.y,
+            steps: payload.steps,
+        });
     } catch {}
     // Update local step counters
     stepsByHero.value = { ...stepsByHero.value, [heroId]: Math.max(0, payload.steps) };
     const {
-        [heroId]: _omit, // eslint-disable-line @typescript-eslint/no-unused-vars
+        [heroId]: _omit, // oxlint-disable-line @typescript-eslint/no-unused-vars
         ...rest
     } = previewStepsByHero.value;
     previewStepsByHero.value = rest;
     // Log movement in game information panel (only when steps > 0)
     if ((payload.steps ?? 0) > 0) {
         const spaces = payload.steps;
-        const msg = `${payload.heroName} moved ${spaces} ${spaces === 1 ? 'space' : 'spaces'}`;
-        gameLog.value.unshift({ kind: 'text', text: msg } as any);
+        const msg = `${payload.heroName} moved ${spaces} ${spaces === 1 ? "space" : "spaces"}`;
+        gameLog.value.unshift({ kind: "text", text: msg } as any);
     }
 }
 
-function onMonsterMoved(payload: { monsterName: string; monsterDisplayId: string; steps: number }): void {
+function onMonsterMoved(payload: {
+    monsterName: string;
+    monsterDisplayId: string;
+    steps: number;
+}): void {
     // Log monster movement in game information panel (only when steps > 0)
     if ((payload.steps ?? 0) > 0) {
         const spaces = payload.steps;
-        const displayId = payload.monsterDisplayId ? ` (${payload.monsterDisplayId})` : '';
-        const msg = `${payload.monsterName}${displayId} moved ${spaces} ${spaces === 1 ? 'space' : 'spaces'}`;
-        gameLog.value.unshift({ kind: 'text', text: msg } as any);
+        const displayId = payload.monsterDisplayId ? ` (${payload.monsterDisplayId})` : "";
+        const msg = `${payload.monsterName}${displayId} moved ${spaces} ${spaces === 1 ? "space" : "spaces"}`;
+        gameLog.value.unshift({ kind: "text", text: msg } as any);
         // Broadcast to other clients so their logs are updated
         try {
             const ch = channel();
-            const packet: MonsterMovedPayload = { monsterName: payload.monsterName, monsterDisplayId: payload.monsterDisplayId, steps: payload.steps } as any;
+            const packet: MonsterMovedPayload = {
+                monsterName: payload.monsterName,
+                monsterDisplayId: payload.monsterDisplayId,
+                steps: payload.steps,
+            } as any;
             broadcastMonsterMoved(ch, packet);
         } catch {}
     }
 }
 
 function onTrapTriggered(payload: TrapTriggeredPayload): void {
-    if (!payload || typeof payload.heroName !== 'string' || typeof payload.trapName !== 'string') {
+    if (!payload || typeof payload.heroName !== "string" || typeof payload.trapName !== "string") {
         return;
     }
-    gameLog.value.unshift({ kind: 'text', text: `${payload.heroName} triggered a ${payload.trapName}` });
+    gameLog.value.unshift({
+        kind: "text",
+        text: `${payload.heroName} triggered a ${payload.trapName}`,
+    });
     // Broadcast to other clients
     try {
         const ch = channel();
@@ -899,9 +997,9 @@ function toggleVisibility(elementId: string): void {
     // Keep snapshot in sync with local mutation
     try {
         lastElementsSnapshot.value = [...(boardStoreRef.elements as any[])];
-        console.debug('[SNAPSHOT] local visibility', { size: lastElementsSnapshot.value.length });
+        console.debug("[SNAPSHOT] local visibility", { size: lastElementsSnapshot.value.length });
     } catch {}
-    
+
     // When revealing a secret door, also reveal the tile it's on
     if (el.type === ElementType.SecretDoor && !el.hidden) {
         boardStoreRef.setTileVisible(el.x, el.y, true);
@@ -913,11 +1011,14 @@ function toggleVisibility(elementId: string): void {
             broadcastFogOfWarSyncUtil(ch, [fullTile]);
         } catch {}
     }
-    
+
     try {
         const ch = channel();
         // Compact: broadcast only visibility change
-        broadcastElementsPatchSyncUtil(ch, { v: 1, changes: [{ op: 'visibility', id: el.id as string, hidden: !!el.hidden }] } as any);
+        broadcastElementsPatchSyncUtil(ch, {
+            v: 1,
+            changes: [{ op: "visibility", id: el.id as string, hidden: !!el.hidden }],
+        } as any);
         // Legacy fallback (temporary)
         // const elements = (next as any[]).map((e) => applyTrapColorByStatus(e));
         // broadcastElementsSyncUtil(ch, elements as any);
@@ -926,7 +1027,7 @@ function toggleVisibility(elementId: string): void {
 
 function onMonsterSelected(payload: { elementId: string }): void {
     const id = payload?.elementId;
-    if (typeof id !== 'string') {
+    if (typeof id !== "string") {
         return;
     }
     selectedMonsterId.value = id;
@@ -943,7 +1044,7 @@ function updateMonsterBody(payload: { elementId: string; value: number }): void 
     }
     const id = payload?.elementId;
     const value = payload?.value as number;
-    if (typeof id !== 'string' || typeof value !== 'number') {
+    if (typeof id !== "string" || typeof value !== "number") {
         return;
     }
     const list = (boardStoreRef.elements as any[]) || [];
@@ -957,19 +1058,22 @@ function updateMonsterBody(payload: { elementId: string; value: number }): void 
     }
     const max = Number(el?.stats?.bodyPoints ?? 0);
     const nextVal = Math.max(0, Math.min(max, value));
-    el.stats = { ...(el.stats || {}), currentBodyPoints: nextVal };
+    el.stats = { ...el.stats, currentBodyPoints: nextVal };
     const next = [...list];
     next.splice(idx, 1, el);
     boardStoreRef.elements = next as any;
     // Keep snapshot in sync with local mutation
     try {
         lastElementsSnapshot.value = [...(boardStoreRef.elements as any[])];
-        console.debug('[SNAPSHOT] local hp', { size: lastElementsSnapshot.value.length });
+        console.debug("[SNAPSHOT] local hp", { size: lastElementsSnapshot.value.length });
     } catch {}
     try {
         const ch = channel();
         // Compact patch: HP only
-        broadcastElementsPatchSyncUtil(ch, { v: 1, changes: [{ op: 'hp', id, currentBodyPoints: nextVal }] } as any);
+        broadcastElementsPatchSyncUtil(ch, {
+            v: 1,
+            changes: [{ op: "hp", id, currentBodyPoints: nextVal }],
+        } as any);
         // Legacy fallback (temporary)
         // const elements = (next as any[]).map((e) => applyTrapColorByStatus(e));
         // broadcastElementsSyncUtil(ch, elements as any);
@@ -1006,12 +1110,17 @@ function openDoor(elementId: string): void {
     // Keep snapshot in sync with local mutation
     try {
         lastElementsSnapshot.value = [...(boardStoreRef.elements as any[])];
-        console.debug('[SNAPSHOT] local door', { size: lastElementsSnapshot.value.length });
+        console.debug("[SNAPSHOT] local door", { size: lastElementsSnapshot.value.length });
     } catch {}
     try {
         const ch = channel();
         // Compact patch: door becomes traversable and visible
-        broadcastElementsPatchSyncUtil(ch, { v: 1, changes: [{ op: 'update', id: el.id as string, patch: { traversable: true, hidden: false } }] } as any);
+        broadcastElementsPatchSyncUtil(ch, {
+            v: 1,
+            changes: [
+                { op: "update", id: el.id as string, patch: { traversable: true, hidden: false } },
+            ],
+        } as any);
         // Legacy fallback (temporary)
         // const elements = (next as any[]).map((e) => applyTrapColorByStatus(e));
         // broadcastElementsSyncUtil(ch, elements as any);
@@ -1049,20 +1158,24 @@ function onTilesRevealed(tiles: Array<{ x: number; y: number }>): void {
             const tile = boardStoreRef.tiles[coord.y]?.[coord.x];
             return tile ? { ...tile } : coord;
         });
-        console.debug('[TX] FogOfWarSync', { tiles: fullTiles.length });
+        console.debug("[TX] FogOfWarSync", { tiles: fullTiles.length });
         broadcastFogOfWarSyncUtil(ch, fullTiles as any);
 
         // Also broadcast any non-hidden elements that sit on the newly revealed tiles (e.g., monsters)
         const revealedCoordSet = new Set(tiles.map((t) => `${t.x}:${t.y}`));
         const elementsToAnnounce = (boardStoreRef.elements as any[]).filter((e: any) => {
-            if (!e || !e.id) { return false; }
-            if (e.hidden === true) { return false; } // do not reveal hidden traps/treasure/secret doors here
+            if (!e || !e.id) {
+                return false;
+            }
+            if (e.hidden === true) {
+                return false;
+            } // do not reveal hidden traps/treasure/secret doors here
             return revealedCoordSet.has(`${e.x}:${e.y}`);
         });
         if (elementsToAnnounce.length > 0) {
             const patch = {
                 v: 1,
-                changes: elementsToAnnounce.map((el: any) => ({ op: 'add', element: el })) as any[],
+                changes: elementsToAnnounce.map((el: any) => ({ op: "add", element: el })) as any[],
             } as any;
             broadcastElementsPatchSyncUtil(ch, patch);
 
@@ -1100,10 +1213,15 @@ function onTilesChanged(payload: {
             // Broadcast compact patch payload
             const out = changes.map((c) => ({ x: c.x, y: c.y, tile: { ...(c.tile as any) } }));
             const fm = payload.fixtureMeta ? { ...(payload.fixtureMeta as any) } : undefined;
-            broadcastTilesSyncUtil(ch, fm ? ({ changes: out, fixtureMeta: fm } as any) : ({ changes: out } as any));
+            broadcastTilesSyncUtil(
+                ch,
+                fm ? ({ changes: out, fixtureMeta: fm } as any) : ({ changes: out } as any),
+            );
         } else {
             // Fallback: broadcast full matrix (less ideal due to payload size)
-            const full = (boardStoreRef.tiles as any[]).map((row: any[]) => row.map((t: any) => ({ ...t })));
+            const full = (boardStoreRef.tiles as any[]).map((row: any[]) =>
+                row.map((t: any) => ({ ...t })),
+            );
             const fullMeta = { ...(boardStoreRef as any).fixtureMeta } as any;
             broadcastTilesSyncUtil(ch, { tiles: full, fixtureMeta: fullMeta } as any);
         }
@@ -1126,8 +1244,8 @@ async function completeGame(): Promise<void> {
         const dashUrl = (DashboardController as any)().url as string;
         window.location.href = dashUrl;
     } catch (e) {
-        console.error('Failed to complete game:', e);
-        window.alert('Failed to complete the game. Please try again.');
+        console.error("Failed to complete game:", e);
+        window.alert("Failed to complete the game. Please try again.");
     }
 }
 </script>
@@ -1135,7 +1253,12 @@ async function completeGame(): Promise<void> {
 <template>
     <Head title="Play Game" />
     <AppHeaderLayout>
-        <GamemasterSidebar v-if="isGameMaster" v-model:badge-active="gmBadgeActive" v-model:badge-type="gmBadgeType" @complete-game="completeGame" />
+        <GamemasterSidebar
+            v-if="isGameMaster"
+            v-model:badge-active="gmBadgeActive"
+            v-model:badge-type="gmBadgeType"
+            @complete-game="completeGame"
+        />
         <!-- Header -->
         <div class="my-2 flex flex-row items-center justify-between gap-3">
             <div class="flex flex-row items-center gap-2">
@@ -1149,7 +1272,9 @@ async function completeGame(): Promise<void> {
         <div class="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row">
             <!-- Board Canvas -->
             <section class="flex min-h-0 flex-col">
-                <div class="overflow-auto rounded border border-gray-200 bg-white p-2 dark:border-neutral-800 dark:bg-neutral-900">
+                <div
+                    class="overflow-auto rounded border border-gray-200 bg-white p-2 dark:border-neutral-800 dark:bg-neutral-900"
+                >
                     <BoardCanvas
                         :board="board"
                         :can-edit="isGameMaster"
@@ -1168,7 +1293,9 @@ async function completeGame(): Promise<void> {
                         @elements-changed="onElementsChanged"
                         @tiles-changed="onTilesChanged"
                         @monster-selected="onMonsterSelected"
-                        :gm-search-badge-tool="{ active: gmBadgeActive, type: gmBadgeType, scope: gmBadgeScope } as any"
+                        :gm-search-badge-tool="
+                            { active: gmBadgeActive, type: gmBadgeType, scope: gmBadgeScope } as any
+                        "
                     />
                 </div>
             </section>

@@ -1,5 +1,5 @@
-import { MonsterType } from '@/types/board';
-import { Stats } from '@/types/gameplay';
+import { MonsterType } from "@/types/board";
+import { Stats } from "@/types/gameplay";
 
 export function statsForMonsterType(monsterType: MonsterType): Stats {
     const defaultStats = {

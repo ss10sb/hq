@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import joinGameController from '@/actions/App/Http/Controllers/Game/JoinGameController';
-import SelectHeroController from '@/actions/App/Http/Controllers/Hero/SelectHeroController';
-import Errors from '@/components/Errors.vue';
-import HeroForm from '@/components/hero/HeroForm.vue';
-import HeroesList from '@/components/hero/HeroesList.vue';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { cloneHero, defaultsFor, heroArchetypes } from '@/lib/board/hero';
-import type { BreadcrumbItem } from '@/types';
-import { Hero, HeroArchetype, type NewHero } from '@/types/hero';
-import type { LengthAwarePaginator } from '@/types/pagination';
-import { Head, router, useForm } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import joinGameController from "@/actions/App/Http/Controllers/Game/JoinGameController";
+import SelectHeroController from "@/actions/App/Http/Controllers/Hero/SelectHeroController";
+import Errors from "@/components/Errors.vue";
+import HeroForm from "@/components/hero/HeroForm.vue";
+import HeroesList from "@/components/hero/HeroesList.vue";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import AppLayout from "@/layouts/AppLayout.vue";
+import { cloneHero, defaultsFor, heroArchetypes } from "@/lib/board/hero";
+import type { BreadcrumbItem } from "@/types";
+import { Hero, HeroArchetype, type NewHero } from "@/types/hero";
+import type { LengthAwarePaginator } from "@/types/pagination";
+import { Head, router, useForm } from "@inertiajs/vue3";
+import { computed, ref } from "vue";
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Select Hero',
+        title: "Select Hero",
         href: SelectHeroController().url,
     },
 ];
@@ -26,12 +26,12 @@ const props = defineProps<{
     heroes: NewHero[];
 }>();
 
-type Mode = 'idle' | 'create' | 'edit';
-const mode = ref<Mode>('idle');
+type Mode = "idle" | "create" | "edit";
+const mode = ref<Mode>("idle");
 const selected = ref<NewHero | null>(null);
 const selectedId = ref<number | null>(null);
 const form = useForm<NewHero>({
-    name: '',
+    name: "",
     type: HeroArchetype.Berserker,
     stats: {
         bodyPoints: 0,
@@ -48,7 +48,7 @@ const form = useForm<NewHero>({
 const archetypes = computed<HeroArchetype[]>(() => heroArchetypes(props.heroes));
 
 const heroDraft = ref<NewHero>({
-    name: '',
+    name: "",
     type: HeroArchetype.Berserker,
     stats: { bodyPoints: 0, mindPoints: 0, attackDice: 0, defenseDice: 0, currentBodyPoints: 0 },
     inventory: [],
@@ -57,36 +57,42 @@ const heroDraft = ref<NewHero>({
 });
 
 function startCreate() {
-    mode.value = 'create';
+    mode.value = "create";
     selected.value = null;
     selectedId.value = null;
     heroDraft.value = defaultsFor(archetypes.value[0] ?? HeroArchetype.Berserker, props.heroes);
 }
 
 function selectHero(hero: Hero) {
-    mode.value = 'edit';
+    mode.value = "edit";
     selectedId.value = hero.id;
     selected.value = cloneHero(hero);
     heroDraft.value = cloneHero(hero);
 }
 
 function onTypeChange(newType: HeroArchetype) {
-    if (mode.value === 'create') {
+    if (mode.value === "create") {
         const newHero = defaultsFor(newType, props.heroes);
-        heroDraft.value = { ...heroDraft.value, type: newHero.type,  stats: newHero.stats};
+        heroDraft.value = { ...heroDraft.value, type: newHero.type, stats: newHero.stats };
     } else {
         heroDraft.value = { ...heroDraft.value, type: newType };
     }
 }
 
 function resetToIdle() {
-    mode.value = 'idle';
+    mode.value = "idle";
     selected.value = null;
     selectedId.value = null;
     heroDraft.value = {
-        name: '',
+        name: "",
         type: HeroArchetype.Berserker,
-        stats: { bodyPoints: 0, mindPoints: 0, attackDice: 0, defenseDice: 0, currentBodyPoints: 0 },
+        stats: {
+            bodyPoints: 0,
+            mindPoints: 0,
+            attackDice: 0,
+            defenseDice: 0,
+            currentBodyPoints: 0,
+        },
         inventory: [],
         equipment: [],
         gold: 0,
@@ -119,7 +125,7 @@ const submitForm = async () => {
 const joinGameSession = (heroId: number) => {
     router.get(joinGameController({ heroId, joinKey: joinKey.value }).url);
 };
-const joinKey = ref('');
+const joinKey = ref("");
 </script>
 
 <template>
@@ -140,7 +146,14 @@ const joinKey = ref('');
                             aria-label="Game Join Key"
                             class="rounded-tl-sm rounded-tr-none rounded-br-none rounded-bl-sm border border-[#19140035] bg-transparent px-5 py-1.5 text-sm leading-normal text-[#1b1b18] outline-none focus:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:focus:border-[#62605b]"
                         />
-                        <Button variant="outline" type="submit" :disabled="!joinKey" class="rounded-tl-none rounded-bl-none border"> Join </Button>
+                        <Button
+                            variant="outline"
+                            type="submit"
+                            :disabled="!joinKey"
+                            class="rounded-tl-none rounded-bl-none border"
+                        >
+                            Join
+                        </Button>
                     </form>
                 </div>
             </div>
@@ -167,7 +180,9 @@ const joinKey = ref('');
                                 @type-change="onTypeChange"
                             />
                         </template>
-                        <template v-else> Select a hero or click Create New Hero to create a new hero. </template>
+                        <template v-else>
+                            Select a hero or click Create New Hero to create a new hero.
+                        </template>
                     </CardContent>
                 </Card>
             </div>

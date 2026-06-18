@@ -1,5 +1,5 @@
-import { Colors500 } from '@/lib/game/colors';
-import { Element, ElementType, TrapStatus } from '@/types/board';
+import { Colors500 } from "@/lib/game/colors";
+import { Element, ElementType, TrapStatus } from "@/types/board";
 
 /**
  * Normalize trap icon color based on trap status so triggered traps render as red.
@@ -17,7 +17,7 @@ export function applyTrapColorByStatus<T extends Element | any>(el: T): T {
         // For other states, fall back to default icon color (amber) by unsetting explicit overrides
         if ((el as any).color) {
             const {
-                color, // eslint-disable-line @typescript-eslint/no-unused-vars
+                color, // oxlint-disable-line @typescript-eslint/no-unused-vars
                 ...rest
             } = el as any;
             return { ...(rest as any) } as T;
@@ -28,23 +28,22 @@ export function applyTrapColorByStatus<T extends Element | any>(el: T): T {
     }
 }
 
-
 // Track used display IDs to ensure uniqueness
 const usedDisplayIds = new Set<string>();
 
 /**
  * Generates incrementing display IDs using capital letters.
  * Sequence: A-Z, AA-ZZ, AAA-ZZZ, etc.
- * 
+ *
  * @returns The next available display ID
  */
 export function generateDisplayId(): string {
     let length = 1;
-    
+
     while (true) {
         // Generate all possible IDs of current length
         const maxForLength = Math.pow(26, length);
-        
+
         for (let i = 0; i < maxForLength; i++) {
             const id = numberToAlpha(i, length);
             if (!usedDisplayIds.has(id)) {
@@ -52,7 +51,7 @@ export function generateDisplayId(): string {
                 return id;
             }
         }
-        
+
         // Move to next length (A-Z -> AA-ZZ -> AAA-ZZZ, etc.)
         length++;
     }
@@ -64,15 +63,15 @@ export function generateDisplayId(): string {
  * @param length The desired length of the output string
  */
 function numberToAlpha(num: number, length: number): string {
-    let result = '';
+    let result = "";
     let n = num;
-    
+
     for (let i = 0; i < length; i++) {
         const remainder = n % 26;
         result = String.fromCharCode(97 + remainder) + result; // 65 is 'A'
         n = Math.floor(n / 26);
     }
-    
+
     return result;
 }
 
@@ -89,7 +88,7 @@ export function resetDisplayIds(): void {
  * Call this when loading saved elements to prevent ID collisions.
  */
 export function registerDisplayId(id: string): void {
-    if (id && typeof id === 'string') {
+    if (id && typeof id === "string") {
         usedDisplayIds.add(id);
     }
 }

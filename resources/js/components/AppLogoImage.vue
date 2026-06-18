@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from 'vue';
-import logoImage from '../../images/logo.jpg';
+import type { HTMLAttributes } from "vue";
+import logoImage from "../../images/logo.jpg";
 
 defineOptions({
     inheritAttrs: false,
 });
 
 interface Props {
-    className?: HTMLAttributes['class'];
+    className?: HTMLAttributes["class"];
 }
 
 defineProps<Props>();

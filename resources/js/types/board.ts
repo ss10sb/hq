@@ -11,32 +11,32 @@
  * From PHP Enum TileType
  */
 export enum TileType {
-    Wall = 'wall', // Non-interactive; default state for an empty board.
-    Floor = 'floor', // Interactive; can contain characters, items, etc.
-    Fixture = 'fixture',
+    Wall = "wall", // Non-interactive; default state for an empty board.
+    Floor = "floor", // Interactive; can contain characters, items, etc.
+    Fixture = "fixture",
 }
 
 export enum BoardTool {
-    None = 'none',
-    DrawFloor = 'draw-floor',
-    DrawWalls = 'draw-walls',
-    AddMonster = 'add-monster',
-    AddFixture = 'add-fixture',
-    AddDoor = 'add-door',
-    AddSecretDoor = 'add-secret-door',
-    AddTrap = 'add-trap',
-    AddTreasure = 'add-treasure',
-    AddPlayerStart = 'add-player-start',
-    AddPlayerExit = 'add-player-exit',
-    ToggleVisibility = 'toggle-visibility',
-    OpenDoor = 'open-door',
-    SelectTile = 'select-tile',
-    RevealRoom = 'reveal-room',
-    RevealCorridor = 'reveal-corridor',
-    RevealTile = 'reveal-tile',
-    RemoveElement = 'remove-element',
-    MoveMonster = 'move-monster',
-    MoveElement = 'move-element',
+    None = "none",
+    DrawFloor = "draw-floor",
+    DrawWalls = "draw-walls",
+    AddMonster = "add-monster",
+    AddFixture = "add-fixture",
+    AddDoor = "add-door",
+    AddSecretDoor = "add-secret-door",
+    AddTrap = "add-trap",
+    AddTreasure = "add-treasure",
+    AddPlayerStart = "add-player-start",
+    AddPlayerExit = "add-player-exit",
+    ToggleVisibility = "toggle-visibility",
+    OpenDoor = "open-door",
+    SelectTile = "select-tile",
+    RevealRoom = "reveal-room",
+    RevealCorridor = "reveal-corridor",
+    RevealTile = "reveal-tile",
+    RemoveElement = "remove-element",
+    MoveMonster = "move-monster",
+    MoveElement = "move-element",
 }
 
 /**
@@ -44,21 +44,21 @@ export enum BoardTool {
  * From PHP Enum Board\Elements\Constants\ElementType
  */
 export enum ElementType {
-    Door = 'door',
-    SecretDoor = 'secret_door',
-    Monster = 'monster',
-    PlayerStart = 'player_start',
-    PlayerExit = 'player_exit',
-    Trap = 'trap',
-    Treasure = 'treasure',
-    Custom = 'custom',
-    Hero = 'hero',
+    Door = "door",
+    SecretDoor = "secret_door",
+    Monster = "monster",
+    PlayerStart = "player_start",
+    PlayerExit = "player_exit",
+    Trap = "trap",
+    Treasure = "treasure",
+    Custom = "custom",
+    Hero = "hero",
 }
 
 /**
  * An interactive element placed on the board.
  */
-import type { Stats } from '@/types/gameplay';
+import type { Stats } from "@/types/gameplay";
 
 export type Element = {
     id: string; // type:x:y or custom (e.g., hero:{playerId})
@@ -144,9 +144,9 @@ export interface BoardState extends Board {
 }
 
 export enum BoardGroup {
-    Core = 'core',
-    Kellars_Keep = 'kellars-keep',
-    Custom = 'custom'
+    Core = "core",
+    Kellars_Keep = "kellars-keep",
+    Custom = "custom",
 }
 
 export type BoardGroups = {
@@ -169,53 +169,53 @@ export type NewBoard = {
  * From PHP Enum Board\Elements\Monsters\Constants\MonsterType
  */
 export enum MonsterType {
-    Goblin = 'goblin',
-    Skeleton = 'skeleton',
-    Zombie = 'zombie',
-    Mummy = 'mummy',
-    Gargoyle = 'gargoyle',
-    DreadWarrior = 'dread-warrior',
-    Abomination = 'abomination',
-    Orc = 'orc',
-    Custom = 'custom',
+    Goblin = "goblin",
+    Skeleton = "skeleton",
+    Zombie = "zombie",
+    Mummy = "mummy",
+    Gargoyle = "gargoyle",
+    DreadWarrior = "dread-warrior",
+    Abomination = "abomination",
+    Orc = "orc",
+    Custom = "custom",
 }
 
 /**
  * From PHP Enum Board\GameBoard\Constants\FixtureType
  */
 export enum FixtureType {
-    TreasureChest = 'treasure-chest',
-    Chair = 'chair',
-    Table = 'table',
-    Bookcase = 'bookcase',
-    Cupboard = 'cupboard',
-    AlchemistBench = 'alchemist-bench',
-    Altar = 'altar',
-    Throne = 'throne',
-    Fireplace = 'fireplace',
-    TortureRack = 'torture-rack',
-    Tomb = 'tomb',
-    SorcerersTable = 'sorcerers-table',
-    Custom = 'custom',
+    TreasureChest = "treasure-chest",
+    Chair = "chair",
+    Table = "table",
+    Bookcase = "bookcase",
+    Cupboard = "cupboard",
+    AlchemistBench = "alchemist-bench",
+    Altar = "altar",
+    Throne = "throne",
+    Fireplace = "fireplace",
+    TortureRack = "torture-rack",
+    Tomb = "tomb",
+    SorcerersTable = "sorcerers-table",
+    Custom = "custom",
 }
 
 /**
  * From PHP Enum Board\Elements\Traps\Constants\TrapType
  */
 export enum TrapType {
-    Pit = 'pit',
-    Spear = 'spear',
-    Block = 'block',
-    Custom = 'custom',
+    Pit = "pit",
+    Spear = "spear",
+    Block = "block",
+    Custom = "custom",
 }
 
 /**
  * From PHP Enum Board\Elements\Traps\Constants\TrapStatus
  */
 export enum TrapStatus {
-    Armed = 'armed',
-    Disarmed = 'disarmed',
-    Triggered = 'triggered',
+    Armed = "armed",
+    Disarmed = "disarmed",
+    Triggered = "triggered",
 }
 
 export type Monster = {

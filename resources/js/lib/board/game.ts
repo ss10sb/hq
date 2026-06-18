@@ -1,7 +1,7 @@
-import { getBoardElementAt, isBoardTileTraversable } from '@/lib/board/board.lib';
-import { Board } from '@/types/board';
-import { Game } from '@/types/game';
-import { Hero, Zargon } from '@/types/hero';
+import { getBoardElementAt, isBoardTileTraversable } from "@/lib/board/board.lib";
+import { Board } from "@/types/board";
+import { Game } from "@/types/game";
+import { Hero, Zargon } from "@/types/hero";
 
 export function moveGameHero(id: number, toX: number, toY: number, game: Game, board: Board) {
     if (toY < 0 || toY >= board.height || toX < 0 || toX >= board.width) {
@@ -21,7 +21,9 @@ export function moveGameHero(id: number, toX: number, toY: number, game: Game, b
         return false;
     }
     // Disallow ending on another hero's tile
-    const occupant = game.heroes.find((h) => (h as any).x === toX && (h as any).y === toY && (h as any).id !== id);
+    const occupant = game.heroes.find(
+        (h) => (h as any).x === toX && (h as any).y === toY && (h as any).id !== id,
+    );
     if (occupant) {
         return false;
     }
@@ -46,5 +48,5 @@ export function getHeroAt(x: number, y: number, game: Game) {
 }
 
 export function isHero(hero: Hero | Zargon): hero is Hero {
-    return typeof hero.x === 'number' && typeof hero.y === 'number';
+    return typeof hero.x === "number" && typeof hero.y === "number";
 }

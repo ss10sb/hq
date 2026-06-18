@@ -1,31 +1,35 @@
-import type { Element } from '@/types/board';
-import type Echo from 'laravel-echo';
+import type { Element } from "@/types/board";
+import type Echo from "laravel-echo";
 
 // Central registry of whisper event names used by gameplay.
 export const WhisperEvents = {
-    GameStateSync: 'gameState.sync',
-    BoardElementsSync: 'board.elements.sync',
-    BoardElementsPatchSync: 'board.elements.patch',
-    BoardTilesSync: 'board.tiles.sync',
-    SelectedTileSync: 'board.selected.sync',
+    GameStateSync: "gameState.sync",
+    BoardElementsSync: "board.elements.sync",
+    BoardElementsPatchSync: "board.elements.patch",
+    BoardTilesSync: "board.tiles.sync",
+    SelectedTileSync: "board.selected.sync",
     // Future expansion (placeholders)
-    FogOfWarSync: 'fog.sync',
-    HeroMoved: 'hero.moved',
-    HeroUpdated: 'hero.updated',
-    MonsterMoved: 'monster.moved',
-    MonsterUpdated: 'monster.updated',
-    DoorOpened: 'door.opened',
-    DoorClosed: 'door.closed',
-    TrapTriggered: 'trap.triggered',
-    TrapDisarmed: 'trap.disarmed',
-    VisibilitySync: 'visibility.sync',
-    DiceRolled: 'dice.rolled',
-    TurnEnded: 'turn.ended',
+    FogOfWarSync: "fog.sync",
+    HeroMoved: "hero.moved",
+    HeroUpdated: "hero.updated",
+    MonsterMoved: "monster.moved",
+    MonsterUpdated: "monster.updated",
+    DoorOpened: "door.opened",
+    DoorClosed: "door.closed",
+    TrapTriggered: "trap.triggered",
+    TrapDisarmed: "trap.disarmed",
+    VisibilitySync: "visibility.sync",
+    DiceRolled: "dice.rolled",
+    TurnEnded: "turn.ended",
 } as const;
 
 export type WhisperEventName = (typeof WhisperEvents)[keyof typeof WhisperEvents];
 
-export function broadcastGameStateSync(channel: Echo.Channel, currentHero: number, heroes: any[]): void {
+export function broadcastGameStateSync(
+    channel: Echo.Channel,
+    currentHero: number,
+    heroes: any[],
+): void {
     try {
         channel.whisper(WhisperEvents.GameStateSync, {
             currentHero,
@@ -48,12 +52,12 @@ export function broadcastElementsSync(channel: Echo.Channel, elements: Element[]
 export type ElementsPatchV1 = {
     v: 1;
     changes: Array<
-        | { op: 'add'; element: Element }
-        | { op: 'remove'; id: string }
-        | { op: 'update'; id: string; patch: Partial<Element> }
-        | { op: 'move'; id: string; x: number; y: number }
-        | { op: 'visibility'; id: string; hidden: boolean }
-        | { op: 'hp'; id: string; currentBodyPoints: number }
+        | { op: "add"; element: Element }
+        | { op: "remove"; id: string }
+        | { op: "update"; id: string; patch: Partial<Element> }
+        | { op: "move"; id: string; x: number; y: number }
+        | { op: "visibility"; id: string; hidden: boolean }
+        | { op: "hp"; id: string; currentBodyPoints: number }
     >;
 };
 
@@ -65,11 +69,18 @@ export function broadcastElementsPatchSync(channel: Echo.Channel, payload: Eleme
     }
 }
 
-export type SelectedTilePayload = { heroId: number; tile: { x: number; y: number } | null; color?: string };
+export type SelectedTilePayload = {
+    heroId: number;
+    tile: { x: number; y: number } | null;
+    color?: string;
+};
 
-export function broadcastSelectedTileSync(channel: Echo.Channel, payload: SelectedTilePayload): void {
+export function broadcastSelectedTileSync(
+    channel: Echo.Channel,
+    payload: SelectedTilePayload,
+): void {
     try {
-        console.log('broadcastSelectedTileSync', payload);
+        console.log("broadcastSelectedTileSync", payload);
         channel.whisper(WhisperEvents.SelectedTileSync, payload);
     } catch {
         // no-op
@@ -80,13 +91,20 @@ export function broadcastSelectedTileSync(channel: Echo.Channel, payload: Select
  * Utility to safely listen for known whispers on a presence channel.
  * Unknown events are ignored, helping future-proof handlers.
  */
-export function onWhisper<T = any>(channel: Echo.Channel, event: WhisperEventName, handler: (payload: T) => void): void {
+export function onWhisper<T = any>(
+    channel: Echo.Channel,
+    event: WhisperEventName,
+    handler: (payload: T) => void,
+): void {
     channel.listenForWhisper(event, (data: T) => handler(data));
 }
 
 export type FogRevealPayload = { tiles: { x: number; y: number }[] };
 
-export function broadcastFogOfWarSync(channel: Echo.Channel, tiles: { x: number; y: number }[]): void {
+export function broadcastFogOfWarSync(
+    channel: Echo.Channel,
+    tiles: { x: number; y: number }[],
+): void {
     try {
         channel.whisper(WhisperEvents.FogOfWarSync, { tiles } as FogRevealPayload);
     } catch {
@@ -139,7 +157,12 @@ export function broadcastMonsterMoved(channel: Echo.Channel, payload: MonsterMov
     }
 }
 
-export type TrapTriggeredPayload = { heroId: number; heroName: string; trapId: string; trapName: string };
+export type TrapTriggeredPayload = {
+    heroId: number;
+    heroName: string;
+    trapId: string;
+    trapName: string;
+};
 
 export function broadcastTrapTriggered(channel: Echo.Channel, payload: TrapTriggeredPayload): void {
     try {
@@ -150,8 +173,13 @@ export function broadcastTrapTriggered(channel: Echo.Channel, payload: TrapTrigg
 }
 
 // --- Dice Rolls ---
-import type { DieType } from '@/lib/game/dice';
-export type DiceRolledPayload = { actorName: string; diceType: DieType; count: number; results: Array<number | string> };
+import type { DieType } from "@/lib/game/dice";
+export type DiceRolledPayload = {
+    actorName: string;
+    diceType: DieType;
+    count: number;
+    results: Array<number | string>;
+};
 
 export function broadcastDiceRolled(channel: Echo.Channel, payload: DiceRolledPayload): void {
     try {

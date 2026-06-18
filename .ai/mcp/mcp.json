@@ -1,11 +1,8 @@
 {
-  "mcpServers": {
-    "laravel-boost": {
-      "command": "/usr/bin/php",
-      "args": [
-        "/data/projects/php/laravel/learning/hq/artisan",
-        "boost:mcp"
-      ]
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "/usr/bin/php",
+            "args": ["/data/projects/php/laravel/learning/hq/artisan", "boost:mcp"]
+        }
     }
-  }
 }

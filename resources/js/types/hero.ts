@@ -1,11 +1,11 @@
-import type { Stats } from '@/types/gameplay';
+import type { Stats } from "@/types/gameplay";
 
 export enum HeroArchetype {
-    Berserker = 'berserker',
-    Dwarf = 'dwarf',
-    Elf = 'elf',
-    Wizard = 'wizard',
-    Custom = 'custom',
+    Berserker = "berserker",
+    Dwarf = "dwarf",
+    Elf = "elf",
+    Wizard = "wizard",
+    Custom = "custom",
 }
 
 export type NewHero = {
@@ -23,7 +23,7 @@ export interface Character {
     playerId: number;
 }
 
-export interface Zargon extends Character {} // eslint-disable-line @typescript-eslint/no-empty-object-type
+export interface Zargon extends Character {} // oxlint-disable-line @typescript-eslint/no-empty-object-type
 
 export interface Hero extends Character {
     type: HeroArchetype;

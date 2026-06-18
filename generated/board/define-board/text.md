@@ -18,20 +18,20 @@ Defining these interfaces first ensures a single source of truth for the data st
  * This is easily extendable for future features like doors, traps, etc.
  */
 export enum TileType {
-  Wall = 'wall',   // Non-interactive, default state for an empty board.
-  Floor = 'floor', // Interactive, can contain characters, items, etc.
+    Wall = "wall", // Non-interactive, default state for an empty board.
+    Floor = "floor", // Interactive, can contain characters, items, etc.
 }
 
 /**
  * The data structure for a single square tile on the board.
  */
 export interface Tile {
-  id: string; // A unique identifier, e.g., '0_0', '1_2'.
-  x: number;  // The column index.
-  y: number;  // The row index.
-  type: TileType; // The type of the tile (wall, floor, etc.).
-  // Future fields for traps, monsters, items, etc. can be added here.
-  // E.g., monster?: Monster;
+    id: string; // A unique identifier, e.g., '0_0', '1_2'.
+    x: number; // The column index.
+    y: number; // The row index.
+    type: TileType; // The type of the tile (wall, floor, etc.).
+    // Future fields for traps, monsters, items, etc. can be added here.
+    // E.g., monster?: Monster;
 }
 
 /**
@@ -39,9 +39,9 @@ export interface Tile {
  * hydrated from the backend API.
  */
 export interface BoardState {
-  width: number;
-  height: number;
-  tiles: Tile[][]; // A 2D array representing the grid of tiles.
+    width: number;
+    height: number;
+    tiles: Tile[][]; // A 2D array representing the grid of tiles.
 }
 ```
 
@@ -52,51 +52,51 @@ Pinia will hold the reactive state of the board, allowing any component to acces
 ```typescript
 // src/stores/board.ts
 
-import { defineStore } from 'pinia';
-import { BoardState, Tile, TileType } from '@/types/board';
+import { defineStore } from "pinia";
+import { BoardState, Tile, TileType } from "@/types/board";
 
-export const useBoardStore = defineStore('board', {
-  state: (): BoardState => ({
-    width: 22, // Default width
-    height: 28, // Default height
-    tiles: [], // An empty 2D array initially
-  }),
+export const useBoardStore = defineStore("board", {
+    state: (): BoardState => ({
+        width: 22, // Default width
+        height: 28, // Default height
+        tiles: [], // An empty 2D array initially
+    }),
 
-  actions: {
-    /**
-     * Initializes a new board with all tiles set to 'wall' type.
-     * @param width The number of columns.
-     * @param height The number of rows.
-     */
-    initializeBoard(width: number, height: number) {
-      this.width = width;
-      this.height = height;
-      const newTiles: Tile[][] = [];
-      for (let y = 0; y < height; y++) {
-        const row: Tile[] = [];
-        for (let x = 0; x < width; x++) {
-          row.push({
-            id: `${x}_${y}`,
-            x,
-            y,
-            type: TileType.Wall,
-          });
-        }
-        newTiles.push(row);
-      }
-      this.tiles = newTiles;
+    actions: {
+        /**
+         * Initializes a new board with all tiles set to 'wall' type.
+         * @param width The number of columns.
+         * @param height The number of rows.
+         */
+        initializeBoard(width: number, height: number) {
+            this.width = width;
+            this.height = height;
+            const newTiles: Tile[][] = [];
+            for (let y = 0; y < height; y++) {
+                const row: Tile[] = [];
+                for (let x = 0; x < width; x++) {
+                    row.push({
+                        id: `${x}_${y}`,
+                        x,
+                        y,
+                        type: TileType.Wall,
+                    });
+                }
+                newTiles.push(row);
+            }
+            this.tiles = newTiles;
+        },
+
+        /**
+         * Hydrates the store with data received from the backend.
+         * @param boardState The full board state object from the API.
+         */
+        hydrateBoard(boardState: BoardState) {
+            this.width = boardState.width;
+            this.height = boardState.height;
+            this.tiles = boardState.tiles;
+        },
     },
-
-    /**
-     * Hydrates the store with data received from the backend.
-     * @param boardState The full board state object from the API.
-     */
-    hydrateBoard(boardState: BoardState) {
-      this.width = boardState.width;
-      this.height = boardState.height;
-      this.tiles = boardState.tiles;
-    },
-  },
 });
 ```
 
@@ -120,18 +120,18 @@ This component uses `Vue Konva` to render the board based on the Pinia store's s
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
-import { useBoardStore } from '@/stores/board';
-import { Tile, TileType } from '@/types/board';
-import { RectConfig } from 'konva/lib/shapes/Rect';
+import { computed, onMounted } from "vue";
+import { useBoardStore } from "@/stores/board";
+import { Tile, TileType } from "@/types/board";
+import { RectConfig } from "konva/lib/shapes/Rect";
 
 const boardStore = useBoardStore();
 const TILE_SIZE = 40; // Size in pixels for each tile
 
 // Konva stage configuration, dynamically sized
 const stageConfig = computed(() => ({
-  width: boardStore.width * TILE_SIZE,
-  height: boardStore.height * TILE_SIZE,
+    width: boardStore.width * TILE_SIZE,
+    height: boardStore.height * TILE_SIZE,
 }));
 
 /**
@@ -139,24 +139,24 @@ const stageConfig = computed(() => ({
  * @param tile The tile object from the Pinia store.
  */
 const getTileConfig = (tile: Tile): RectConfig => {
-  const isWall = tile.type === TileType.Wall;
-  return {
-    x: tile.x * TILE_SIZE,
-    y: tile.y * TILE_SIZE,
-    width: TILE_SIZE,
-    height: TILE_SIZE,
-    fill: isWall ? '#222' : '#888',
-    stroke: isWall ? '#333' : '#666',
-    strokeWidth: 1,
-  };
+    const isWall = tile.type === TileType.Wall;
+    return {
+        x: tile.x * TILE_SIZE,
+        y: tile.y * TILE_SIZE,
+        width: TILE_SIZE,
+        height: TILE_SIZE,
+        fill: isWall ? "#222" : "#888",
+        stroke: isWall ? "#333" : "#666",
+        strokeWidth: 1,
+    };
 };
 
 onMounted(() => {
-  // If the store is empty, initialize a default board.
-  // In a full application, this would be handled by Inertia props from the backend.
-  if (boardStore.tiles.length === 0) {
-    boardStore.initializeBoard(22, 28);
-  }
+    // If the store is empty, initialize a default board.
+    // In a full application, this would be handled by Inertia props from the backend.
+    if (boardStore.tiles.length === 0) {
+        boardStore.initializeBoard(22, 28);
+    }
 });
 </script>
 

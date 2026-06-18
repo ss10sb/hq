@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { AppPageProps } from '@/types';
-import { usePage } from '@inertiajs/vue3';
+import { AppPageProps } from "@/types";
+import { usePage } from "@inertiajs/vue3";
 
 const page = usePage<AppPageProps>();
 </script>

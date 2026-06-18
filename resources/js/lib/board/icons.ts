@@ -1,5 +1,5 @@
-import { Colors500 } from '@/lib/game/colors';
-import { Bomb, DoorClosed, DoorOpen, Flag, Gem, Key, Play, Skull, UserRound } from 'lucide';
+import { Colors500 } from "@/lib/game/colors";
+import { Bomb, DoorClosed, DoorOpen, Flag, Gem, Key, Play, Skull, UserRound } from "lucide";
 
 // Lucide SVG rendering for Konva
 export const ICON_SIZE = 24;
@@ -20,10 +20,10 @@ const iconMap: Record<string, IconNode | undefined> = {
 };
 
 const iconColor: Record<string, string> = {
-    monster: 'oklch(50.5% 0.213 27.518)', // red-700
-    door: 'oklch(27.9% 0.077 45.635)', // amber-950
+    monster: "oklch(50.5% 0.213 27.518)", // red-700
+    door: "oklch(27.9% 0.077 45.635)", // amber-950
     door_open: Colors500.Lime, // lime-500
-    secret_door: 'oklch(28.3% 0.141 291.089)', // violet-950
+    secret_door: "oklch(28.3% 0.141 291.089)", // violet-950
     trap: Colors500.Amber, // amber-500
     treasure: Colors500.Emerald, // emerald-500
     player_start: Colors500.Green, // green-500
@@ -32,22 +32,24 @@ const iconColor: Record<string, string> = {
 
 function iconNodeToSvg(children: IconNode, color: string, size = ICON_SIZE): string {
     const baseAttrs: Record<string, string> = {
-        xmlns: 'http://www.w3.org/2000/svg',
+        xmlns: "http://www.w3.org/2000/svg",
         width: String(size),
         height: String(size),
-        viewBox: '0 0 24 24',
-        fill: 'none',
+        viewBox: "0 0 24 24",
+        fill: "none",
         stroke: color,
-        'stroke-width': '2',
-        'stroke-linecap': 'round',
-        'stroke-linejoin': 'round',
+        "stroke-width": "2",
+        "stroke-linecap": "round",
+        "stroke-linejoin": "round",
     };
     const attrsToString = (a: Record<string, any>) =>
         Object.entries(a)
             .map(([k, v]) => `${k}="${String(v)}"`)
-            .join(' ');
+            .join(" ");
 
-    const childStr = (children || []).map(([cTag, cAttrs]) => `<${cTag} ${attrsToString(cAttrs)}></${cTag}>`).join('');
+    const childStr = (children || [])
+        .map(([cTag, cAttrs]) => `<${cTag} ${attrsToString(cAttrs)}></${cTag}>`)
+        .join("");
 
     return `<svg ${attrsToString(baseAttrs)}>${childStr}</svg>`;
 }
@@ -63,13 +65,13 @@ export function prepareIcon(type: string, colorOverride?: string): void {
     if (!node) {
         return;
     }
-    const color = colorOverride ?? iconColor[type] ?? '#38bdf8';
+    const color = colorOverride ?? iconColor[type] ?? "#38bdf8";
     const svg = iconNodeToSvg(node, color, ICON_SIZE);
     const img = new Image();
     img.onerror = () => {
         imageCache.delete(key);
     };
-    img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    img.src = "data:image/svg+xml;utf8," + encodeURIComponent(svg);
     imageCache.set(key, img);
 }
 

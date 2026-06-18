@@ -9,12 +9,19 @@ import {
     preloadAllIcons,
     TILE_SIZE,
     tileFromPointer,
-} from '@/lib/board';
-import { getHeroAt, isHero } from '@/lib/board/game';
-import { Colors, Colors500, heroColorById } from '@/lib/game/colors';
-import { badgeCircleConfig, badgeGroupConfig, badgeTextConfig, makeBadge, SearchBadge, SearchBadgeType } from '@/lib/game/searchBadges';
-import { useBoardStore } from '@/stores/board';
-import { useGameStore } from '@/stores/game';
+} from "@/lib/board";
+import { getHeroAt, isHero } from "@/lib/board/game";
+import { Colors, Colors500, heroColorById } from "@/lib/game/colors";
+import {
+    badgeCircleConfig,
+    badgeGroupConfig,
+    badgeTextConfig,
+    makeBadge,
+    SearchBadge,
+    SearchBadgeType,
+} from "@/lib/game/searchBadges";
+import { useBoardStore } from "@/stores/board";
+import { useGameStore } from "@/stores/game";
 import {
     Board,
     BoardTool,
@@ -26,12 +33,12 @@ import {
     TileType,
     Trap,
     TrapStatus,
-    TrapType
-} from '@/types/board';
-import { Game } from '@/types/game';
-import { Hero, Zargon } from '@/types/hero';
-import type { RectConfig } from 'konva/lib/shapes/Rect';
-import { computed, onMounted, Ref, ref } from 'vue';
+    TrapType,
+} from "@/types/board";
+import { Game } from "@/types/game";
+import { Hero, Zargon } from "@/types/hero";
+import type { RectConfig } from "konva/lib/shapes/Rect";
+import { computed, onMounted, Ref, ref } from "vue";
 
 const boardStore = useBoardStore();
 const gameStore = useGameStore();
@@ -43,24 +50,27 @@ type HeroMovingPayload = { heroId: number; steps: number };
 type MonsterMovedPayload = { monsterName: string; monsterDisplayId: string; steps: number };
 
 const emit = defineEmits<{
-    (e: 'toggle-visibility', elementId: string): void;
-    (e: 'open-door', elementId: string): void;
-    (e: 'hero-moving', payload: HeroMovingPayload): void;
-    (e: 'hero-moved', payload: HeroMovedPayload): void;
-    (e: 'monster-moved', payload: MonsterMovedPayload): void;
-    (e: 'trap-triggered', payload: { heroId: number; heroName: string; trapId: string; trapName: string }): void;
-    (e: 'select-tile', payload: { x: number; y: number }): void;
-    (e: 'tiles-revealed', payload: { x: number; y: number }[]): void;
-    (e: 'elements-changed', payload: { elements: Element[] }): void;
+    (e: "toggle-visibility", elementId: string): void;
+    (e: "open-door", elementId: string): void;
+    (e: "hero-moving", payload: HeroMovingPayload): void;
+    (e: "hero-moved", payload: HeroMovedPayload): void;
+    (e: "monster-moved", payload: MonsterMovedPayload): void;
     (
-        e: 'tiles-changed',
+        e: "trap-triggered",
+        payload: { heroId: number; heroName: string; trapId: string; trapName: string },
+    ): void;
+    (e: "select-tile", payload: { x: number; y: number }): void;
+    (e: "tiles-revealed", payload: { x: number; y: number }[]): void;
+    (e: "elements-changed", payload: { elements: Element[] }): void;
+    (
+        e: "tiles-changed",
         payload: {
             tiles: Tile[][];
             changes?: { x: number; y: number; tile: Tile }[];
             fixtureMeta?: Record<string, { type: any; label: string } | null>;
         },
     ): void;
-    (e: 'monster-selected', payload: { elementId: string }): void;
+    (e: "monster-selected", payload: { elementId: string }): void;
 }>();
 
 const props = withDefaults(
@@ -88,7 +98,7 @@ const props = withDefaults(
 const gmSearchBadgeTool = defineModel<{
     active: boolean;
     type: SearchBadgeType;
-}>('gmSearchBadgeTool');
+}>("gmSearchBadgeTool");
 
 const searchBadges = ref<SearchBadge[]>([]);
 
@@ -179,17 +189,17 @@ function isTileTraversableForMonster(x: number, y: number): boolean {
         // respect traversable flag for other elements (e.g., open doors, player start)
         return el.traversable === true;
     }
-    
+
     // Check if the tile itself is a traversable fixture
     if (t.type === TileType.Fixture && t.traversable === true) {
         return true;
     }
-    
+
     // Floor tiles: GM can move monsters on any floor tile (hidden or revealed)
     if (t.type === TileType.Floor) {
         return true;
     }
-    
+
     return false;
 }
 
@@ -233,7 +243,7 @@ function handleMouseDown(evt: any): void {
 
     // Player select mode: clicking sets selection (available to all roles)
     if (props.playerSelectMode) {
-        emit('select-tile', { x, y });
+        emit("select-tile", { x, y });
         return;
     }
 
@@ -242,17 +252,17 @@ function handleMouseDown(evt: any): void {
         if (isRevealRoom.value) {
             const affected = boardStore.revealRoomAt(x, y);
             if (affected && affected.length) {
-                emit('tiles-revealed', affected);
+                emit("tiles-revealed", affected);
             }
             return;
         }
         if (isRevealCorridor.value) {
             const result = boardStore.revealCorridorFrom(x, y);
             if (result.tiles && result.tiles.length) {
-                emit('tiles-revealed', result.tiles);
+                emit("tiles-revealed", result.tiles);
             }
             if (result.elementsChanged) {
-                emit('elements-changed', { elements: boardStore.elements as any });
+                emit("elements-changed", { elements: boardStore.elements as any });
             }
             return;
         }
@@ -261,7 +271,7 @@ function handleMouseDown(evt: any): void {
             const tile = boardStore.tiles[y]?.[x];
             if (tile && (tile as any).visible !== true) {
                 boardStore.setTileVisible(x, y, true);
-                emit('tiles-revealed', [{ x, y }]);
+                emit("tiles-revealed", [{ x, y }]);
             }
             return;
         }
@@ -298,8 +308,10 @@ function handleMouseDown(evt: any): void {
         if (selectedElementId.value) {
             const ok = boardStore.moveElement(selectedElementId.value, x, y);
             if (ok) {
-                console.debug('[EMIT] elements-changed (GM Move Element)', { count: (boardStore.elements as any[]).length });
-                emit('elements-changed', { elements: boardStore.elements as any });
+                console.debug("[EMIT] elements-changed (GM Move Element)", {
+                    count: (boardStore.elements as any[]).length,
+                });
+                emit("elements-changed", { elements: boardStore.elements as any });
             }
             selectedElementId.value = null;
             // Also clear any pending hero selection
@@ -312,8 +324,16 @@ function handleMouseDown(evt: any): void {
             const id = selectedHeroId.value as number;
             const ok = gameStore.moveHero(id, x, y, boardStore as any);
             if (ok) {
-                const heroName = ((gameStore.heroes as any[])?.find((h: any) => h.id === id)?.name as string | undefined) ?? 'Hero';
-                emit('hero-moved', { heroes: gameStore.heroes as any, heroId: id, heroName, steps: 0 });
+                const heroName =
+                    ((gameStore.heroes as any[])?.find((h: any) => h.id === id)?.name as
+                        | string
+                        | undefined) ?? "Hero";
+                emit("hero-moved", {
+                    heroes: gameStore.heroes as any,
+                    heroId: id,
+                    heroName,
+                    steps: 0,
+                });
             }
             selectedHeroId.value = null;
             selectedHeroStart.value = null;
@@ -324,7 +344,12 @@ function handleMouseDown(evt: any): void {
     // Player movement mode (no tool selected and not GM): click a hero to start/cancel moving
     if (noToolSelected.value && !isGameMaster.value && props.canMove) {
         // If already moving, clicking the original hero tile cancels movement
-        if (movingHeroId.value && moveStart.value && x === moveStart.value.x && y === moveStart.value.y) {
+        if (
+            movingHeroId.value &&
+            moveStart.value &&
+            x === moveStart.value.x &&
+            y === moveStart.value.y
+        ) {
             const cancelledId = movingHeroId.value;
             movingHeroId.value = null;
             moveStart.value = null;
@@ -332,7 +357,7 @@ function handleMouseDown(evt: any): void {
             ignoreNextMouseUp.value = false;
             try {
                 if (cancelledId != null) {
-                    emit('hero-moving', { heroId: cancelledId, steps: 0 });
+                    emit("hero-moving", { heroId: cancelledId, steps: 0 });
                 }
             } catch {}
             return;
@@ -346,7 +371,7 @@ function handleMouseDown(evt: any): void {
             // Ignore the mouseup that follows this initial click so we don't force click-and-hold
             ignoreNextMouseUp.value = true;
             try {
-                emit('hero-moving', { heroId: hero.id, steps: 0 });
+                emit("hero-moving", { heroId: hero.id, steps: 0 });
             } catch {}
             return; // Do not start drag selection
         }
@@ -358,7 +383,7 @@ function handleMouseDown(evt: any): void {
         const maybe = boardStore.getElementAt(x, y) as any;
         if (maybe && maybe.type === ElementType.Monster) {
             try {
-                emit('monster-selected', { elementId: maybe.id });
+                emit("monster-selected", { elementId: maybe.id });
             } catch {}
             return;
         }
@@ -376,17 +401,25 @@ function handleMouseMove(evt: any): void {
     mousePos.value = pointerPx(evt);
     // Track viewport coordinates for global tooltip rendering
     const nativeEvt = (evt && (evt.evt || evt)) as MouseEvent | undefined;
-    if (nativeEvt && typeof nativeEvt.clientX === 'number' && typeof nativeEvt.clientY === 'number') {
+    if (
+        nativeEvt &&
+        typeof nativeEvt.clientX === "number" &&
+        typeof nativeEvt.clientY === "number"
+    ) {
         mouseViewportPos.value = { x: nativeEvt.clientX, y: nativeEvt.clientY };
     }
 
     // Movement preview update (player hero)
     if (movingHeroId.value && moveStart.value && hoveredTile.value) {
         const next = hoveredTile.value;
-        const prev = movePath.value.length > 0 ? movePath.value[movePath.value.length - 1] : moveStart.value;
+        const prev =
+            movePath.value.length > 0 ? movePath.value[movePath.value.length - 1] : moveStart.value;
         // Only act if cursor moved to a different tile
         if (!(next.x === prev.x && next.y === prev.y)) {
-            const beforePrev = movePath.value.length >= 2 ? movePath.value[movePath.value.length - 2] : moveStart.value;
+            const beforePrev =
+                movePath.value.length >= 2
+                    ? movePath.value[movePath.value.length - 2]
+                    : moveStart.value;
             // Allow backtracking by moving onto the previous tile in the path (including start)
             if (beforePrev && beforePrev.x === next.x && beforePrev.y === next.y) {
                 movePath.value.pop();
@@ -408,7 +441,7 @@ function handleMouseMove(evt: any): void {
         try {
             const steps = movePath.value.length;
             if (movingHeroId.value != null) {
-                emit('hero-moving', { heroId: movingHeroId.value, steps });
+                emit("hero-moving", { heroId: movingHeroId.value, steps });
             }
         } catch {}
         // Do not return; also allow selection rectangle updates for GM tools if needed
@@ -417,9 +450,15 @@ function handleMouseMove(evt: any): void {
     // Movement preview update (GM monsters)
     if (movingMonsterId.value && monsterMoveStart.value && hoveredTile.value) {
         const next = hoveredTile.value;
-        const prev = monsterMovePath.value.length > 0 ? monsterMovePath.value[monsterMovePath.value.length - 1] : monsterMoveStart.value;
+        const prev =
+            monsterMovePath.value.length > 0
+                ? monsterMovePath.value[monsterMovePath.value.length - 1]
+                : monsterMoveStart.value;
         if (!(next.x === prev.x && next.y === prev.y)) {
-            const beforePrev = monsterMovePath.value.length >= 2 ? monsterMovePath.value[monsterMovePath.value.length - 2] : monsterMoveStart.value;
+            const beforePrev =
+                monsterMovePath.value.length >= 2
+                    ? monsterMovePath.value[monsterMovePath.value.length - 2]
+                    : monsterMoveStart.value;
             if (beforePrev && beforePrev.x === next.x && beforePrev.y === next.y) {
                 monsterMovePath.value.pop();
             } else {
@@ -473,7 +512,7 @@ function handleMouseUp(): void {
         if (end) {
             // Capture hero info before move
             const heroEl = gameStore.heroes.find((h: any) => h.id === movingHeroId.value);
-            const heroName = (heroEl as any)?.name ?? 'Hero';
+            const heroName = (heroEl as any)?.name ?? "Hero";
             // Scan path for traps; trigger any armed/hidden traps; handle pit traps by truncating destination
             const toReveal: Array<{ x: number; y: number }> = [];
             const triggeredTraps: Array<{ trapId: string; trapName: string }> = [];
@@ -495,11 +534,12 @@ function handleMouseUp(): void {
                                 ...trap,
                                 hidden: false,
                                 trapStatus: TrapStatus.Triggered,
-                                color: '#ef4444', // red-500 to indicate danger
+                                color: "#ef4444", // red-500 to indicate danger
                             }));
                         }
                         // Record trap for logging/broadcasting
-                        const trapName: string = (elAt.name as string) || (elAt.trapType as string) || 'trap';
+                        const trapName: string =
+                            (elAt.name as string) || (elAt.trapType as string) || "trap";
                         triggeredTraps.push({ trapId: elAt.id as string, trapName });
                         // Reveal the trap tile to players
                         const t = boardStore.tiles[step.y]?.[step.x] as any;
@@ -518,17 +558,17 @@ function handleMouseUp(): void {
             // Apply any element updates (traps revealed/triggered)
             if (JSON.stringify(updatedElements) !== JSON.stringify(boardStore.elements)) {
                 boardStore.elements = updatedElements as any;
-                emit('elements-changed', { elements: boardStore.elements as any });
+                emit("elements-changed", { elements: boardStore.elements as any });
             }
             // Broadcast any fog-of-war reveals caused by trap trigger
             if (toReveal.length > 0) {
-                emit('tiles-revealed', toReveal);
+                emit("tiles-revealed", toReveal);
             }
             // Emit trap-triggered events for logging
             if (triggeredTraps.length > 0 && movingHeroId.value != null) {
                 for (const t of triggeredTraps) {
                     try {
-                        emit('trap-triggered', {
+                        emit("trap-triggered", {
                             heroId: movingHeroId.value,
                             heroName,
                             trapId: t.trapId,
@@ -538,7 +578,9 @@ function handleMouseUp(): void {
                 }
             }
             // Determine tentative final destination (if pit encountered, move back to pit tile)
-            let finalIdx = pitAt ? path.findIndex((p) => p.x === pitAt!.x && p.y === pitAt!.y) : path.length - 1;
+            let finalIdx = pitAt
+                ? path.findIndex((p) => p.x === pitAt!.x && p.y === pitAt!.y)
+                : path.length - 1;
             let finalDest: { x: number; y: number } | null = pitAt ?? end;
             // Enforce: cannot stop on the same tile as another hero (but traversal allowed earlier)
             while (finalIdx >= 0 && finalDest) {
@@ -555,9 +597,14 @@ function handleMouseUp(): void {
                 // Reset movement state happens below
             } else {
                 const steps = finalIdx + 1; // number of tiles traversed
-                const ok = gameStore.moveHero(movingHeroId.value, finalDest.x, finalDest.y, boardStore as any);
+                const ok = gameStore.moveHero(
+                    movingHeroId.value,
+                    finalDest.x,
+                    finalDest.y,
+                    boardStore as any,
+                );
                 if (ok) {
-                    emit('hero-moved', {
+                    emit("hero-moved", {
                         heroes: gameStore.heroes as any,
                         heroId: movingHeroId.value,
                         heroName,
@@ -573,7 +620,7 @@ function handleMouseUp(): void {
         movePath.value = [];
         try {
             if (clearedHeroId != null) {
-                emit('hero-moving', { heroId: clearedHeroId, steps: 0 });
+                emit("hero-moving", { heroId: clearedHeroId, steps: 0 });
             }
         } catch {}
         return;
@@ -585,18 +632,20 @@ function handleMouseUp(): void {
         const end = path.length > 0 ? path[path.length - 1] : null;
         if (end) {
             // Get monster details before moving
-            const monsterEl = boardStore.elements.find((e: any) => e.id === movingMonsterId.value) as any;
+            const monsterEl = boardStore.elements.find(
+                (e: any) => e.id === movingMonsterId.value,
+            ) as any;
             const steps = path.length;
-            
+
             const ok = boardStore.moveElement(movingMonsterId.value, end.x, end.y);
             if (ok) {
-                emit('elements-changed', { elements: boardStore.elements as any });
-                
+                emit("elements-changed", { elements: boardStore.elements as any });
+
                 // Emit monster-moved event for logging (only when steps > 0)
                 if (steps > 0 && monsterEl) {
-                    const monsterName = monsterEl.name || 'Monster';
-                    const monsterDisplayId = monsterEl.displayId || '';
-                    emit('monster-moved', { monsterName, monsterDisplayId, steps });
+                    const monsterName = monsterEl.name || "Monster";
+                    const monsterDisplayId = monsterEl.displayId || "";
+                    emit("monster-moved", { monsterName, monsterDisplayId, steps });
                 }
             }
         }
@@ -619,7 +668,7 @@ function handleMouseUp(): void {
     if (isClick && isToggleVisibility.value) {
         const el = boardStore.getElementAt(start.x, start.y);
         if (el) {
-            emit('toggle-visibility', el.id);
+            emit("toggle-visibility", el.id);
         }
     }
 
@@ -627,7 +676,7 @@ function handleMouseUp(): void {
     if (isClick && isOpenDoor.value) {
         const el = boardStore.getElementAt(start.x, start.y);
         if (el && (el.type === ElementType.Door || el.type === ElementType.SecretDoor)) {
-            emit('open-door', el.id);
+            emit("open-door", el.id);
         }
     }
 
@@ -636,14 +685,20 @@ function handleMouseUp(): void {
         const el = boardStore.getElementAt(start.x, start.y);
         if (el) {
             boardStore.removeElementAt(start.x, start.y);
-            console.debug('[EMIT] elements-changed (GM Remove Element)', { count: (boardStore.elements as any[]).length });
-            emit('elements-changed', { elements: boardStore.elements as any });
+            console.debug("[EMIT] elements-changed (GM Remove Element)", {
+                count: (boardStore.elements as any[]).length,
+            });
+            emit("elements-changed", { elements: boardStore.elements as any });
         }
     }
 
     // Paint mode: draw floors, fixtures, or walls (supports click or drag)
     if (isPaintMode.value) {
-        const targetType = isDrawFloor.value ? TileType.Floor : isAddFixture.value ? TileType.Fixture : TileType.Wall;
+        const targetType = isDrawFloor.value
+            ? TileType.Floor
+            : isAddFixture.value
+              ? TileType.Fixture
+              : TileType.Wall;
         if (isClick) {
             boardStore.setTileType(start.x, start.y, targetType);
         } else {
@@ -668,13 +723,13 @@ function handleMouseUp(): void {
         }
         // Broadcast updated tiles to other clients (send sparse patch as well as full for local application)
         // Fixture labels are now persisted on the tile itself (tile.name), so no extra metadata patch is needed.
-        emit('tiles-changed', { tiles: boardStore.tiles as any, changes });
+        emit("tiles-changed", { tiles: boardStore.tiles as any, changes });
     } else {
         // Element placement mode (single tile toggle)
         if (isClick && isElementMode.value) {
             boardStore.toggleElementAtForCurrentTool(start.x, start.y);
             // Broadcast updated elements to other clients
-            emit('elements-changed', { elements: boardStore.elements as any });
+            emit("elements-changed", { elements: boardStore.elements as any });
         }
     }
 
@@ -688,10 +743,10 @@ function handleMouseUp(): void {
 // Safely prevent browser context menu on Konva stage (Konva passes { evt: MouseEvent })
 function handleContextMenu(evt: any): void {
     const nativeEvt: any = evt && (evt.evt || evt);
-    if (nativeEvt && typeof nativeEvt.preventDefault === 'function') {
+    if (nativeEvt && typeof nativeEvt.preventDefault === "function") {
         nativeEvt.preventDefault();
     }
-    if (nativeEvt && typeof nativeEvt.stopPropagation === 'function') {
+    if (nativeEvt && typeof nativeEvt.stopPropagation === "function") {
         nativeEvt.stopPropagation();
     }
 }
@@ -724,14 +779,14 @@ const selectionRectConfig = computed<RectConfig>(() => {
 
 const tooltipText = computed(() => {
     if (!hoveredTile.value) {
-        return '';
+        return "";
     }
     const { x, y } = hoveredTile.value;
     const tile = boardStore.tiles[y]?.[x] as any;
     // For players, do not show tooltip on unrevealed tiles
     if (!isGameMaster.value) {
         if (!tile || tile.visible !== true) {
-            return '';
+            return "";
         }
     }
     // Check for a hero on this tile first
@@ -743,14 +798,14 @@ const tooltipText = computed(() => {
     if (el) {
         // Do not reveal hidden elements to players via tooltip
         if (!isGameMaster.value && (el as any).hidden) {
-            return '';
+            return "";
         }
         return el.name || el.type;
     }
     if (tile && tile.type === TileType.Fixture) {
         return boardStore.getFixtureLabel(x, y);
     }
-    return '';
+    return "";
 });
 
 onMounted(() => {
@@ -768,7 +823,10 @@ onMounted(() => {
     if (props.monsters || props.traps || props.fixtures) {
         boardStore.setCatalogs(props.monsters as any, props.traps as any, props.fixtures as any);
         // Refresh current monster defaults from catalog if available
-        boardStore.setCurrentMonsterSelection(boardStore.currentMonsterType, boardStore.currentMonsterCustomText);
+        boardStore.setCurrentMonsterSelection(
+            boardStore.currentMonsterType,
+            boardStore.currentMonsterCustomText,
+        );
     }
     if (props.game) {
         gameStore.hydrateFromGame(props.game);
@@ -812,7 +870,9 @@ const selectedMonsterPos = computed<{ x: number; y: number } | null>(() => {
     if (!id) {
         return null;
     }
-    const el = visibleElements.value.find((e: any) => e.id === id && e.type === ElementType.Monster) as any;
+    const el = visibleElements.value.find(
+        (e: any) => e.id === id && e.type === ElementType.Monster,
+    ) as any;
     if (!el) {
         return null;
     }
@@ -900,14 +960,18 @@ function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
     // For the Game Master, show all tiles but visually differentiate unrevealed floors
     const cfg = getTileConfig(tile, tileSize);
     if (isGameMaster.value && tile.type === TileType.Floor && (tile as any).visible !== true) {
-        return { ...cfg, fill: '#8A7575' }; // slightly lighter than revealed floor (#888)
+        return { ...cfg, fill: "#8A7575" }; // slightly lighter than revealed floor (#888)
     }
     return cfg;
 }
 </script>
 
 <template>
-    <div class="relative inline-block" :style="{ width: stageConfig.width + 'px', height: stageConfig.height + 'px' }" @contextmenu.prevent.stop>
+    <div
+        class="relative inline-block"
+        :style="{ width: stageConfig.width + 'px', height: stageConfig.height + 'px' }"
+        @contextmenu.prevent.stop
+    >
         <!-- Konva stage (tiles + selection overlay) -->
         <v-stage
             :config="stageConfig"
@@ -932,14 +996,19 @@ function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
                     :key="el.id"
                     :config="{
                         image: iconFor(
-                            (el.type === ElementType.Door || el.type === ElementType.SecretDoor) && el.traversable ? 'door_open' : (el.type as any),
+                            (el.type === ElementType.Door || el.type === ElementType.SecretDoor) &&
+                                el.traversable
+                                ? 'door_open'
+                                : (el.type as any),
                             (el as any).color,
                         ),
                         x: el.x * TILE_SIZE + (TILE_SIZE - ICON_SIZE) / 2,
                         y: el.y * TILE_SIZE + (TILE_SIZE - ICON_SIZE) / 2,
                         width: ICON_SIZE,
                         height: ICON_SIZE,
-                        opacity: (el.type === ElementType.PlayerStart ? 0.45 : 1) * (isGameMaster ? (el.hidden ? 0.5 : 1) : 1),
+                        opacity:
+                            (el.type === ElementType.PlayerStart ? 0.45 : 1) *
+                            (isGameMaster ? (el.hidden ? 0.5 : 1) : 1),
                         listening: false,
                     }"
                 />
@@ -950,16 +1019,19 @@ function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
                             :config="{
                                 x: el.x * TILE_SIZE + 2,
                                 y: el.y * TILE_SIZE + 2,
-                                text: String(el.stats?.currentBodyPoints ?? el.stats?.bodyPoints ?? 0),
+                                text: String(
+                                    el.stats?.currentBodyPoints ?? el.stats?.bodyPoints ?? 0,
+                                ),
                                 fontSize: 16,
                                 fontStyle: 'bold',
                                 fill: Colors.Black,
                                 listening: false,
                             }"
                         />
-                        <v-text v-if="el.displayId"
+                        <v-text
+                            v-if="el.displayId"
                             :config="{
-                                x: el.x * TILE_SIZE + (TILE_SIZE - (el.displayId.length * 9)),
+                                x: el.x * TILE_SIZE + (TILE_SIZE - el.displayId.length * 9),
                                 y: el.y * TILE_SIZE + (TILE_SIZE - 14),
                                 text: String(el.displayId),
                                 fontSize: 13,
@@ -1037,7 +1109,11 @@ function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
                 />
                 <!-- Movement path preview -->
                 <v-rect
-                    v-for="(pt, idx) in movingHeroId ? movePath : movingMonsterId ? monsterMovePath : []"
+                    v-for="(pt, idx) in movingHeroId
+                        ? movePath
+                        : movingMonsterId
+                          ? monsterMovePath
+                          : []"
                     :key="'mv:' + idx + ':' + pt.x + ':' + pt.y"
                     :config="{
                         x: pt.x * TILE_SIZE,
@@ -1086,9 +1162,14 @@ function baseTileConfig(tile: Tile, tileSize: number = TILE_SIZE): RectConfig {
             <div
                 v-if="tooltipText && mouseViewportPos"
                 class="fixed z-[9999]"
-                :style="{ left: mouseViewportPos.x + 12 + 'px', top: mouseViewportPos.y + 12 + 'px' }"
+                :style="{
+                    left: mouseViewportPos.x + 12 + 'px',
+                    top: mouseViewportPos.y + 12 + 'px',
+                }"
             >
-                <div class="pointer-events-none rounded bg-neutral-900/90 px-2 py-1 text-xs text-white shadow-lg select-none">
+                <div
+                    class="pointer-events-none rounded bg-neutral-900/90 px-2 py-1 text-xs text-white shadow-lg select-none"
+                >
                     {{ tooltipText }}
                 </div>
             </div>

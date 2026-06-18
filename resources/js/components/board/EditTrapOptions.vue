@@ -1,10 +1,16 @@
 <script setup lang="ts">
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useBoardStore } from '@/stores/board';
-import { TrapType } from '@/types/board';
-import { computed } from 'vue';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { useBoardStore } from "@/stores/board";
+import { TrapType } from "@/types/board";
+import { computed } from "vue";
 
 const props = defineProps<{
     type: TrapType;
@@ -12,14 +18,16 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    (e: 'update:type', value: TrapType): void;
-    (e: 'update:customText', value: string): void;
+    (e: "update:type", value: TrapType): void;
+    (e: "update:customText", value: string): void;
 }>();
 
 const boardStore = useBoardStore();
 const trapOptions = computed(() => boardStore.trapsCatalog ?? []);
 
-const selectedTrap = computed(() => (trapOptions.value || []).find((t: any) => t?.type === props.type));
+const selectedTrap = computed(() =>
+    (trapOptions.value || []).find((t: any) => t?.type === props.type),
+);
 const isCustomSelected = computed<boolean>(() => {
     const sel = selectedTrap.value as any;
     return !!(sel && sel.custom === true) || props.type === TrapType.Custom;
@@ -30,7 +38,7 @@ const modelType = computed<TrapType>({
         return props.type;
     },
     set(val: TrapType) {
-        emit('update:type', val);
+        emit("update:type", val);
     },
 });
 
@@ -39,7 +47,7 @@ const modelCustomText = computed<string>({
         return props.customText;
     },
     set(val: string) {
-        emit('update:customText', val);
+        emit("update:customText", val);
     },
 });
 </script>
@@ -54,16 +62,25 @@ const modelCustomText = computed<string>({
                     <SelectValue placeholder="Select a trap type" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem v-for="t in trapOptions" :key="t.type" :value="t.type as any">{{ t.name }}</SelectItem>
+                    <SelectItem v-for="t in trapOptions" :key="t.type" :value="t.type as any">{{
+                        t.name
+                    }}</SelectItem>
                 </SelectContent>
             </Select>
 
             <div v-if="isCustomSelected" class="mt-3 grid gap-2">
                 <Label for="trap-custom">Custom label</Label>
-                <Input id="trap-custom" type="text" v-model="modelCustomText" placeholder="e.g. Gas trap" />
+                <Input
+                    id="trap-custom"
+                    type="text"
+                    v-model="modelCustomText"
+                    placeholder="e.g. Gas trap"
+                />
             </div>
 
-            <p class="text-xs text-neutral-500">Traps can be placed on Floor or Fixture tiles and start hidden.</p>
+            <p class="text-xs text-neutral-500">
+                Traps can be placed on Floor or Fixture tiles and start hidden.
+            </p>
         </div>
     </div>
 </template>

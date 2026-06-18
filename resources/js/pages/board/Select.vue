@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import NewBoardController from '@/actions/App/Http/Controllers/Board/NewBoardController';
-import SelectBoardController from '@/actions/App/Http/Controllers/Board/SelectBoardController';
-import BoardsList from '@/components/board/BoardsList.vue';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import AppLayout from '@/layouts/AppLayout.vue';
-import type { BreadcrumbItem } from '@/types';
-import { Board } from '@/types/board';
-import { LengthAwarePaginator } from '@/types/pagination';
-import { Head, Link } from '@inertiajs/vue3';
+import NewBoardController from "@/actions/App/Http/Controllers/Board/NewBoardController";
+import SelectBoardController from "@/actions/App/Http/Controllers/Board/SelectBoardController";
+import BoardsList from "@/components/board/BoardsList.vue";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import AppLayout from "@/layouts/AppLayout.vue";
+import type { BreadcrumbItem } from "@/types";
+import { Board } from "@/types/board";
+import { LengthAwarePaginator } from "@/types/pagination";
+import { Head, Link } from "@inertiajs/vue3";
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Select Board',
+        title: "Select Board",
         href: SelectBoardController().url,
     },
 ];
